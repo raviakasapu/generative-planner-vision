@@ -72,7 +72,7 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
 
       let query = supabase
         .from(tableName)
-        .select(`${column}`);
+        .select(column);
 
       if (filterText) {
         query = query.ilike(column, `%${filterText}%`);
