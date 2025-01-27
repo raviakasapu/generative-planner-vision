@@ -9,7 +9,226 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      businesslogicrules: {
+        Row: {
+          created_at: string | null
+          id: string
+          rule_definition: Json
+          rule_description: string | null
+          rule_name: string
+          updated_at: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          rule_definition: Json
+          rule_description?: string | null
+          rule_name: string
+          updated_at?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          rule_definition?: Json
+          rule_description?: string | null
+          rule_name?: string
+          updated_at?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      masterdimension1: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          dimension_name: string
+          hierarchy_level: string | null
+          id: string
+          product_description: string | null
+          product_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          hierarchy_level?: string | null
+          id?: string
+          product_description?: string | null
+          product_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          hierarchy_level?: string | null
+          id?: string
+          product_description?: string | null
+          product_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      masterdimension2: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          dimension_name: string
+          id: string
+          region_description: string | null
+          region_id: string
+          sales_manager: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          region_description?: string | null
+          region_id: string
+          sales_manager?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          region_description?: string | null
+          region_id?: string
+          sales_manager?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mastertimedimension: {
+        Row: {
+          created_at: string | null
+          dimension_name: string
+          id: string
+          month_id: string
+          month_name: string
+          month_number_in_year: number
+          month_start_date: string | null
+          quarter: string
+          quarter_number_in_year: number
+          updated_at: string | null
+          year: number
+          year_start_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          month_id: string
+          month_name: string
+          month_number_in_year: number
+          month_start_date?: string | null
+          quarter: string
+          quarter_number_in_year: number
+          updated_at?: string | null
+          year: number
+          year_start_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          month_id?: string
+          month_name?: string
+          month_number_in_year?: number
+          month_start_date?: string | null
+          quarter?: string
+          quarter_number_in_year?: number
+          updated_at?: string | null
+          year?: number
+          year_start_date?: string | null
+        }
+        Relationships: []
+      }
+      planningdata: {
+        Row: {
+          dimension1_id: string | null
+          dimension2_id: string | null
+          id: string
+          measure1: number | null
+          measure2: number | null
+          time_dimension_id: string
+          transaction_timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          dimension1_id?: string | null
+          dimension2_id?: string | null
+          id?: string
+          measure1?: number | null
+          measure2?: number | null
+          time_dimension_id: string
+          transaction_timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          dimension1_id?: string | null
+          dimension2_id?: string | null
+          id?: string
+          measure1?: number | null
+          measure2?: number | null
+          time_dimension_id?: string
+          transaction_timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planningdata_dimension1_id_fkey"
+            columns: ["dimension1_id"]
+            isOneToOne: false
+            referencedRelation: "masterdimension1"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planningdata_dimension2_id_fkey"
+            columns: ["dimension2_id"]
+            isOneToOne: false
+            referencedRelation: "masterdimension2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planningdata_time_dimension_id_fkey"
+            columns: ["time_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "mastertimedimension"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      userprofiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
