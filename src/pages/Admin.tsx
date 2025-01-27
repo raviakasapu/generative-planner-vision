@@ -1,41 +1,11 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserManagement } from '@/components/admin/UserManagement';
+import { SystemAnalytics } from '@/components/admin/SystemAnalytics';
 
 const Admin = () => {
-  const { toast } = useToast();
   const { userRole } = useAuth();
-
-  const { data: users, isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('userprofiles')
-        .select('*');
-      
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to fetch users",
-          variant: "destructive",
-        });
-        throw error;
-      }
-      
-      return data;
-    },
-    enabled: userRole === 'admin'
-  });
 
   if (userRole !== 'admin') {
     return (
@@ -46,34 +16,24 @@ const Admin = () => {
     );
   }
 
-  if (isLoading) {
-    return <div className="container mx-auto p-4">Loading...</div>;
-  }
-
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
       
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>User ID</TableHead>
-            <TableHead>Full Name</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Created At</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users?.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-mono">{user.id}</TableCell>
-              <TableCell>{user.full_name || 'N/A'}</TableCell>
-              <TableCell>{user.role}</TableCell>
-              <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Tabs defaultValue="analytics" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <SystemAnalytics />
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-4">
+          <UserManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
