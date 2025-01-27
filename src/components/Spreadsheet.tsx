@@ -7,11 +7,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings2, Table } from "lucide-react";
+import { Settings2, Table, GripHorizontal } from "lucide-react";
 
 interface PlanningData {
   id: string;
@@ -26,22 +27,34 @@ interface ColumnConfig {
   type: 'dimension' | 'attribute' | 'hierarchy' | 'measure';
   filter: string;
   sortOrder: 'asc' | 'desc' | null;
+  order: number;
 }
 
 const Spreadsheet = () => {
   const [data, setData] = useState<PlanningData[]>([]);
   const [viewType, setViewType] = useState<'table' | 'pivot'>('table');
+  const [showTotals, setShowTotals] = useState(false);
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnConfigs, setColumnConfigs] = useState<Record<string, ColumnConfig>>({
-    dimension1_id: { field: 'dimension1_id', type: 'dimension', filter: '', sortOrder: null },
-    dimension2_id: { field: 'dimension2_id', type: 'dimension', filter: '', sortOrder: null },
-    measure1: { field: 'measure1', type: 'measure', filter: '', sortOrder: null },
-    measure2: { field: 'measure2', type: 'measure', filter: '', sortOrder: null },
+    dimension1_id: { field: 'dimension1_id', type: 'dimension', filter: '', sortOrder: null, order: 0 },
+    dimension2_id: { field: 'dimension2_id', type: 'dimension', filter: '', sortOrder: null, order: 1 },
+    measure1: { field: 'measure1', type: 'measure', filter: '', sortOrder: null, order: 2 },
+    measure2: { field: 'measure2', type: 'measure', filter: '', sortOrder: null, order: 3 },
   });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPlanningData();
+    initializeColumnOrder();
   }, []);
+
+  const initializeColumnOrder = () => {
+    const initialOrder = Object.keys(columnConfigs).sort(
+      (a, b) => columnConfigs[a].order - columnConfigs[b].order
+    );
+    setColumnOrder(initialOrder);
+  };
 
   const fetchPlanningData = async () => {
     try {
@@ -102,28 +115,37 @@ const Spreadsheet = () => {
     }
   };
 
-  const handleColumnConfigChange = (field: string, type: ColumnConfig['type']) => {
-    setColumnConfigs(prev => ({
-      ...prev,
-      [field]: { ...prev[field], type }
-    }));
+  const handleColumnDragStart = (field: string) => {
+    setDraggedColumn(field);
   };
 
-  const handleFilterChange = (field: string, value: string) => {
-    setColumnConfigs(prev => ({
-      ...prev,
-      [field]: { ...prev[field], filter: value }
-    }));
+  const handleColumnDragOver = (e: React.DragEvent, targetField: string) => {
+    e.preventDefault();
+    if (!draggedColumn || draggedColumn === targetField) return;
+
+    const newOrder = [...columnOrder];
+    const draggedIndex = newOrder.indexOf(draggedColumn);
+    const targetIndex = newOrder.indexOf(targetField);
+
+    newOrder.splice(draggedIndex, 1);
+    newOrder.splice(targetIndex, 0, draggedColumn);
+
+    setColumnOrder(newOrder);
   };
 
-  const toggleSort = (field: string) => {
-    setColumnConfigs(prev => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        sortOrder: prev[field].sortOrder === 'asc' ? 'desc' : 'asc'
-      }
-    }));
+  const handleColumnDragEnd = () => {
+    setDraggedColumn(null);
+    // Update column configs with new order
+    const newConfigs = { ...columnConfigs };
+    columnOrder.forEach((field, index) => {
+      newConfigs[field] = { ...newConfigs[field], order: index };
+    });
+    setColumnConfigs(newConfigs);
+  };
+
+  const calculateTotals = (field: string) => {
+    if (!field.startsWith('measure')) return null;
+    return data.reduce((sum, row) => sum + (row[field as keyof PlanningData] as number || 0), 0);
   };
 
   const filteredAndSortedData = React.useMemo(() => {
@@ -173,6 +195,12 @@ const Spreadsheet = () => {
               <DropdownMenuItem onClick={() => setViewType('pivot')}>
                 Pivot View
               </DropdownMenuItem>
+              <DropdownMenuCheckboxItem
+                checked={showTotals}
+                onCheckedChange={setShowTotals}
+              >
+                Show Totals
+              </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -180,21 +208,31 @@ const Spreadsheet = () => {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              {Object.entries(columnConfigs).map(([field, config]) => (
-                <th key={field} className="border p-2 bg-muted font-medium">
+              {columnOrder.map((field) => (
+                <th 
+                  key={field} 
+                  className="border p-2 bg-muted font-medium cursor-move"
+                  draggable
+                  onDragStart={() => handleColumnDragStart(field)}
+                  onDragOver={(e) => handleColumnDragOver(e, field)}
+                  onDragEnd={handleColumnDragEnd}
+                >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span>{field}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleSort(field)}
-                      >
-                        {config.sortOrder === 'asc' ? '↑' : config.sortOrder === 'desc' ? '↓' : '↕'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <GripHorizontal className="h-4 w-4 text-muted-foreground" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleSort(field)}
+                        >
+                          {columnConfigs[field].sortOrder === 'asc' ? '↑' : columnConfigs[field].sortOrder === 'desc' ? '↓' : '↕'}
+                        </Button>
+                      </div>
                     </div>
                     <Select
-                      value={config.type}
+                      value={columnConfigs[field].type}
                       onValueChange={(value) => handleColumnConfigChange(field, value as ColumnConfig['type'])}
                     >
                       <SelectTrigger className="w-full">
@@ -209,7 +247,7 @@ const Spreadsheet = () => {
                     </Select>
                     <Input
                       placeholder="Filter..."
-                      value={config.filter}
+                      value={columnConfigs[field].filter}
                       onChange={(e) => handleFilterChange(field, e.target.value)}
                       className="w-full"
                     />
@@ -221,7 +259,7 @@ const Spreadsheet = () => {
           <tbody>
             {filteredAndSortedData.map((row, rowIndex) => (
               <tr key={row.id}>
-                {Object.keys(columnConfigs).map((field) => (
+                {columnOrder.map((field) => (
                   <td key={field} className="border p-2">
                     <input
                       type={field.startsWith('measure') ? "number" : "text"}
@@ -233,6 +271,15 @@ const Spreadsheet = () => {
                 ))}
               </tr>
             ))}
+            {showTotals && (
+              <tr className="font-bold bg-muted/50">
+                {columnOrder.map((field) => (
+                  <td key={field} className="border p-2">
+                    {calculateTotals(field)?.toFixed(2) || ''}
+                  </td>
+                ))}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
