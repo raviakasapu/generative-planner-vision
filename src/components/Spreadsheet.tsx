@@ -25,7 +25,7 @@ const Spreadsheet = () => {
       if (!dimensionData) return '';
       
       const selectedColumn = columnConfigs[field].selectedColumn;
-      return String(dimensionData[selectedColumn as keyof typeof dimensionData] || '');
+      return String(dimensionData[selectedColumn] || '');
     }
     
     return String(row[field] || '');

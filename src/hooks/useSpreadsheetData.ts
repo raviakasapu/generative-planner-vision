@@ -28,14 +28,16 @@ export const useSpreadsheetData = () => {
       type: 'measure',
       aggregation: 'sum',
       filter: '',
-      sortOrder: null
+      sortOrder: null,
+      selectedColumn: 'measure1'
     },
     measure2: { 
       field: 'measure2', 
       type: 'measure',
       aggregation: 'sum',
       filter: '',
-      sortOrder: null
+      sortOrder: null,
+      selectedColumn: 'measure2'
     }
   });
 

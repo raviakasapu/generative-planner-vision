@@ -30,5 +30,10 @@ export interface ColumnConfig {
   aggregation?: AggregationType;
   filter: string;
   sortOrder: SortOrder;
-  selectedColumn?: string;
+  selectedColumn: string;
+}
+
+export interface DimensionColumn {
+  value: string;
+  label: string;
 }
