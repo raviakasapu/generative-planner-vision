@@ -32,7 +32,7 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
   onTypeChange,
   onFilterChange,
 }) => {
-  const [dimensionOptions, setDimensionOptions] = useState<Array<{ id: string; label: string; value: string }>>([]);
+  const [dimensionOptions, setDimensionOptions] = useState<Array<{ label: string; value: string }>>([]);
   const [filterText, setFilterText] = useState(config.filter || '');
 
   const measureOptions = [
@@ -70,10 +70,9 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
 
       if (!column) return;
 
-      let query = supabase.from(tableName).select('*');
+      let query = supabase.from(tableName).select(`${column}`);
 
       if (filterText) {
-        // Apply filter on the selected column instead of id
         query = query.ilike(column, `%${filterText}%`);
       }
 
@@ -85,10 +84,10 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
       }
 
       if (data) {
-        const options = data.map(item => ({
-          id: item.id,
-          label: String(item[column as keyof typeof item] || ''),
-          value: item.id
+        const uniqueValues = [...new Set(data.map(item => item[column]))];
+        const options = uniqueValues.map(value => ({
+          label: String(value || ''),
+          value: String(value || '')
         }));
         setDimensionOptions(options);
       }

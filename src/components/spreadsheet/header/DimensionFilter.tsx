@@ -14,7 +14,7 @@ import { ColumnConfig } from '../types';
 interface DimensionFilterProps {
   field: string;
   config: ColumnConfig;
-  dimensionOptions: Array<{ id: string; label: string; value: string }>;
+  dimensionOptions: Array<{ label: string; value: string }>;
   onTypeChange: (value: string) => void;
   onFilterChange: (value: string) => void;
   filterText: string;
