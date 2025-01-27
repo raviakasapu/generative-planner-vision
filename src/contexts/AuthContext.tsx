@@ -26,7 +26,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -35,7 +34,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -54,7 +52,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserRole = async (userId: string) => {
     try {
-      // Fetch user role from userprofiles
       const { data: userProfile, error: profileError } = await supabase
         .from('userprofiles')
         .select('role')
@@ -62,12 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (profileError) throw profileError;
-
       setUserRole(userProfile?.role || null);
 
-      // Fetch role permissions
       if (userProfile?.role) {
-        const { data: permissions, error: permissionsError } = await supabase
+        const { data: permissions } = await supabase
           .from('rolepermissions')
           .select(`
             permissions (
@@ -77,10 +72,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('roles.role_name', userProfile.role)
           .join('roles', 'rolepermissions.role_id', 'roles.id');
 
-        if (permissionsError) throw permissionsError;
-
         setUserPermissions(
-          permissions?.map((p) => p.permissions.permission_name) || []
+          permissions?.map((p: any) => p.permissions.permission_name) || []
         );
       }
     } catch (error) {
