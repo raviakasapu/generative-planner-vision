@@ -19,6 +19,16 @@ interface BusinessRule {
   updated_at?: string;
 }
 
+interface RawBusinessRule {
+  id: string;
+  rule_name: string;
+  rule_description: string | null;
+  rule_definition: any;
+  version: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 const BusinessLogic = () => {
   const [rules, setRules] = useState<BusinessRule[]>([]);
   const [newRule, setNewRule] = useState({ name: "", description: "", logic: "" });
@@ -27,6 +37,26 @@ const BusinessLogic = () => {
   useEffect(() => {
     fetchRules();
   }, []);
+
+  const transformRule = (rule: RawBusinessRule): BusinessRule => {
+    let transformedDefinition: { logic: string; [key: string]: any };
+    
+    if (typeof rule.rule_definition === 'string') {
+      transformedDefinition = { logic: rule.rule_definition };
+    } else if (typeof rule.rule_definition === 'object' && rule.rule_definition !== null) {
+      transformedDefinition = {
+        logic: rule.rule_definition.logic || '',
+        ...rule.rule_definition
+      };
+    } else {
+      transformedDefinition = { logic: '' };
+    }
+
+    return {
+      ...rule,
+      rule_definition: transformedDefinition
+    };
+  };
 
   const fetchRules = async () => {
     try {
@@ -37,14 +67,7 @@ const BusinessLogic = () => {
 
       if (error) throw error;
       
-      // Transform the data to match BusinessRule interface
-      const transformedData: BusinessRule[] = (data || []).map(rule => ({
-        ...rule,
-        rule_definition: typeof rule.rule_definition === 'string' 
-          ? { logic: rule.rule_definition }
-          : rule.rule_definition
-      }));
-      
+      const transformedData: BusinessRule[] = (data || []).map(transformRule);
       setRules(transformedData);
     } catch (error) {
       console.error('Error fetching rules:', error);
@@ -72,14 +95,7 @@ const BusinessLogic = () => {
 
       if (error) throw error;
 
-      // Transform the new rule to match BusinessRule interface
-      const transformedRule: BusinessRule = {
-        ...data,
-        rule_definition: typeof data.rule_definition === 'string'
-          ? { logic: data.rule_definition }
-          : data.rule_definition
-      };
-
+      const transformedRule = transformRule(data);
       setRules(prev => [...prev, transformedRule]);
       setNewRule({ name: "", description: "", logic: "" });
       
