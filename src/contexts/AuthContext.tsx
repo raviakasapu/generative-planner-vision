@@ -26,17 +26,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthProvider: Initial load');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('AuthProvider: Got session', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserRole(session.user.id);
+      } else {
+        setIsLoading(false); // Important: Set loading to false if no user
       }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('AuthProvider: Auth state changed', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -44,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setUserRole(null);
         setUserPermissions([]);
+        setIsLoading(false); // Important: Set loading to false when logged out
       }
     });
 
@@ -52,26 +58,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('AuthProvider: Fetching user role for', userId);
       const { data: userProfile, error: profileError } = await supabase
         .from('userprofiles')
         .select('role')
         .eq('id', userId)
         .single();
 
-      if (profileError) throw profileError;
-      setUserRole(userProfile?.role || null);
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        setIsLoading(false); // Important: Set loading to false on error
+        return;
+      }
+
+      console.log('AuthProvider: Got user profile', userProfile);
+      setUserRole(userProfile?.role || 'user'); // Default to 'user' if no role specified
 
       if (userProfile?.role) {
         // First, get the role ID
-        const { data: roleData } = await supabase
+        const { data: roleData, error: roleError } = await supabase
           .from('roles')
           .select('id')
           .eq('role_name', userProfile.role)
           .single();
 
+        if (roleError) {
+          console.error('Error fetching role:', roleError);
+          setIsLoading(false);
+          return;
+        }
+
         if (roleData) {
           // Then get the permissions for that role
-          const { data: permissionsData } = await supabase
+          const { data: permissionsData, error: permissionsError } = await supabase
             .from('rolepermissions')
             .select(`
               permissions (
@@ -80,15 +99,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             `)
             .eq('role_id', roleData.id);
 
+          if (permissionsError) {
+            console.error('Error fetching permissions:', permissionsError);
+            setIsLoading(false);
+            return;
+          }
+
           setUserPermissions(
             permissionsData?.map((p: any) => p.permissions.permission_name) || []
           );
         }
       }
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('Error in fetchUserRole:', error);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Important: Always set loading to false when done
     }
   };
 
