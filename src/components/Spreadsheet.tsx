@@ -4,20 +4,18 @@ import { useSpreadsheetData } from '@/hooks/useSpreadsheetData';
 import SpreadsheetHeader from './spreadsheet/SpreadsheetHeader';
 import SpreadsheetCell from './spreadsheet/SpreadsheetCell';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const Spreadsheet = () => {
-  const { data, loading, columnConfigs, updateCell, updateColumnConfig } = useSpreadsheetData();
-
-  const columnOrder = ['dimension1_id', 'dimension2_id', 'measure1', 'measure2'];
-
-  if (loading) {
-    return (
-      <Card className="w-full p-4 space-y-4">
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-[400px] w-full" />
-      </Card>
-    );
-  }
+  const { 
+    data, 
+    loading, 
+    columnConfigs, 
+    updateCell, 
+    updateColumnConfig,
+    addDimensionColumn 
+  } = useSpreadsheetData();
 
   const getCellValue = (row: any, field: string): string => {
     if (field.includes('dimension')) {
@@ -31,14 +29,41 @@ const Spreadsheet = () => {
     return String(row[field] || '');
   };
 
+  const filteredData = data.filter(row => {
+    return Object.entries(columnConfigs).every(([field, config]) => {
+      if (!config.filter) return true;
+      
+      const cellValue = getCellValue(row, field).toLowerCase();
+      return cellValue.includes(config.filter.toLowerCase());
+    });
+  });
+
   return (
     <Card className="w-full overflow-auto">
       <div className="p-4">
+        <div className="flex justify-end mb-4 space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => addDimensionColumn('dimension1')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product Column
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => addDimensionColumn('dimension2')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Region Column
+          </Button>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                {columnOrder.map((field) => (
+                {Object.keys(columnConfigs).map((field) => (
                   <SpreadsheetHeader
                     key={field}
                     field={field}
@@ -49,9 +74,9 @@ const Spreadsheet = () => {
               </tr>
             </thead>
             <tbody>
-              {data.map((row) => (
+              {filteredData.map((row) => (
                 <tr key={row.id}>
-                  {columnOrder.map((field) => (
+                  {Object.keys(columnConfigs).map((field) => (
                     <SpreadsheetCell
                       key={field}
                       row={row}
