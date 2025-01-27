@@ -64,16 +64,21 @@ const MasterData = () => {
     
     try {
       const table = newDimension.type === 'product' ? 'masterdimension1' : 'masterdimension2';
-      const idField = newDimension.type === 'product' ? 'product_id' : 'region_id';
-      const descField = newDimension.type === 'product' ? 'product_description' : 'region_description';
+      const insertData = newDimension.type === 'product' 
+        ? {
+            product_id: newDimension.id,
+            product_description: newDimension.name,
+            dimension_name: 'Products'
+          }
+        : {
+            region_id: newDimension.id,
+            region_description: newDimension.name,
+            dimension_name: 'Regions'
+          };
       
       const { data, error } = await supabase
         .from(table)
-        .insert([{
-          [idField]: newDimension.id,
-          [descField]: newDimension.name,
-          dimension_name: newDimension.type === 'product' ? 'Products' : 'Regions'
-        }])
+        .insert(insertData)
         .select()
         .single();
 
