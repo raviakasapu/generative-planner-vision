@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GripHorizontal } from "lucide-react";
+import { GripHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,7 +40,7 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
   onFilterChange,
 }) => {
   const [dimensionOptions, setDimensionOptions] = useState<DimensionOption[]>([]);
-  const [selectedColumn, setSelectedColumn] = useState<string>('id');
+  const [filterText, setFilterText] = useState(config.filter || '');
 
   const measureOptions = [
     { value: 'sum', label: 'Sum' },
@@ -72,12 +72,13 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
       if (field === 'dimension1_id') {
         const { data, error } = await supabase
           .from('masterdimension1')
-          .select('*');
+          .select('*')
+          .ilike(config.selectedColumn || 'id', `%${filterText}%`);
         
         if (!error && data) {
           const options = data.map(item => ({
             id: item.id,
-            label: item[selectedColumn as keyof typeof item]?.toString() || '',
+            label: item[config.selectedColumn as keyof typeof item]?.toString() || '',
             value: item.id
           }));
           setDimensionOptions(options);
@@ -85,12 +86,13 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
       } else if (field === 'dimension2_id') {
         const { data, error } = await supabase
           .from('masterdimension2')
-          .select('*');
+          .select('*')
+          .ilike(config.selectedColumn || 'id', `%${filterText}%`);
         
         if (!error && data) {
           const options = data.map(item => ({
             id: item.id,
-            label: item[selectedColumn as keyof typeof item]?.toString() || '',
+            label: item[config.selectedColumn as keyof typeof item]?.toString() || '',
             value: item.id
           }));
           setDimensionOptions(options);
@@ -101,10 +103,16 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
     if (field.includes('dimension')) {
       fetchDimensionOptions();
     }
-  }, [field, selectedColumn]);
+  }, [field, config.selectedColumn, filterText]);
 
-  const handleColumnSelect = (value: string) => {
-    setSelectedColumn(value);
+  const handleFilterChange = (value: string) => {
+    setFilterText(value);
+    onFilterChange(value);
+  };
+
+  const resetFilter = () => {
+    setFilterText('');
+    onFilterChange('');
   };
 
   const isDimension = field.includes('dimension');
@@ -134,39 +142,21 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
         </div>
 
         {isDimension && (
-          <>
-            <Select
-              value={selectedColumn}
-              onValueChange={handleColumnSelect}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select column" />
-              </SelectTrigger>
-              <SelectContent>
-                {columnOptions[field as keyof typeof columnOptions]?.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={config.filter}
-              onValueChange={onFilterChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select value" />
-              </SelectTrigger>
-              <SelectContent>
-                {dimensionOptions.map((option) => (
-                  <SelectItem key={option.id} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
+          <Select
+            value={config.selectedColumn}
+            onValueChange={(value) => onTypeChange(value as ColumnConfig['type'])}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select column" />
+            </SelectTrigger>
+            <SelectContent>
+              {columnOptions[field as keyof typeof columnOptions]?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
 
         {isMeasure && (
@@ -187,14 +177,24 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
           </Select>
         )}
 
-        {!isDimension && !isMeasure && (
+        <div className="relative">
           <Input
             placeholder="Filter..."
-            value={config.filter}
-            onChange={(e) => onFilterChange(e.target.value)}
-            className="w-full"
+            value={filterText}
+            onChange={(e) => handleFilterChange(e.target.value)}
+            className="w-full pr-8"
           />
-        )}
+          {filterText && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+              onClick={resetFilter}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
     </th>
   );

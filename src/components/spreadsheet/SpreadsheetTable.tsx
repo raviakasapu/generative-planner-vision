@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlanningData } from './types';
+import { PlanningData, ColumnConfig } from './types';
 
 interface SpreadsheetTableProps {
   data: PlanningData[];
@@ -7,7 +7,7 @@ interface SpreadsheetTableProps {
   showTotals: boolean;
   onCellChange: (rowIndex: number, field: string, value: string) => void;
   calculateTotals: (field: string) => number | null;
-  columnConfigs: Record<string, any>;
+  columnConfigs: Record<string, ColumnConfig>;
 }
 
 const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({

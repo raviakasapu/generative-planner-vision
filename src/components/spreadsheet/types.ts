@@ -4,6 +4,20 @@ export interface PlanningData {
   dimension2_id: string | null;
   measure1: number | null;
   measure2: number | null;
+  masterdimension1?: {
+    id: string;
+    product_id: string;
+    product_description: string;
+    category: string;
+    hierarchy_level: string;
+  };
+  masterdimension2?: {
+    id: string;
+    region_id: string;
+    region_description: string;
+    country: string;
+    sales_manager: string;
+  };
 }
 
 export interface ColumnConfig {
@@ -12,4 +26,5 @@ export interface ColumnConfig {
   filter: string;
   sortOrder: 'asc' | 'desc' | null;
   order: number;
+  selectedColumn?: string;
 }
