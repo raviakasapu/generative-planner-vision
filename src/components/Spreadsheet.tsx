@@ -78,6 +78,7 @@ const Spreadsheet = () => {
             showTotals={showTotals}
             onCellChange={handleCellChange}
             calculateTotals={calculateTotals}
+            columnConfigs={columnConfigs}
           />
         </table>
       </div>

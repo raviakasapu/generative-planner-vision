@@ -7,6 +7,7 @@ interface SpreadsheetTableProps {
   showTotals: boolean;
   onCellChange: (rowIndex: number, field: string, value: string) => void;
   calculateTotals: (field: string) => number | null;
+  columnConfigs: Record<string, any>;
 }
 
 const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
@@ -15,7 +16,22 @@ const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
   showTotals,
   onCellChange,
   calculateTotals,
+  columnConfigs,
 }) => {
+  const getCellValue = (row: PlanningData, field: string) => {
+    if (field.includes('dimension')) {
+      const dimensionData = field === 'dimension1_id' 
+        ? row.masterdimension1 
+        : row.masterdimension2;
+      
+      if (!dimensionData) return '';
+      
+      const selectedColumn = columnConfigs[field]?.selectedColumn || 'id';
+      return dimensionData[selectedColumn as keyof typeof dimensionData] || '';
+    }
+    return row[field as keyof PlanningData] || '';
+  };
+
   return (
     <tbody>
       {data.map((row, rowIndex) => (
@@ -25,7 +41,7 @@ const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
               <input
                 type={field.startsWith('measure') ? "number" : "text"}
                 className="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary"
-                value={row[field as keyof PlanningData] || ''}
+                value={getCellValue(row, field)}
                 onChange={(e) => onCellChange(rowIndex, field, e.target.value)}
               />
             </td>
