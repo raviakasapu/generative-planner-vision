@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -7,144 +8,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ColumnConfig } from './types';
-import HeaderControls from './header/HeaderControls';
-import DimensionFilter from './header/DimensionFilter';
+import { ArrowUpDown } from "lucide-react";
+import { ColumnConfig, AggregationType } from './types';
 
 interface SpreadsheetHeaderProps {
   field: string;
   config: ColumnConfig;
-  onDragStart: () => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDragEnd: () => void;
-  onSortChange: () => void;
-  onTypeChange: (value: ColumnConfig['type']) => void;
-  onFilterChange: (value: string) => void;
+  onConfigUpdate: (updates: Partial<ColumnConfig>) => void;
 }
 
 const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
   field,
   config,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  onSortChange,
-  onTypeChange,
-  onFilterChange,
+  onConfigUpdate,
 }) => {
-  const [dimensionOptions, setDimensionOptions] = useState<Array<{ label: string; value: string }>>([]);
-  const [filterText, setFilterText] = useState(config.filter || '');
-
-  const measureOptions = [
+  const aggregationOptions: { value: AggregationType; label: string }[] = [
     { value: 'sum', label: 'Sum' },
     { value: 'avg', label: 'Average' },
     { value: 'min', label: 'Minimum' },
     { value: 'max', label: 'Maximum' },
-    { value: 'count', label: 'Count' }
+    { value: 'count', label: 'Count' },
   ];
 
-  const columnOptions = {
-    dimension1_id: [
-      { value: 'product_id', label: 'Product ID' },
-      { value: 'product_description', label: 'Product Description' },
-      { value: 'category', label: 'Category' },
-      { value: 'hierarchy_level', label: 'Hierarchy Level' }
-    ],
-    dimension2_id: [
-      { value: 'region_id', label: 'Region ID' },
-      { value: 'region_description', label: 'Region Description' },
-      { value: 'country', label: 'Country' },
-      { value: 'sales_manager', label: 'Sales Manager' }
-    ]
-  };
-
-  useEffect(() => {
-    if (!field.includes('dimension') || !config.selectedColumn) return;
-    fetchDimensionOptions();
-  }, [field, config.selectedColumn, filterText]);
-
-  const fetchDimensionOptions = async () => {
-    try {
-      const tableName = field === 'dimension1_id' ? 'masterdimension1' : 'masterdimension2';
-      const column = config.selectedColumn;
-
-      if (!column) return;
-
-      let query = supabase
-        .from(tableName)
-        .select(column);
-
-      if (filterText) {
-        query = query.ilike(column, `%${filterText}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching dimension options:', error);
-        return;
-      }
-
-      if (data) {
-        const uniqueValues = [...new Set(data.map(item => item[column]))];
-        const options = uniqueValues.map(value => ({
-          label: String(value || ''),
-          value: String(value || '')
-        }));
-        setDimensionOptions(options);
-      }
-    } catch (error) {
-      console.error('Error in fetchDimensionOptions:', error);
-    }
-  };
-
-  const handleFilterChange = (value: string) => {
-    setFilterText(value);
-    onFilterChange(value);
-  };
-
-  const isDimension = field.includes('dimension');
-  const isMeasure = field.includes('measure');
-
   return (
-    <th 
-      className="border p-2 bg-muted font-medium cursor-move"
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-    >
+    <th className="p-2 border bg-muted">
       <div className="space-y-2">
-        <HeaderControls
-          field={field}
-          sortOrder={config.sortOrder}
-          onSortChange={onSortChange}
-        />
+        <div className="flex items-center justify-between">
+          <span className="font-medium">{field}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onConfigUpdate({
+              sortOrder: config.sortOrder === 'asc' ? 'desc' : 
+                        config.sortOrder === 'desc' ? null : 'asc'
+            })}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
 
-        {isDimension && (
-          <DimensionFilter
-            field={field}
-            config={config}
-            dimensionOptions={dimensionOptions}
-            onTypeChange={onTypeChange}
-            onFilterChange={handleFilterChange}
-            filterText={filterText}
-            columnOptions={columnOptions[field as keyof typeof columnOptions]}
-          />
-        )}
-
-        {isMeasure && (
+        {config.type === 'measure' && (
           <Select
-            value={config.type}
-            onValueChange={onTypeChange}
+            value={config.aggregation}
+            onValueChange={(value: AggregationType) => onConfigUpdate({ aggregation: value })}
           >
             <SelectTrigger className="w-full">
               <SelectValue>
-                {measureOptions.find(opt => opt.value === config.type)?.label || 'Select aggregation'}
+                {aggregationOptions.find(opt => opt.value === config.aggregation)?.label || 
+                 'Select aggregation'}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {measureOptions.map((option) => (
+              {aggregationOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -152,6 +67,13 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
             </SelectContent>
           </Select>
         )}
+
+        <Input
+          placeholder="Filter..."
+          value={config.filter}
+          onChange={(e) => onConfigUpdate({ filter: e.target.value })}
+          className="w-full"
+        />
       </div>
     </th>
   );

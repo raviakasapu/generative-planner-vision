@@ -1,86 +1,70 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from "@/components/ui/card";
-import SpreadsheetHeader from './spreadsheet/SpreadsheetHeader';
-import SpreadsheetToolbar from './spreadsheet/SpreadsheetToolbar';
-import SpreadsheetTable from './spreadsheet/SpreadsheetTable';
 import { useSpreadsheetData } from '@/hooks/useSpreadsheetData';
+import SpreadsheetHeader from './spreadsheet/SpreadsheetHeader';
+import SpreadsheetCell from './spreadsheet/SpreadsheetCell';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Spreadsheet = () => {
-  const [viewType, setViewType] = useState<'table' | 'pivot'>('table');
-  const [showTotals, setShowTotals] = useState(false);
-  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
-  
-  const {
-    data,
-    columnConfigs,
-    columnOrder,
-    setColumnOrder,
-    handleCellChange,
-    handleColumnConfigChange,
-    handleFilterChange,
-    toggleSort,
-    calculateTotals,
-  } = useSpreadsheetData();
+  const { data, loading, columnConfigs, updateCell, updateColumnConfig } = useSpreadsheetData();
 
-  const handleColumnDragStart = (field: string) => {
-    setDraggedColumn(field);
-  };
+  const columnOrder = ['dimension1_id', 'dimension2_id', 'measure1', 'measure2'];
 
-  const handleColumnDragOver = (e: React.DragEvent, targetField: string) => {
-    e.preventDefault();
-    if (!draggedColumn || draggedColumn === targetField) return;
+  if (loading) {
+    return (
+      <Card className="w-full p-4 space-y-4">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-[400px] w-full" />
+      </Card>
+    );
+  }
 
-    const newOrder = [...columnOrder];
-    const draggedIndex = newOrder.indexOf(draggedColumn);
-    const targetIndex = newOrder.indexOf(targetField);
-
-    newOrder.splice(draggedIndex, 1);
-    newOrder.splice(targetIndex, 0, draggedColumn);
-
-    setColumnOrder(newOrder);
-  };
-
-  const handleColumnDragEnd = () => {
-    setDraggedColumn(null);
+  const getCellValue = (row: any, field: string): string => {
+    if (field.includes('dimension')) {
+      const dimensionData = field === 'dimension1_id' ? row.masterdimension1 : row.masterdimension2;
+      if (!dimensionData) return '';
+      
+      const selectedColumn = columnConfigs[field].selectedColumn;
+      return String(dimensionData[selectedColumn as keyof typeof dimensionData] || '');
+    }
+    
+    return String(row[field] || '');
   };
 
   return (
-    <Card className="w-full h-[600px] overflow-auto">
+    <Card className="w-full overflow-auto">
       <div className="p-4">
-        <SpreadsheetToolbar
-          viewType={viewType}
-          showTotals={showTotals}
-          onViewTypeChange={setViewType}
-          onShowTotalsChange={setShowTotals}
-        />
-
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              {columnOrder.map((field) => (
-                <SpreadsheetHeader
-                  key={field}
-                  field={field}
-                  config={columnConfigs[field]}
-                  onDragStart={() => handleColumnDragStart(field)}
-                  onDragOver={(e) => handleColumnDragOver(e, field)}
-                  onDragEnd={handleColumnDragEnd}
-                  onSortChange={() => toggleSort(field)}
-                  onTypeChange={(value) => handleColumnConfigChange(field, value)}
-                  onFilterChange={(value) => handleFilterChange(field, value)}
-                />
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                {columnOrder.map((field) => (
+                  <SpreadsheetHeader
+                    key={field}
+                    field={field}
+                    config={columnConfigs[field]}
+                    onConfigUpdate={(updates) => updateColumnConfig(field, updates)}
+                  />
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row) => (
+                <tr key={row.id}>
+                  {columnOrder.map((field) => (
+                    <SpreadsheetCell
+                      key={field}
+                      row={row}
+                      field={field}
+                      value={getCellValue(row, field)}
+                      onChange={(value) => updateCell(row.id, field, value)}
+                    />
+                  ))}
+                </tr>
               ))}
-            </tr>
-          </thead>
-          <SpreadsheetTable
-            data={data}
-            columnOrder={columnOrder}
-            showTotals={showTotals}
-            onCellChange={handleCellChange}
-            calculateTotals={calculateTotals}
-            columnConfigs={columnConfigs}
-          />
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </Card>
   );

@@ -20,11 +20,15 @@ export interface PlanningData {
   };
 }
 
+export type ColumnType = 'dimension' | 'measure';
+export type AggregationType = 'sum' | 'avg' | 'min' | 'max' | 'count';
+export type SortOrder = 'asc' | 'desc' | null;
+
 export interface ColumnConfig {
   field: string;
-  type: 'dimension' | 'attribute' | 'hierarchy' | 'measure' | 'sum' | 'avg' | 'min' | 'max' | 'count';
+  type: ColumnType;
+  aggregation?: AggregationType;
   filter: string;
-  sortOrder: 'asc' | 'desc' | null;
-  order: number;
+  sortOrder: SortOrder;
   selectedColumn?: string;
 }
