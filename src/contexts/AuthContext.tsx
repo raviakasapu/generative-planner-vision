@@ -62,19 +62,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserRole(userProfile?.role || null);
 
       if (userProfile?.role) {
-        const { data: permissions } = await supabase
-          .from('rolepermissions')
-          .select(`
-            permissions (
-              permission_name
-            )
-          `)
-          .eq('roles.role_name', userProfile.role)
-          .join('roles', 'rolepermissions.role_id', 'roles.id');
+        // First, get the role ID
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('id')
+          .eq('role_name', userProfile.role)
+          .single();
 
-        setUserPermissions(
-          permissions?.map((p: any) => p.permissions.permission_name) || []
-        );
+        if (roleData) {
+          // Then get the permissions for that role
+          const { data: permissionsData } = await supabase
+            .from('rolepermissions')
+            .select(`
+              permissions (
+                permission_name
+              )
+            `)
+            .eq('role_id', roleData.id);
+
+          setUserPermissions(
+            permissionsData?.map((p: any) => p.permissions.permission_name) || []
+          );
+        }
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
