@@ -52,14 +52,12 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
 
   const columnOptions = {
     dimension1_id: [
-      { value: 'id', label: 'ID' },
       { value: 'product_id', label: 'Product ID' },
       { value: 'product_description', label: 'Product Description' },
       { value: 'category', label: 'Category' },
       { value: 'hierarchy_level', label: 'Hierarchy Level' }
     ],
     dimension2_id: [
-      { value: 'id', label: 'ID' },
       { value: 'region_id', label: 'Region ID' },
       { value: 'region_description', label: 'Region Description' },
       { value: 'country', label: 'Country' },
@@ -69,40 +67,32 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
 
   useEffect(() => {
     const fetchDimensionOptions = async () => {
-      if (field === 'dimension1_id') {
-        const { data, error } = await supabase
-          .from('masterdimension1')
-          .select('*')
-          .ilike(config.selectedColumn || 'id', `%${filterText}%`);
-        
-        if (!error && data) {
-          const options = data.map(item => ({
-            id: item.id,
-            label: item[config.selectedColumn as keyof typeof item]?.toString() || '',
-            value: item.id
-          }));
-          setDimensionOptions(options);
-        }
-      } else if (field === 'dimension2_id') {
-        const { data, error } = await supabase
-          .from('masterdimension2')
-          .select('*')
-          .ilike(config.selectedColumn || 'id', `%${filterText}%`);
-        
-        if (!error && data) {
-          const options = data.map(item => ({
-            id: item.id,
-            label: item[config.selectedColumn as keyof typeof item]?.toString() || '',
-            value: item.id
-          }));
-          setDimensionOptions(options);
-        }
+      if (!field.includes('dimension') || !config.selectedColumn) return;
+
+      const tableName = field === 'dimension1_id' ? 'masterdimension1' : 'masterdimension2';
+      const column = config.selectedColumn;
+
+      const query = supabase
+        .from(tableName)
+        .select('*');
+
+      if (filterText) {
+        query.ilike(column, `%${filterText}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data) {
+        const options = data.map(item => ({
+          id: item.id,
+          label: String(item[column as keyof typeof item] || ''),
+          value: item.id
+        }));
+        setDimensionOptions(options);
       }
     };
 
-    if (field.includes('dimension')) {
-      fetchDimensionOptions();
-    }
+    fetchDimensionOptions();
   }, [field, config.selectedColumn, filterText]);
 
   const handleFilterChange = (value: string) => {

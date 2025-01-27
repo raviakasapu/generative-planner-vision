@@ -18,7 +18,7 @@ const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
   calculateTotals,
   columnConfigs,
 }) => {
-  const getCellValue = (row: PlanningData, field: string) => {
+  const getCellValue = (row: PlanningData, field: string): string => {
     if (field.includes('dimension')) {
       const dimensionData = field === 'dimension1_id' 
         ? row.masterdimension1 
@@ -27,9 +27,12 @@ const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
       if (!dimensionData) return '';
       
       const selectedColumn = columnConfigs[field]?.selectedColumn || 'id';
-      return dimensionData[selectedColumn as keyof typeof dimensionData] || '';
+      const value = dimensionData[selectedColumn as keyof typeof dimensionData];
+      return value ? String(value) : '';
     }
-    return row[field as keyof PlanningData] || '';
+    
+    const value = row[field as keyof PlanningData];
+    return value !== null ? String(value) : '';
   };
 
   return (
