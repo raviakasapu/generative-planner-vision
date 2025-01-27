@@ -2,33 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings2, Table, GripHorizontal } from "lucide-react";
-
-interface PlanningData {
-  id: string;
-  dimension1_id: string | null;
-  dimension2_id: string | null;
-  measure1: number | null;
-  measure2: number | null;
-}
-
-interface ColumnConfig {
-  field: string;
-  type: 'dimension' | 'attribute' | 'hierarchy' | 'measure';
-  filter: string;
-  sortOrder: 'asc' | 'desc' | null;
-  order: number;
-}
+import SpreadsheetHeader from './spreadsheet/SpreadsheetHeader';
+import SpreadsheetToolbar from './spreadsheet/SpreadsheetToolbar';
+import SpreadsheetTable from './spreadsheet/SpreadsheetTable';
+import { PlanningData, ColumnConfig } from './spreadsheet/types';
 
 const Spreadsheet = () => {
   const [data, setData] = useState<PlanningData[]>([]);
@@ -69,7 +46,6 @@ const Spreadsheet = () => {
         .limit(20);
 
       if (error) throw error;
-
       setData(data || []);
     } catch (error) {
       console.error('Error fetching planning data:', error);
@@ -135,12 +111,34 @@ const Spreadsheet = () => {
 
   const handleColumnDragEnd = () => {
     setDraggedColumn(null);
-    // Update column configs with new order
     const newConfigs = { ...columnConfigs };
     columnOrder.forEach((field, index) => {
       newConfigs[field] = { ...newConfigs[field], order: index };
     });
     setColumnConfigs(newConfigs);
+  };
+
+  const toggleSort = (field: string) => {
+    const config = columnConfigs[field];
+    const newSortOrder = config.sortOrder === 'asc' ? 'desc' : config.sortOrder === 'desc' ? null : 'asc';
+    setColumnConfigs({
+      ...columnConfigs,
+      [field]: { ...config, sortOrder: newSortOrder }
+    });
+  };
+
+  const handleColumnConfigChange = (field: string, type: ColumnConfig['type']) => {
+    setColumnConfigs({
+      ...columnConfigs,
+      [field]: { ...columnConfigs[field], type }
+    });
+  };
+
+  const handleFilterChange = (field: string, value: string) => {
+    setColumnConfigs({
+      ...columnConfigs,
+      [field]: { ...columnConfigs[field], filter: value }
+    });
   };
 
   const calculateTotals = (field: string) => {
@@ -180,107 +178,38 @@ const Spreadsheet = () => {
   return (
     <Card className="w-full h-[600px] overflow-auto">
       <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Planning Data</h2>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Settings2 className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setViewType('table')}>
-                Table View
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewType('pivot')}>
-                Pivot View
-              </DropdownMenuItem>
-              <DropdownMenuCheckboxItem
-                checked={showTotals}
-                onCheckedChange={setShowTotals}
-              >
-                Show Totals
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <SpreadsheetToolbar
+          viewType={viewType}
+          showTotals={showTotals}
+          onViewTypeChange={setViewType}
+          onShowTotalsChange={setShowTotals}
+        />
 
         <table className="w-full border-collapse">
           <thead>
             <tr>
               {columnOrder.map((field) => (
-                <th 
-                  key={field} 
-                  className="border p-2 bg-muted font-medium cursor-move"
-                  draggable
+                <SpreadsheetHeader
+                  key={field}
+                  field={field}
+                  config={columnConfigs[field]}
                   onDragStart={() => handleColumnDragStart(field)}
                   onDragOver={(e) => handleColumnDragOver(e, field)}
                   onDragEnd={handleColumnDragEnd}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span>{field}</span>
-                      <div className="flex items-center gap-2">
-                        <GripHorizontal className="h-4 w-4 text-muted-foreground" />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleSort(field)}
-                        >
-                          {columnConfigs[field].sortOrder === 'asc' ? '↑' : columnConfigs[field].sortOrder === 'desc' ? '↓' : '↕'}
-                        </Button>
-                      </div>
-                    </div>
-                    <Select
-                      value={columnConfigs[field].type}
-                      onValueChange={(value) => handleColumnConfigChange(field, value as ColumnConfig['type'])}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dimension">Dimension</SelectItem>
-                        <SelectItem value="attribute">Attribute</SelectItem>
-                        <SelectItem value="hierarchy">Hierarchy</SelectItem>
-                        <SelectItem value="measure">Measure</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="Filter..."
-                      value={columnConfigs[field].filter}
-                      onChange={(e) => handleFilterChange(field, e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </th>
+                  onSortChange={() => toggleSort(field)}
+                  onTypeChange={(value) => handleColumnConfigChange(field, value)}
+                  onFilterChange={(value) => handleFilterChange(field, value)}
+                />
               ))}
             </tr>
           </thead>
-          <tbody>
-            {filteredAndSortedData.map((row, rowIndex) => (
-              <tr key={row.id}>
-                {columnOrder.map((field) => (
-                  <td key={field} className="border p-2">
-                    <input
-                      type={field.startsWith('measure') ? "number" : "text"}
-                      className="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary"
-                      value={row[field as keyof PlanningData] || ''}
-                      onChange={(e) => handleCellChange(rowIndex, field, e.target.value)}
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-            {showTotals && (
-              <tr className="font-bold bg-muted/50">
-                {columnOrder.map((field) => (
-                  <td key={field} className="border p-2">
-                    {calculateTotals(field)?.toFixed(2) || ''}
-                  </td>
-                ))}
-              </tr>
-            )}
-          </tbody>
+          <SpreadsheetTable
+            data={filteredAndSortedData}
+            columnOrder={columnOrder}
+            showTotals={showTotals}
+            onCellChange={handleCellChange}
+            calculateTotals={calculateTotals}
+          />
         </table>
       </div>
     </Card>
