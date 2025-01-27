@@ -70,7 +70,9 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
 
       if (!column) return;
 
-      let query = supabase.from(tableName).select(`${column}`);
+      let query = supabase
+        .from(tableName)
+        .select(`${column}`);
 
       if (filterText) {
         query = query.ilike(column, `%${filterText}%`);
