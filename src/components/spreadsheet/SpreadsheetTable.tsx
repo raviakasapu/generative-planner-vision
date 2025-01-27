@@ -29,8 +29,7 @@ const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
       const selectedColumn = columnConfigs[field]?.selectedColumn;
       if (!selectedColumn) return '';
 
-      const value = dimensionData[selectedColumn as keyof typeof dimensionData];
-      return value ? String(value) : '';
+      return String(dimensionData[selectedColumn as keyof typeof dimensionData] || '');
     }
     
     const value = row[field as keyof PlanningData];
