@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface BusinessRule {
   id: string;
@@ -12,6 +13,8 @@ interface BusinessRule {
   rule_description: string | null;
   rule_definition: {
     logic: string;
+    dimension1_id?: string;
+    dimension2_id?: string;
     [key: string]: any;
   };
   version: number;
@@ -29,13 +32,31 @@ interface RawBusinessRule {
   updated_at?: string;
 }
 
+interface Dimension {
+  id: string;
+  dimension_name: string;
+  product_id?: string;
+  region_id?: string;
+  product_description?: string;
+  region_description?: string;
+}
+
 const BusinessLogic = () => {
   const [rules, setRules] = useState<BusinessRule[]>([]);
-  const [newRule, setNewRule] = useState({ name: "", description: "", logic: "" });
+  const [newRule, setNewRule] = useState({ 
+    name: "", 
+    description: "", 
+    logic: "",
+    dimension1_id: "",
+    dimension2_id: "" 
+  });
+  const [dimensions1, setDimensions1] = useState<Dimension[]>([]);
+  const [dimensions2, setDimensions2] = useState<Dimension[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchRules();
+    fetchDimensions();
   }, []);
 
   const transformRule = (rule: RawBusinessRule): BusinessRule => {
@@ -46,6 +67,8 @@ const BusinessLogic = () => {
     } else if (typeof rule.rule_definition === 'object' && rule.rule_definition !== null) {
       transformedDefinition = {
         logic: rule.rule_definition.logic || '',
+        dimension1_id: rule.rule_definition.dimension1_id,
+        dimension2_id: rule.rule_definition.dimension2_id,
         ...rule.rule_definition
       };
     } else {
@@ -56,6 +79,33 @@ const BusinessLogic = () => {
       ...rule,
       rule_definition: transformedDefinition
     };
+  };
+
+  const fetchDimensions = async () => {
+    try {
+      const { data: dim1, error: error1 } = await supabase
+        .from('masterdimension1')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const { data: dim2, error: error2 } = await supabase
+        .from('masterdimension2')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error1) throw error1;
+      if (error2) throw error2;
+
+      setDimensions1(dim1 || []);
+      setDimensions2(dim2 || []);
+    } catch (error) {
+      console.error('Error fetching dimensions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch dimensions",
+        variant: "destructive",
+      });
+    }
   };
 
   const fetchRules = async () => {
@@ -88,7 +138,11 @@ const BusinessLogic = () => {
         .insert([{
           rule_name: newRule.name,
           rule_description: newRule.description || null,
-          rule_definition: { logic: newRule.logic }
+          rule_definition: { 
+            logic: newRule.logic,
+            dimension1_id: newRule.dimension1_id || null,
+            dimension2_id: newRule.dimension2_id || null
+          }
         }])
         .select()
         .single();
@@ -97,7 +151,7 @@ const BusinessLogic = () => {
 
       const transformedRule = transformRule(data);
       setRules(prev => [...prev, transformedRule]);
-      setNewRule({ name: "", description: "", logic: "" });
+      setNewRule({ name: "", description: "", logic: "", dimension1_id: "", dimension2_id: "" });
       
       toast({
         title: "Rule added",
@@ -143,6 +197,46 @@ const BusinessLogic = () => {
             />
           </div>
         </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Product Dimension</label>
+            <Select
+              value={newRule.dimension1_id}
+              onValueChange={(value) => setNewRule(prev => ({ ...prev, dimension1_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select product..." />
+              </SelectTrigger>
+              <SelectContent>
+                {dimensions1.map((dim) => (
+                  <SelectItem key={dim.id} value={dim.id}>
+                    {dim.product_description || dim.product_id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Region Dimension</label>
+            <Select
+              value={newRule.dimension2_id}
+              onValueChange={(value) => setNewRule(prev => ({ ...prev, dimension2_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select region..." />
+              </SelectTrigger>
+              <SelectContent>
+                {dimensions2.map((dim) => (
+                  <SelectItem key={dim.id} value={dim.id}>
+                    {dim.region_description || dim.region_id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <Button onClick={handleAddRule}>Add Rule</Button>
         
         <ScrollArea className="h-[300px] border rounded-md p-4">
