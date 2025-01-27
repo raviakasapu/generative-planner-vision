@@ -41,7 +41,9 @@ const DimensionFilter: React.FC<DimensionFilterProps> = ({
         onValueChange={onTypeChange}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select column" />
+          <SelectValue placeholder="Select column">
+            {columnOptions.find(opt => opt.value === config.selectedColumn)?.label || 'Select column'}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {columnOptions.map((option) => (

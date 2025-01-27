@@ -29,6 +29,7 @@ const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
       const selectedColumn = columnConfigs[field]?.selectedColumn;
       if (!selectedColumn) return '';
 
+      // Return the actual business value based on the selected column
       return String(dimensionData[selectedColumn as keyof typeof dimensionData] || '');
     }
     
