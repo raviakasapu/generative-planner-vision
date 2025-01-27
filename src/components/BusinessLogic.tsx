@@ -15,6 +15,8 @@ interface BusinessRule {
     [key: string]: any;
   };
   version: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const BusinessLogic = () => {
@@ -34,7 +36,16 @@ const BusinessLogic = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRules(data || []);
+      
+      // Transform the data to match BusinessRule interface
+      const transformedData: BusinessRule[] = (data || []).map(rule => ({
+        ...rule,
+        rule_definition: typeof rule.rule_definition === 'string' 
+          ? { logic: rule.rule_definition }
+          : rule.rule_definition
+      }));
+      
+      setRules(transformedData);
     } catch (error) {
       console.error('Error fetching rules:', error);
       toast({
@@ -61,7 +72,15 @@ const BusinessLogic = () => {
 
       if (error) throw error;
 
-      setRules(prev => [...prev, data]);
+      // Transform the new rule to match BusinessRule interface
+      const transformedRule: BusinessRule = {
+        ...data,
+        rule_definition: typeof data.rule_definition === 'string'
+          ? { logic: data.rule_definition }
+          : data.rule_definition
+      };
+
+      setRules(prev => [...prev, transformedRule]);
       setNewRule({ name: "", description: "", logic: "" });
       
       toast({
