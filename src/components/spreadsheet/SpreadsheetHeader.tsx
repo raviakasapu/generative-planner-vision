@@ -139,7 +139,9 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
             onValueChange={onTypeChange}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select aggregation" />
+              <SelectValue>
+                {measureOptions.find(opt => opt.value === config.type)?.label || 'Select aggregation'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {measureOptions.map((option) => (
