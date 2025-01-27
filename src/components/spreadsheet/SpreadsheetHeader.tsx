@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { GripHorizontal, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -10,7 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ColumnConfig } from './types';
-import { supabase } from "@/integrations/supabase/client";
+import HeaderControls from './header/HeaderControls';
+import DimensionFilter from './header/DimensionFilter';
 
 interface SpreadsheetHeaderProps {
   field: string;
@@ -23,12 +22,6 @@ interface SpreadsheetHeaderProps {
   onFilterChange: (value: string) => void;
 }
 
-interface DimensionOption {
-  id: string;
-  label: string;
-  value: string;
-}
-
 const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
   field,
   config,
@@ -39,7 +32,7 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
   onTypeChange,
   onFilterChange,
 }) => {
-  const [dimensionOptions, setDimensionOptions] = useState<DimensionOption[]>([]);
+  const [dimensionOptions, setDimensionOptions] = useState<Array<{ id: string; label: string; value: string }>>([]);
   const [filterText, setFilterText] = useState(config.filter || '');
 
   const measureOptions = [
@@ -66,53 +59,46 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
   };
 
   useEffect(() => {
-    const fetchDimensionOptions = async () => {
-      if (!field.includes('dimension') || !config.selectedColumn) return;
+    if (!field.includes('dimension') || !config.selectedColumn) return;
+    fetchDimensionOptions();
+  }, [field, config.selectedColumn, filterText]);
 
+  const fetchDimensionOptions = async () => {
+    try {
       const tableName = field === 'dimension1_id' ? 'masterdimension1' : 'masterdimension2';
       const column = config.selectedColumn;
 
-      try {
-        let query = supabase
-          .from(tableName)
-          .select('*');
+      if (!column) return;
 
-        if (filterText) {
-          // Only apply filter if there's filter text
-          query = query.ilike(column, `%${filterText}%`);
-        }
+      let query = supabase.from(tableName).select('*');
 
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('Error fetching dimension options:', error);
-          return;
-        }
-
-        if (data) {
-          const options = data.map(item => ({
-            id: item.id,
-            label: String(item[column as keyof typeof item] || ''),
-            value: item.id
-          }));
-          setDimensionOptions(options);
-        }
-      } catch (error) {
-        console.error('Error in fetchDimensionOptions:', error);
+      if (filterText) {
+        query = query.ilike(column, `%${filterText}%`);
       }
-    };
 
-    fetchDimensionOptions();
-  }, [field, config.selectedColumn, filterText]);
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching dimension options:', error);
+        return;
+      }
+
+      if (data) {
+        const options = data.map(item => ({
+          id: item.id,
+          label: String(item[column as keyof typeof item] || ''),
+          value: item.id
+        }));
+        setDimensionOptions(options);
+      }
+    } catch (error) {
+      console.error('Error in fetchDimensionOptions:', error);
+    }
+  };
 
   const handleFilterChange = (value: string) => {
     setFilterText(value);
     onFilterChange(value);
-  };
-
-  const resetFilter = () => {
-    setFilterText('');
-    onFilterChange('');
   };
 
   const isDimension = field.includes('dimension');
@@ -127,36 +113,22 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
       onDragEnd={onDragEnd}
     >
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span>{field}</span>
-          <div className="flex items-center gap-2">
-            <GripHorizontal className="h-4 w-4 text-muted-foreground" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSortChange}
-            >
-              {config.sortOrder === 'asc' ? '↑' : config.sortOrder === 'desc' ? '↓' : '↕'}
-            </Button>
-          </div>
-        </div>
+        <HeaderControls
+          field={field}
+          sortOrder={config.sortOrder}
+          onSortChange={onSortChange}
+        />
 
         {isDimension && (
-          <Select
-            value={config.selectedColumn}
-            onValueChange={(value) => onTypeChange(value as ColumnConfig['type'])}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select column" />
-            </SelectTrigger>
-            <SelectContent>
-              {columnOptions[field as keyof typeof columnOptions]?.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DimensionFilter
+            field={field}
+            config={config}
+            dimensionOptions={dimensionOptions}
+            onTypeChange={onTypeChange}
+            onFilterChange={handleFilterChange}
+            filterText={filterText}
+            columnOptions={columnOptions[field as keyof typeof columnOptions]}
+          />
         )}
 
         {isMeasure && (
@@ -176,25 +148,6 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
             </SelectContent>
           </Select>
         )}
-
-        <div className="relative">
-          <Input
-            placeholder="Filter..."
-            value={filterText}
-            onChange={(e) => handleFilterChange(e.target.value)}
-            className="w-full pr-8"
-          />
-          {filterText && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-              onClick={resetFilter}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
       </div>
     </th>
   );
