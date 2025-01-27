@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      applogs: {
+        Row: {
+          component: string | null
+          details: Json | null
+          event_id: string | null
+          id: string
+          level: string
+          message: string | null
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component?: string | null
+          details?: Json | null
+          event_id?: string | null
+          id?: string
+          level: string
+          message?: string | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component?: string | null
+          details?: Json | null
+          event_id?: string | null
+          id?: string
+          level?: string
+          message?: string | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       businesslogicrules: {
         Row: {
           created_at: string | null
@@ -36,6 +69,30 @@ export type Database = {
           rule_name?: string
           updated_at?: string | null
           version?: number
+        }
+        Relationships: []
+      }
+      lockstable: {
+        Row: {
+          expiry_timestamp: string | null
+          lock_timestamp: string | null
+          resource_id: string
+          resource_type: string
+          user_id: string | null
+        }
+        Insert: {
+          expiry_timestamp?: string | null
+          lock_timestamp?: string | null
+          resource_id: string
+          resource_type: string
+          user_id?: string | null
+        }
+        Update: {
+          expiry_timestamp?: string | null
+          lock_timestamp?: string | null
+          resource_id?: string
+          resource_type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -150,6 +207,30 @@ export type Database = {
         }
         Relationships: []
       }
+      permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission_description: string | null
+          permission_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission_description?: string | null
+          permission_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission_description?: string | null
+          permission_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       planningdata: {
         Row: {
           dimension1_id: string | null
@@ -204,6 +285,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rolepermissions: {
+        Row: {
+          created_at: string | null
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string | null
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rolepermissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rolepermissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role_description: string | null
+          role_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role_description?: string | null
+          role_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role_description?: string | null
+          role_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       userprofiles: {
         Row: {
