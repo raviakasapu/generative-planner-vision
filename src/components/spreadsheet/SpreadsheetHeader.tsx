@@ -72,23 +72,33 @@ const SpreadsheetHeader: React.FC<SpreadsheetHeaderProps> = ({
       const tableName = field === 'dimension1_id' ? 'masterdimension1' : 'masterdimension2';
       const column = config.selectedColumn;
 
-      const query = supabase
-        .from(tableName)
-        .select('*');
+      try {
+        let query = supabase
+          .from(tableName)
+          .select('*');
 
-      if (filterText) {
-        query.ilike(column, `%${filterText}%`);
-      }
+        if (filterText) {
+          // Only apply filter if there's filter text
+          query = query.ilike(column, `%${filterText}%`);
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
-      if (!error && data) {
-        const options = data.map(item => ({
-          id: item.id,
-          label: String(item[column as keyof typeof item] || ''),
-          value: item.id
-        }));
-        setDimensionOptions(options);
+        if (error) {
+          console.error('Error fetching dimension options:', error);
+          return;
+        }
+
+        if (data) {
+          const options = data.map(item => ({
+            id: item.id,
+            label: String(item[column as keyof typeof item] || ''),
+            value: item.id
+          }));
+          setDimensionOptions(options);
+        }
+      } catch (error) {
+        console.error('Error in fetchDimensionOptions:', error);
       }
     };
 
