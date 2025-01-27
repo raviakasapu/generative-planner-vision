@@ -234,7 +234,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      insert_planning_data_combinations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      insert_planning_data_combinations_by_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

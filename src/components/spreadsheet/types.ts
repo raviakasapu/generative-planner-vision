@@ -8,7 +8,7 @@ export interface PlanningData {
 
 export interface ColumnConfig {
   field: string;
-  type: 'dimension' | 'attribute' | 'hierarchy' | 'measure';
+  type: 'dimension' | 'attribute' | 'hierarchy' | 'measure' | 'sum' | 'avg' | 'min' | 'max' | 'count';
   filter: string;
   sortOrder: 'asc' | 'desc' | null;
   order: number;
