@@ -5,7 +5,17 @@ import SpreadsheetHeader from './spreadsheet/SpreadsheetHeader';
 import SpreadsheetCell from './spreadsheet/SpreadsheetCell';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Spreadsheet = () => {
   const { 
@@ -16,6 +26,21 @@ const Spreadsheet = () => {
     updateColumnConfig,
     addDimensionColumn 
   } = useSpreadsheetData();
+
+  const dimensionColumns = {
+    dimension1: [
+      { value: 'product_id', label: 'Product ID' },
+      { value: 'product_description', label: 'Product Description' },
+      { value: 'category', label: 'Category' },
+      { value: 'hierarchy_level', label: 'Hierarchy Level' },
+    ],
+    dimension2: [
+      { value: 'region_id', label: 'Region ID' },
+      { value: 'region_description', label: 'Region Description' },
+      { value: 'country', label: 'Country' },
+      { value: 'sales_manager', label: 'Sales Manager' },
+    ],
+  };
 
   const getCellValue = (row: any, field: string): string => {
     if (field.includes('dimension')) {
@@ -41,23 +66,49 @@ const Spreadsheet = () => {
   return (
     <Card className="w-full overflow-auto">
       <div className="p-4">
-        <div className="flex justify-end mb-4 space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addDimensionColumn('dimension1')}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product Column
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addDimensionColumn('dimension2')}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Region Column
-          </Button>
+        <div className="flex justify-end mb-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Column
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Add Product Column
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {dimensionColumns.dimension1.map((column) => (
+                    <DropdownMenuItem
+                      key={column.value}
+                      onClick={() => addDimensionColumn('dimension1', column.value)}
+                    >
+                      {column.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Add Region Column
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {dimensionColumns.dimension2.map((column) => (
+                    <DropdownMenuItem
+                      key={column.value}
+                      onClick={() => addDimensionColumn('dimension2', column.value)}
+                    >
+                      {column.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">

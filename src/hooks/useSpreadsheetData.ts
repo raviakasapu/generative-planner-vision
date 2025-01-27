@@ -109,9 +109,8 @@ export const useSpreadsheetData = () => {
     }));
   };
 
-  const addDimensionColumn = (dimensionType: 'dimension1' | 'dimension2') => {
+  const addDimensionColumn = (dimensionType: 'dimension1' | 'dimension2', selectedColumn: string) => {
     const newColumnId = `${dimensionType}_${Object.keys(columnConfigs).length}`;
-    const defaultColumn = dimensionType === 'dimension1' ? 'product_id' : 'region_id';
     
     setColumnConfigs(prev => ({
       ...prev,
@@ -120,7 +119,7 @@ export const useSpreadsheetData = () => {
         type: 'dimension',
         filter: '',
         sortOrder: null,
-        selectedColumn: defaultColumn
+        selectedColumn
       }
     }));
   };
