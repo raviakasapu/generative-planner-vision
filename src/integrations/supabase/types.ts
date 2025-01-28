@@ -591,7 +591,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      version_status_enum:
+        | "draft"
+        | "in_review"
+        | "approved"
+        | "published"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
