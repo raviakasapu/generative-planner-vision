@@ -1,55 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Search } from 'lucide-react';
-
-type DimensionType = 'product' | 'region' | 'datasource';
-
-interface Dimension {
-  id: string;
-  dimension_name: string;
-  product_id?: string;
-  region_id?: string;
-  datasource_id?: string;
-  product_description?: string;
-  region_description?: string;
-  datasource_description?: string;
-  category?: string;
-  country?: string;
-  hierarchy_level?: string;
-  datasource_type?: string;
-  system_of_origin?: string;
-  dimension_type: DimensionType;
-}
-
-interface NewDimension {
-  id: string;
-  name: string;
-  type: DimensionType;
-  description: string;
-  category: string;
-  systemOrigin: string;
-}
+import { DimensionForm } from './master-data/DimensionForm';
+import { DimensionTable } from './master-data/DimensionTable';
+import { SearchAndPagination } from './master-data/SearchAndPagination';
+import { Dimension, NewDimension, DimensionType } from './master-data/types';
 
 const MasterData = () => {
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
@@ -129,41 +86,29 @@ const MasterData = () => {
     }
     
     try {
-      let table = '';
-      let insertData = {};
-      const currentType = newDimension.type; // Store current type
+      const currentType = newDimension.type;
+      const table = currentType === 'product' ? 'masterdimension1' :
+                    currentType === 'region' ? 'masterdimension2' :
+                    'masterdatasourcedimension';
       
-      switch(currentType) {
-        case 'product':
-          table = 'masterdimension1';
-          insertData = {
-            product_id: newDimension.id,
-            product_description: newDimension.name,
-            category: newDimension.category,
-            dimension_name: 'Products'
-          };
-          break;
-        case 'region':
-          table = 'masterdimension2';
-          insertData = {
-            region_id: newDimension.id,
-            region_description: newDimension.name,
-            country: newDimension.category,
-            dimension_name: 'Regions'
-          };
-          break;
-        case 'datasource':
-          table = 'masterdatasourcedimension';
-          insertData = {
-            datasource_id: newDimension.id,
-            datasource_name: newDimension.name,
-            datasource_description: newDimension.description,
-            datasource_type: newDimension.category,
-            system_of_origin: newDimension.systemOrigin,
-            dimension_name: 'Data Source'
-          };
-          break;
-      }
+      const insertData = currentType === 'product' ? {
+        product_id: newDimension.id,
+        product_description: newDimension.name,
+        category: newDimension.category,
+        dimension_name: 'Products'
+      } : currentType === 'region' ? {
+        region_id: newDimension.id,
+        region_description: newDimension.name,
+        country: newDimension.category,
+        dimension_name: 'Regions'
+      } : {
+        datasource_id: newDimension.id,
+        datasource_name: newDimension.name,
+        datasource_description: newDimension.description,
+        datasource_type: newDimension.category,
+        system_of_origin: newDimension.systemOrigin,
+        dimension_name: 'Data Source'
+      };
       
       const { data, error } = await supabase
         .from(table)
@@ -177,7 +122,7 @@ const MasterData = () => {
       setNewDimension({ 
         id: "", 
         name: "", 
-        type: currentType, // Keep the current type
+        type: currentType,
         description: "", 
         category: "", 
         systemOrigin: "" 
@@ -201,37 +146,25 @@ const MasterData = () => {
     if (!editingDimension) return;
 
     try {
-      let table = '';
-      let updateData = {};
+      const table = editingDimension.dimension_type === 'product' ? 'masterdimension1' :
+                    editingDimension.dimension_type === 'region' ? 'masterdimension2' :
+                    'masterdatasourcedimension';
       
-      switch(editingDimension.dimension_type) {
-        case 'product':
-          table = 'masterdimension1';
-          updateData = {
-            product_id: editingDimension.product_id,
-            product_description: editingDimension.product_description,
-            category: editingDimension.category,
-          };
-          break;
-        case 'region':
-          table = 'masterdimension2';
-          updateData = {
-            region_id: editingDimension.region_id,
-            region_description: editingDimension.region_description,
-            country: editingDimension.country,
-          };
-          break;
-        case 'datasource':
-          table = 'masterdatasourcedimension';
-          updateData = {
-            datasource_id: editingDimension.datasource_id,
-            datasource_name: editingDimension.datasource_description,
-            datasource_description: editingDimension.datasource_description,
-            datasource_type: editingDimension.datasource_type,
-            system_of_origin: editingDimension.system_of_origin,
-          };
-          break;
-      }
+      const updateData = editingDimension.dimension_type === 'product' ? {
+        product_id: editingDimension.product_id,
+        product_description: editingDimension.product_description,
+        category: editingDimension.category,
+      } : editingDimension.dimension_type === 'region' ? {
+        region_id: editingDimension.region_id,
+        region_description: editingDimension.region_description,
+        country: editingDimension.country,
+      } : {
+        datasource_id: editingDimension.datasource_id,
+        datasource_name: editingDimension.datasource_description,
+        datasource_description: editingDimension.datasource_description,
+        datasource_type: editingDimension.datasource_type,
+        system_of_origin: editingDimension.system_of_origin,
+      };
 
       const { error } = await supabase
         .from(table)
@@ -287,73 +220,13 @@ const MasterData = () => {
     <Card className="p-4">
       <h2 className="text-lg font-semibold mb-4">Master Data Management</h2>
       <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">ID</label>
-            <Input
-              value={newDimension.id}
-              onChange={(e) => setNewDimension(prev => ({ ...prev, id: e.target.value }))}
-              placeholder="Enter ID..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <Input
-              value={newDimension.name}
-              onChange={(e) => setNewDimension(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter name..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Type</label>
-            <select
-              className="w-full border rounded-md p-2"
-              value={newDimension.type}
-              onChange={(e) => {
-                const newType = e.target.value as DimensionType;
-                setNewDimension(prev => ({ ...prev, type: newType }));
-                setShowData(false); // Reset show/hide state when type changes
-              }}
-            >
-              <option value="product">Product</option>
-              <option value="region">Region</option>
-              <option value="datasource">Data Source</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <Input
-              value={newDimension.description}
-              onChange={(e) => setNewDimension(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter description..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {newDimension.type === 'product' ? 'Category' : 
-               newDimension.type === 'region' ? 'Country' : 
-               'Data Source Type'}
-            </label>
-            <Input
-              value={newDimension.category}
-              onChange={(e) => setNewDimension(prev => ({ ...prev, category: e.target.value }))}
-              placeholder="Enter category/country/type..."
-            />
-          </div>
-          {newDimension.type === 'datasource' && (
-            <div>
-              <label className="block text-sm font-medium mb-1">System of Origin</label>
-              <Input
-                value={newDimension.systemOrigin}
-                onChange={(e) => setNewDimension(prev => ({ ...prev, systemOrigin: e.target.value }))}
-                placeholder="Enter system of origin..."
-              />
-            </div>
-          )}
-        </div>
+        <DimensionForm
+          newDimension={newDimension}
+          onDimensionChange={(updates) => setNewDimension(prev => ({ ...prev, ...updates }))}
+          onSubmit={handleAddDimension}
+        />
         
-        <div className="flex justify-between items-center">
-          <Button onClick={handleAddDimension}>Add Master Data</Button>
+        <div className="flex justify-end">
           <Button 
             variant="outline"
             onClick={() => {
@@ -367,139 +240,24 @@ const MasterData = () => {
 
         {showData && (
           <>
-            <div className="flex items-center space-x-2 mb-4">
-              <Search className="w-4 h-4 text-gray-500" />
-              <Input
-                placeholder={`Search ${newDimension.type} by ID or description...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
+            <SearchAndPagination
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              selectedType={newDimension.type}
+            />
 
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name/Description</TableHead>
-                    <TableHead>Category/Country/Type</TableHead>
-                    {newDimension.type === 'datasource' && (
-                      <TableHead>System of Origin</TableHead>
-                    )}
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedDimensions.map((dim) => (
-                    <TableRow key={dim.id}>
-                      <TableCell>
-                        {editingDimension?.id === dim.id ? (
-                          <Input
-                            value={editingDimension[`${dim.dimension_type}_id`] || ''}
-                            onChange={(e) => setEditingDimension(prev => ({
-                              ...prev!,
-                              [`${dim.dimension_type}_id`]: e.target.value
-                            }))}
-                          />
-                        ) : (
-                          dim.product_id || dim.region_id || dim.datasource_id
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingDimension?.id === dim.id ? (
-                          <Input
-                            value={editingDimension[`${dim.dimension_type}_description`] || ''}
-                            onChange={(e) => setEditingDimension(prev => ({
-                              ...prev!,
-                              [`${dim.dimension_type}_description`]: e.target.value
-                            }))}
-                          />
-                        ) : (
-                          dim.product_description || dim.region_description || dim.datasource_description
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingDimension?.id === dim.id ? (
-                          <Input
-                            value={editingDimension.category || editingDimension.country || editingDimension.datasource_type || ''}
-                            onChange={(e) => setEditingDimension(prev => ({
-                              ...prev!,
-                              [dim.dimension_type === 'product' ? 'category' : 
-                               dim.dimension_type === 'region' ? 'country' : 
-                               'datasource_type']: e.target.value
-                            }))}
-                          />
-                        ) : (
-                          dim.category || dim.country || dim.datasource_type
-                        )}
-                      </TableCell>
-                      {newDimension.type === 'datasource' && (
-                        <TableCell>
-                          {editingDimension?.id === dim.id ? (
-                            <Input
-                              value={editingDimension.system_of_origin || ''}
-                              onChange={(e) => setEditingDimension(prev => ({
-                                ...prev!,
-                                system_of_origin: e.target.value
-                              }))}
-                            />
-                          ) : (
-                            dim.system_of_origin
-                          )}
-                        </TableCell>
-                      )}
-                      <TableCell>
-                        {editingDimension?.id === dim.id ? (
-                          <div className="space-x-2">
-                            <Button onClick={handleUpdateDimension} size="sm">Save</Button>
-                            <Button onClick={() => setEditingDimension(null)} variant="outline" size="sm">Cancel</Button>
-                          </div>
-                        ) : (
-                          <Button onClick={() => setEditingDimension(dim)} variant="outline" size="sm">Edit</Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <Button 
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Previous
-                  </Button>
-                </PaginationItem>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <Button
-                      onClick={() => setCurrentPage(page)}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                    >
-                      {page}
-                    </Button>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <Button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Next
-                  </Button>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <DimensionTable
+              dimensions={paginatedDimensions}
+              selectedType={newDimension.type}
+              editingDimension={editingDimension}
+              onEdit={setEditingDimension}
+              onUpdate={handleUpdateDimension}
+              onCancelEdit={() => setEditingDimension(null)}
+              onEditingChange={setEditingDimension}
+            />
           </>
         )}
       </div>
