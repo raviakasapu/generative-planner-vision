@@ -11,7 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { User, UserMinus } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { UserCog, Lock, CheckSquare } from 'lucide-react';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -37,6 +43,27 @@ const UserManagement = () => {
     },
   });
 
+  const handleRoleManagement = (userId: string) => {
+    toast({
+      title: 'Role Management',
+      description: 'Role management feature coming soon',
+    });
+  };
+
+  const handleDataAccess = (userId: string) => {
+    toast({
+      title: 'Data Access',
+      description: 'Data access management feature coming soon',
+    });
+  };
+
+  const handleTaskAssignment = (userId: string) => {
+    toast({
+      title: 'Task Assignment',
+      description: 'Task assignment feature coming soon',
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -59,7 +86,7 @@ const UserManagement = () => {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <User className="h-6 w-6" />
+          <UserCog className="h-6 w-6" />
           User Management
         </h1>
       </div>
@@ -85,9 +112,36 @@ const UserManagement = () => {
                   {new Date(user.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm">
-                    <UserMinus className="h-4 w-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <UserCog className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleRoleManagement(user.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <UserCog className="h-4 w-4" />
+                        Manage Role
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDataAccess(user.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <Lock className="h-4 w-4" />
+                        Data Access
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleTaskAssignment(user.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <CheckSquare className="h-4 w-4" />
+                        Assign Tasks
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
