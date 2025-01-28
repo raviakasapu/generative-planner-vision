@@ -56,7 +56,7 @@ export function VersionStatusDialog({
         currentStatus: version.version_status
       });
 
-      // First check if the version still exists and get its current status
+      // First check if the version exists
       const { data: currentVersion, error: checkError } = await supabase
         .from('masterversiondimension')
         .select()
@@ -102,13 +102,18 @@ export function VersionStatusDialog({
 
       if (auditError) {
         console.error('Error creating audit log:', auditError);
-        throw auditError;
+        // Even if audit log fails, we don't want to roll back the status update
+        toast({
+          title: "Warning",
+          description: "Version status updated but audit log creation failed",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Version status updated to ${newStatus}`,
+        });
       }
-
-      toast({
-        title: "Success",
-        description: `Version status updated to ${newStatus}`,
-      });
       
       onSuccess();
       onClose();
