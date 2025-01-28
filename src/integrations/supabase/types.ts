@@ -123,6 +123,42 @@ export type Database = {
         }
         Relationships: []
       }
+      masterdatasourcedimension: {
+        Row: {
+          created_at: string | null
+          datasource_description: string | null
+          datasource_id: string
+          datasource_name: string
+          datasource_type: string | null
+          dimension_name: string
+          id: string
+          system_of_origin: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          datasource_description?: string | null
+          datasource_id: string
+          datasource_name: string
+          datasource_type?: string | null
+          dimension_name?: string
+          id?: string
+          system_of_origin?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          datasource_description?: string | null
+          datasource_id?: string
+          datasource_name?: string
+          datasource_type?: string | null
+          dimension_name?: string
+          id?: string
+          system_of_origin?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       masterdimension1: {
         Row: {
           category: string | null
@@ -189,6 +225,39 @@ export type Database = {
         }
         Relationships: []
       }
+      masterlayerdimension: {
+        Row: {
+          created_at: string | null
+          dimension_name: string
+          id: string
+          layer_description: string | null
+          layer_id: string
+          layer_name: string
+          layer_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          layer_description?: string | null
+          layer_id: string
+          layer_name: string
+          layer_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          layer_description?: string | null
+          layer_id?: string
+          layer_name?: string
+          layer_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mastertimedimension: {
         Row: {
           created_at: string | null
@@ -234,6 +303,56 @@ export type Database = {
         }
         Relationships: []
       }
+      masterversiondimension: {
+        Row: {
+          base_version_id: string | null
+          created_at: string | null
+          dimension_name: string
+          id: string
+          is_base_version: boolean
+          updated_at: string | null
+          version_description: string | null
+          version_id: string
+          version_name: string
+          version_status: string
+          version_type: string
+        }
+        Insert: {
+          base_version_id?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          is_base_version?: boolean
+          updated_at?: string | null
+          version_description?: string | null
+          version_id: string
+          version_name: string
+          version_status?: string
+          version_type: string
+        }
+        Update: {
+          base_version_id?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          is_base_version?: boolean
+          updated_at?: string | null
+          version_description?: string | null
+          version_id?: string
+          version_name?: string
+          version_status?: string
+          version_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "masterversiondimension_base_version_id_fkey"
+            columns: ["base_version_id"]
+            isOneToOne: false
+            referencedRelation: "masterversiondimension"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           created_at: string | null
@@ -260,36 +379,52 @@ export type Database = {
       }
       planningdata: {
         Row: {
+          datasource_dimension_id: string | null
           dimension1_id: string | null
           dimension2_id: string | null
           id: string
+          layer_dimension_id: string | null
           measure1: number | null
           measure2: number | null
           time_dimension_id: string
           transaction_timestamp: string | null
           user_id: string | null
+          version_dimension_id: string | null
         }
         Insert: {
+          datasource_dimension_id?: string | null
           dimension1_id?: string | null
           dimension2_id?: string | null
           id?: string
+          layer_dimension_id?: string | null
           measure1?: number | null
           measure2?: number | null
           time_dimension_id: string
           transaction_timestamp?: string | null
           user_id?: string | null
+          version_dimension_id?: string | null
         }
         Update: {
+          datasource_dimension_id?: string | null
           dimension1_id?: string | null
           dimension2_id?: string | null
           id?: string
+          layer_dimension_id?: string | null
           measure1?: number | null
           measure2?: number | null
           time_dimension_id?: string
           transaction_timestamp?: string | null
           user_id?: string | null
+          version_dimension_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "planningdata_datasource_dimension_id_fkey"
+            columns: ["datasource_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterdatasourcedimension"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "planningdata_dimension1_id_fkey"
             columns: ["dimension1_id"]
@@ -305,10 +440,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "planningdata_layer_dimension_id_fkey"
+            columns: ["layer_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterlayerdimension"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "planningdata_time_dimension_id_fkey"
             columns: ["time_dimension_id"]
             isOneToOne: false
             referencedRelation: "mastertimedimension"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planningdata_version_dimension_id_fkey"
+            columns: ["version_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterversiondimension"
             referencedColumns: ["id"]
           },
         ]
