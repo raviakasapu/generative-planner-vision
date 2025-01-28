@@ -65,29 +65,31 @@ export function VersionStatusDialog({
 
       if (checkError) {
         console.error('Error checking version:', checkError);
-        throw checkError;
+        throw new Error('Failed to verify version status');
       }
 
       if (!currentVersion) {
-        throw new Error('Version not found');
+        throw new Error('Version not found or access denied');
       }
 
       // Update version status
       const { data: versionUpdate, error: versionError } = await supabase
         .from('masterversiondimension')
-        .update({ version_status: newStatus })
+        .update({ 
+          version_status: newStatus,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', version.id)
         .select()
         .maybeSingle();
 
       if (versionError) {
         console.error('Error updating version status:', versionError);
-        throw versionError;
+        throw new Error('Failed to update version status. You may not have the required permissions.');
       }
 
       if (!versionUpdate) {
-        console.error('No version was updated');
-        throw new Error('Failed to update version status');
+        throw new Error('Version update failed or access denied');
       }
 
       // Create audit log entry
