@@ -1,19 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserManagement } from '@/components/admin/UserManagement';
 import { SystemAnalytics } from '@/components/admin/SystemAnalytics';
+import { useToast } from '@/components/ui/use-toast';
 
 const Admin = () => {
-  const { userRole } = useAuth();
+  const { userRole, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  if (userRole !== 'admin') {
+  useEffect(() => {
+    if (!isLoading && userRole !== 'admin') {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You do not have permission to view the admin panel.",
+      });
+      navigate('/');
+    }
+  }, [userRole, isLoading, navigate, toast]);
+
+  if (isLoading) {
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-        <p>You do not have permission to view this page.</p>
+        <div className="flex items-center justify-center">
+          <span className="loading">Loading...</span>
+        </div>
       </div>
     );
+  }
+
+  if (userRole !== 'admin') {
+    return null; // The useEffect will handle the redirect
   }
 
   return (
