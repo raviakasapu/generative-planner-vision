@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -18,9 +18,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserCog, Lock, CheckSquare } from 'lucide-react';
+import { RoleManagementDialog } from '@/components/RoleManagementDialog';
+import { DataAccessDialog } from '@/components/DataAccessDialog';
+import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
 
 const UserManagement = () => {
   const { toast } = useToast();
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserRole, setSelectedUserRole] = useState<string>('');
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isDataAccessDialogOpen, setIsDataAccessDialogOpen] = useState(false);
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -43,25 +51,20 @@ const UserManagement = () => {
     },
   });
 
-  const handleRoleManagement = (userId: string) => {
-    toast({
-      title: 'Role Management',
-      description: 'Role management feature coming soon',
-    });
+  const handleRoleManagement = (userId: string, currentRole: string) => {
+    setSelectedUserId(userId);
+    setSelectedUserRole(currentRole);
+    setIsRoleDialogOpen(true);
   };
 
   const handleDataAccess = (userId: string) => {
-    toast({
-      title: 'Data Access',
-      description: 'Data access management feature coming soon',
-    });
+    setSelectedUserId(userId);
+    setIsDataAccessDialogOpen(true);
   };
 
   const handleTaskAssignment = (userId: string) => {
-    toast({
-      title: 'Task Assignment',
-      description: 'Task assignment feature coming soon',
-    });
+    setSelectedUserId(userId);
+    setIsTaskDialogOpen(true);
   };
 
   if (isLoading) {
@@ -120,7 +123,7 @@ const UserManagement = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => handleRoleManagement(user.id)}
+                        onClick={() => handleRoleManagement(user.id, user.role || 'user')}
                         className="flex items-center gap-2"
                       >
                         <UserCog className="h-4 w-4" />
@@ -148,6 +151,27 @@ const UserManagement = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selectedUserId && (
+        <>
+          <RoleManagementDialog
+            isOpen={isRoleDialogOpen}
+            onClose={() => setIsRoleDialogOpen(false)}
+            userId={selectedUserId}
+            currentRole={selectedUserRole}
+          />
+          <DataAccessDialog
+            isOpen={isDataAccessDialogOpen}
+            onClose={() => setIsDataAccessDialogOpen(false)}
+            userId={selectedUserId}
+          />
+          <TaskAssignmentDialog
+            isOpen={isTaskDialogOpen}
+            onClose={() => setIsTaskDialogOpen(false)}
+            userId={selectedUserId}
+          />
+        </>
+      )}
     </div>
   );
 };

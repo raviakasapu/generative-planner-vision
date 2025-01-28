@@ -72,6 +72,33 @@ export type Database = {
         }
         Relationships: []
       }
+      data_access_permissions: {
+        Row: {
+          access_level: string
+          created_at: string | null
+          dimension_id: string
+          dimension_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          access_level: string
+          created_at?: string | null
+          dimension_id: string
+          dimension_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_level?: string
+          created_at?: string | null
+          dimension_id?: string
+          dimension_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       lockstable: {
         Row: {
           expiry_timestamp: string | null
@@ -340,6 +367,39 @@ export type Database = {
           role_description?: string | null
           role_name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      task_assignments: {
+        Row: {
+          created_at: string | null
+          due_date: string | null
+          id: string
+          status: string
+          task_description: string | null
+          task_name: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          task_description?: string | null
+          task_name: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          task_description?: string | null
+          task_name?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
