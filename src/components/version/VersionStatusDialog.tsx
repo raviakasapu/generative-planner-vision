@@ -56,17 +56,21 @@ export function VersionStatusDialog({
         currentStatus: version.version_status
       });
 
-      // Start a transaction to update both the version status and create an audit log
+      // Update version status
       const { data: versionUpdate, error: versionError } = await supabase
         .from('masterversiondimension')
         .update({ version_status: newStatus })
         .eq('id', version.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (versionError) {
         console.error('Error updating version status:', versionError);
         throw versionError;
+      }
+
+      if (!versionUpdate) {
+        throw new Error('Version not found or update failed');
       }
 
       // Create audit log entry
