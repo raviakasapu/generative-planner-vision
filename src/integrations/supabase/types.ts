@@ -132,6 +132,7 @@ export type Database = {
           datasource_type: string | null
           dimension_name: string
           id: string
+          parent_datasource_dimension_id: string | null
           system_of_origin: string | null
           updated_at: string | null
         }
@@ -143,6 +144,7 @@ export type Database = {
           datasource_type?: string | null
           dimension_name?: string
           id?: string
+          parent_datasource_dimension_id?: string | null
           system_of_origin?: string | null
           updated_at?: string | null
         }
@@ -154,10 +156,19 @@ export type Database = {
           datasource_type?: string | null
           dimension_name?: string
           id?: string
+          parent_datasource_dimension_id?: string | null
           system_of_origin?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "masterdatasourcedimension_parent_datasource_dimension_id_fkey"
+            columns: ["parent_datasource_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterdatasourcedimension"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       masterdimension1: {
         Row: {
