@@ -475,6 +475,33 @@ export type Database = {
           },
         ]
       }
+      role_change_audit: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          id: string
+          new_role: string | null
+          previous_role: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          id?: string
+          new_role?: string | null
+          previous_role?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          id?: string
+          new_role?: string | null
+          previous_role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       rolepermissions: {
         Row: {
           created_at: string | null

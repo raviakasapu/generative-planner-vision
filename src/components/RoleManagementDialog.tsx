@@ -64,12 +64,12 @@ export function RoleManagementDialog({
       // Log the role change in the audit table
       const { error: auditError } = await supabase
         .from('role_change_audit')
-        .insert({
+        .insert([{
           user_id: userId,
           previous_role: currentRole,
           new_role: selectedRole,
           changed_by: user?.id,
-        });
+        }]);
 
       if (auditError) throw auditError;
 
