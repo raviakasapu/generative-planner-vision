@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/pagination";
 import { Search } from 'lucide-react';
 
+type DimensionType = 'product' | 'region' | 'datasource';
+
 interface Dimension {
   id: string;
   dimension_name: string;
@@ -37,15 +39,24 @@ interface Dimension {
   hierarchy_level?: string;
   datasource_type?: string;
   system_of_origin?: string;
-  dimension_type: 'product' | 'region' | 'datasource';
+  dimension_type: DimensionType;
+}
+
+interface NewDimension {
+  id: string;
+  name: string;
+  type: DimensionType;
+  description: string;
+  category: string;
+  systemOrigin: string;
 }
 
 const MasterData = () => {
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
-  const [newDimension, setNewDimension] = useState({ 
+  const [newDimension, setNewDimension] = useState<NewDimension>({ 
     id: "", 
     name: "", 
-    type: "product" as const,
+    type: "product",
     description: "",
     category: "",
     systemOrigin: "",
@@ -74,7 +85,7 @@ const MasterData = () => {
             .select('*')
             .order('created_at', { ascending: false });
           if (productsError) throw productsError;
-          data = products.map(p => ({ ...p, dimension_type: 'product' as const }));
+          data = products.map(p => ({ ...p, dimension_type: 'product' }));
           break;
           
         case 'region':
@@ -83,7 +94,7 @@ const MasterData = () => {
             .select('*')
             .order('created_at', { ascending: false });
           if (regionsError) throw regionsError;
-          data = regions.map(r => ({ ...r, dimension_type: 'region' as const }));
+          data = regions.map(r => ({ ...r, dimension_type: 'region' }));
           break;
           
         case 'datasource':
@@ -92,7 +103,7 @@ const MasterData = () => {
             .select('*')
             .order('created_at', { ascending: false });
           if (datasourcesError) throw datasourcesError;
-          data = datasources.map(d => ({ ...d, dimension_type: 'datasource' as const }));
+          data = datasources.map(d => ({ ...d, dimension_type: 'datasource' }));
           break;
       }
       
@@ -120,8 +131,9 @@ const MasterData = () => {
     try {
       let table = '';
       let insertData = {};
+      const currentType = newDimension.type; // Store current type
       
-      switch(newDimension.type) {
+      switch(currentType) {
         case 'product':
           table = 'masterdimension1';
           insertData = {
@@ -161,12 +173,19 @@ const MasterData = () => {
 
       if (error) throw error;
 
-      setDimensions(prev => [...prev, { ...data, dimension_type: newDimension.type }]);
-      setNewDimension({ id: "", name: "", type: "product", description: "", category: "", systemOrigin: "" });
+      setDimensions(prev => [...prev, { ...data, dimension_type: currentType }]);
+      setNewDimension({ 
+        id: "", 
+        name: "", 
+        type: currentType, // Keep the current type
+        description: "", 
+        category: "", 
+        systemOrigin: "" 
+      });
       
       toast({
         title: "Success",
-        description: `${newDimension.name} has been added successfully to ${newDimension.type} master data.`,
+        description: `${newDimension.name} has been added successfully to ${currentType} master data.`,
       });
     } catch (error) {
       console.error('Error adding dimension:', error);
@@ -291,10 +310,9 @@ const MasterData = () => {
               className="w-full border rounded-md p-2"
               value={newDimension.type}
               onChange={(e) => {
-                setNewDimension(prev => ({ ...prev, type: e.target.value as 'product' | 'region' | 'datasource' }));
-                if (showData) {
-                  fetchDimensions();
-                }
+                const newType = e.target.value as DimensionType;
+                setNewDimension(prev => ({ ...prev, type: newType }));
+                setShowData(false); // Reset show/hide state when type changes
               }}
             >
               <option value="product">Product</option>
