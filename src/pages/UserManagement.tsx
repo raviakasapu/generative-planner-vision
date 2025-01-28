@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
-import { Search, UserCog, Menu } from 'lucide-react';
+import { Search, UserCog, Menu, Grid2X2, List } from 'lucide-react';
 import { RoleManagementDialog } from '@/components/RoleManagementDialog';
 import { DataAccessDialog } from '@/components/DataAccessDialog';
 import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
 import { UserStats } from '@/components/users/UserStats';
 import { UserCharts } from '@/components/users/UserCharts';
 import { UserTable } from '@/components/users/UserTable';
+import { MainNav } from '@/components/MainNav';
+import { UserNav } from '@/components/UserNav';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +35,7 @@ const UserManagement = () => {
   const [isDataAccessDialogOpen, setIsDataAccessDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -113,8 +116,15 @@ const UserManagement = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        Loading users...
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-4xl font-bold">User Management</h1>
+          <UserNav />
+        </div>
+        <MainNav />
+        <div className="flex justify-center items-center h-screen">
+          Loading users...
+        </div>
       </div>
     );
   }
@@ -122,7 +132,12 @@ const UserManagement = () => {
   if (error) {
     console.error('Error in UserManagement:', error);
     return (
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-4xl font-bold">User Management</h1>
+          <UserNav />
+        </div>
+        <MainNav />
         <div className="text-red-500">
           Error loading users: {error.message}
         </div>
@@ -131,30 +146,52 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-4xl font-bold">User Management</h1>
+        <UserNav />
+      </div>
+      <MainNav />
+      
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
           <UserCog className="h-6 w-6" />
           User Management
-        </h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Menu className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              Export Users
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Import Users
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Bulk Actions
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('grid')}
+          >
+            <Grid2X2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="icon"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                Export Users
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                Import Users
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                Bulk Actions
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
@@ -177,6 +214,7 @@ const UserManagement = () => {
         onRoleManagement={handleRoleManagement}
         onDataAccess={handleDataAccess}
         onTaskAssignment={handleTaskAssignment}
+        viewMode={viewMode}
       />
 
       {selectedUserId && (
