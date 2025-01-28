@@ -594,6 +594,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      copy_planning_data_for_version: {
+        Args: {
+          source_version_id: string
+          target_version_id: string
+        }
+        Returns: undefined
+      }
       insert_planning_data_combinations: {
         Args: Record<PropertyKey, never>
         Returns: undefined

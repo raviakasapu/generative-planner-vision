@@ -119,7 +119,7 @@ export function VersionCreationDialog({
 
       // If this is based on another version, copy the planning data
       if (baseVersionId && newVersion) {
-        const { error: copyError } = await supabase
+        const { data, error: copyError } = await supabase
           .rpc('copy_planning_data_for_version', {
             source_version_id: baseVersionId,
             target_version_id: newVersion.id
