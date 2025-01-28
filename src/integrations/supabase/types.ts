@@ -386,6 +386,8 @@ export type Database = {
           layer_dimension_id: string | null
           measure1: number | null
           measure2: number | null
+          security_level: string | null
+          task_id: string | null
           time_dimension_id: string
           transaction_timestamp: string | null
           user_id: string | null
@@ -399,6 +401,8 @@ export type Database = {
           layer_dimension_id?: string | null
           measure1?: number | null
           measure2?: number | null
+          security_level?: string | null
+          task_id?: string | null
           time_dimension_id: string
           transaction_timestamp?: string | null
           user_id?: string | null
@@ -412,6 +416,8 @@ export type Database = {
           layer_dimension_id?: string | null
           measure1?: number | null
           measure2?: number | null
+          security_level?: string | null
+          task_id?: string | null
           time_dimension_id?: string
           transaction_timestamp?: string | null
           user_id?: string | null
@@ -444,6 +450,13 @@ export type Database = {
             columns: ["layer_dimension_id"]
             isOneToOne: false
             referencedRelation: "masterlayerdimension"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planningdata_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "task_assignments"
             referencedColumns: ["id"]
           },
           {
