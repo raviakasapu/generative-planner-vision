@@ -37,7 +37,7 @@ interface Dimension {
   hierarchy_level?: string;
   datasource_type?: string;
   system_of_origin?: string;
-  dimension_type?: 'product' | 'region' | 'datasource';
+  dimension_type: 'product' | 'region' | 'datasource';
 }
 
 const MasterData = () => {
@@ -45,7 +45,7 @@ const MasterData = () => {
   const [newDimension, setNewDimension] = useState({ 
     id: "", 
     name: "", 
-    type: "product",
+    type: "product" as const,
     description: "",
     category: "",
     systemOrigin: "",
@@ -290,7 +290,12 @@ const MasterData = () => {
             <select
               className="w-full border rounded-md p-2"
               value={newDimension.type}
-              onChange={(e) => setNewDimension(prev => ({ ...prev, type: e.target.value }))}
+              onChange={(e) => {
+                setNewDimension(prev => ({ ...prev, type: e.target.value as 'product' | 'region' | 'datasource' }));
+                if (showData) {
+                  fetchDimensions();
+                }
+              }}
             >
               <option value="product">Product</option>
               <option value="region">Region</option>
@@ -331,29 +336,15 @@ const MasterData = () => {
         
         <div className="flex justify-between items-center">
           <Button onClick={handleAddDimension}>Add Master Data</Button>
-          <div className="flex items-center gap-2">
-            <select
-              className="border rounded-md p-2"
-              value={newDimension.type}
-              onChange={(e) => {
-                setNewDimension(prev => ({ ...prev, type: e.target.value }));
-                setCurrentPage(1);
-              }}
-            >
-              <option value="product">Product</option>
-              <option value="region">Region</option>
-              <option value="datasource">Data Source</option>
-            </select>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setShowData(!showData);
-                if (!showData) fetchDimensions();
-              }}
-            >
-              {showData ? 'Hide Master Data' : 'Show Master Data'}
-            </Button>
-          </div>
+          <Button 
+            variant="outline"
+            onClick={() => {
+              setShowData(!showData);
+              if (!showData) fetchDimensions();
+            }}
+          >
+            {showData ? 'Hide Master Data' : 'Show Master Data'}
+          </Button>
         </div>
 
         {showData && (
