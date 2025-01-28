@@ -589,6 +589,41 @@ export type Database = {
         }
         Relationships: []
       }
+      version_status_audit: {
+        Row: {
+          created_at: string | null
+          id: string
+          new_status: string
+          previous_status: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          new_status: string
+          previous_status: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          new_status?: string
+          previous_status?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_status_audit_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "masterversiondimension"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

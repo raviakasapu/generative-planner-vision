@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/AuthContext';
 import type { Version } from './types';
 
 interface VersionStatusDialogProps {
@@ -32,13 +33,22 @@ export function VersionStatusDialog({
 }: VersionStatusDialogProps) {
   const [newStatus, setNewStatus] = React.useState(version.version_status);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Update newStatus when version changes
   useEffect(() => {
     setNewStatus(version.version_status);
   }, [version.version_status]);
 
   const handleStatusChange = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to perform this action",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       console.log('Updating version status:', {
         id: version.id,
@@ -46,14 +56,32 @@ export function VersionStatusDialog({
         currentStatus: version.version_status
       });
 
-      const { error } = await supabase
+      // Start a transaction to update both the version status and create an audit log
+      const { data: versionUpdate, error: versionError } = await supabase
         .from('masterversiondimension')
         .update({ version_status: newStatus })
-        .eq('id', version.id);
+        .eq('id', version.id)
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Error updating version status:', error);
-        throw error;
+      if (versionError) {
+        console.error('Error updating version status:', versionError);
+        throw versionError;
+      }
+
+      // Create audit log entry
+      const { error: auditError } = await supabase
+        .from('version_status_audit')
+        .insert({
+          version_id: version.id,
+          user_id: user.id,
+          previous_status: version.version_status,
+          new_status: newStatus,
+        });
+
+      if (auditError) {
+        console.error('Error creating audit log:', auditError);
+        throw auditError;
       }
 
       toast({
