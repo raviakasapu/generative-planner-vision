@@ -56,6 +56,22 @@ export function VersionStatusDialog({
         currentStatus: version.version_status
       });
 
+      // First check if the version still exists and get its current status
+      const { data: currentVersion, error: checkError } = await supabase
+        .from('masterversiondimension')
+        .select()
+        .eq('id', version.id)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking version:', checkError);
+        throw checkError;
+      }
+
+      if (!currentVersion) {
+        throw new Error('Version not found');
+      }
+
       // Update version status
       const { data: versionUpdate, error: versionError } = await supabase
         .from('masterversiondimension')
@@ -70,7 +86,8 @@ export function VersionStatusDialog({
       }
 
       if (!versionUpdate) {
-        throw new Error('Version not found or update failed');
+        console.error('No version was updated');
+        throw new Error('Failed to update version status');
       }
 
       // Create audit log entry
@@ -99,7 +116,7 @@ export function VersionStatusDialog({
       console.error('Error updating version status:', error);
       toast({
         title: "Error",
-        description: "Failed to update version status",
+        description: error instanceof Error ? error.message : "Failed to update version status",
         variant: "destructive",
       });
     }
