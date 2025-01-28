@@ -19,6 +19,14 @@ import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
+interface UserProfile {
+  id: string;
+  full_name: string | null;
+  role: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const UserManagement = () => {
   const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -31,7 +39,7 @@ const UserManagement = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      // First, get all user profiles
+      // Get user profiles from the public schema
       const { data: profiles, error: profilesError } = await supabase
         .from('userprofiles')
         .select('*');
@@ -41,22 +49,22 @@ const UserManagement = () => {
         throw profilesError;
       }
 
-      // Then, get the corresponding auth users for their emails
-      const { data: authUsers, error: authError } = await supabase
-        .from('auth.users')
-        .select('id, email');
+      // Get user emails through the admin API
+      const { data: adminData, error: adminError } = await supabase.functions.invoke('get-user-emails', {
+        body: { userIds: profiles.map((profile: UserProfile) => profile.id) }
+      });
 
-      if (authError) {
-        console.error('Error fetching auth users:', authError);
-        throw authError;
+      if (adminError) {
+        console.error('Error fetching user emails:', adminError);
+        throw adminError;
       }
 
       // Combine the data
-      return profiles.map((profile: any) => {
-        const authUser = authUsers.find((user: any) => user.id === profile.id);
+      return profiles.map((profile: UserProfile) => {
+        const userEmail = adminData?.emails?.[profile.id] || null;
         return {
           ...profile,
-          email: authUser?.email
+          email: userEmail
         };
       });
     },
