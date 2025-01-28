@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,14 +15,12 @@ import {
 } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
+import type { Version } from './types';
 
 interface VersionStatusDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  version: {
-    id: string;
-    version_status: string;
-  };
+  version: Version;
   onSuccess: () => void;
 }
 
@@ -35,26 +33,35 @@ export function VersionStatusDialog({
   const [newStatus, setNewStatus] = React.useState(version.version_status);
   const { toast } = useToast();
 
+  // Update newStatus when version changes
+  useEffect(() => {
+    setNewStatus(version.version_status);
+  }, [version.version_status]);
+
   const handleStatusChange = async () => {
     try {
+      console.log('Updating version status:', {
+        id: version.id,
+        newStatus,
+        currentStatus: version.version_status
+      });
+
       const { error } = await supabase
         .from('masterversiondimension')
-        .update({ 
-          version_status: newStatus,
-          updated_at: new Date().toISOString()
-        })
+        .update({ version_status: newStatus })
         .eq('id', version.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating version status:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
         description: `Version status updated to ${newStatus}`,
       });
       
-      // Call onSuccess first to trigger the refetch
       onSuccess();
-      // Then close the dialog
       onClose();
     } catch (error) {
       console.error('Error updating version status:', error);
@@ -73,6 +80,9 @@ export function VersionStatusDialog({
           <DialogTitle>Change Version Status</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <div className="text-sm text-gray-500">
+            Current status: {version.version_status}
+          </div>
           <Select value={newStatus} onValueChange={setNewStatus}>
             <SelectTrigger>
               <SelectValue placeholder="Select new status" />

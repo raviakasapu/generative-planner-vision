@@ -6,4 +6,6 @@ export type Version = {
   version_type: string;
   version_status: string;
   created_at: string;
+  is_base_version: boolean;
+  base_version_id: string | null;
 };

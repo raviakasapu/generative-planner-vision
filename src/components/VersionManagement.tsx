@@ -63,6 +63,7 @@ const VersionManagement = () => {
   };
 
   const handleStatusChange = (version: Version) => {
+    console.log('Opening status dialog for version:', version);
     setSelectedVersion(version);
     setShowStatusDialog(true);
   };
@@ -120,11 +121,10 @@ const VersionManagement = () => {
           onClose={() => {
             setShowStatusDialog(false);
             setSelectedVersion(null);
-            refetch(); // Add refetch here to update the list after status change
           }}
           version={selectedVersion}
           onSuccess={() => {
-            refetch(); // Add refetch here to ensure the list updates
+            refetch();
             toast({
               title: "Success",
               description: "Version status updated successfully",
