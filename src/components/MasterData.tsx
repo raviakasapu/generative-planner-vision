@@ -37,6 +37,7 @@ interface Dimension {
   hierarchy_level?: string;
   datasource_type?: string;
   system_of_origin?: string;
+  dimension_type?: 'product' | 'region' | 'datasource';
 }
 
 const MasterData = () => {
@@ -60,39 +61,42 @@ const MasterData = () => {
     if (showData) {
       fetchDimensions();
     }
-  }, [showData]);
+  }, [showData, newDimension.type]);
 
   const fetchDimensions = async () => {
     try {
-      // Fetch products
-      const { data: products, error: productsError } = await supabase
-        .from('masterdimension1')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (productsError) throw productsError;
-
-      // Fetch regions
-      const { data: regions, error: regionsError } = await supabase
-        .from('masterdimension2')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (regionsError) throw regionsError;
-
-      // Fetch datasources
-      const { data: datasources, error: datasourcesError } = await supabase
-        .from('masterdatasourcedimension')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (datasourcesError) throw datasourcesError;
-
-      setDimensions([
-        ...(products || []).map(p => ({ ...p, dimension_type: 'product' })),
-        ...(regions || []).map(r => ({ ...r, dimension_type: 'region' })),
-        ...(datasources || []).map(d => ({ ...d, dimension_type: 'datasource' }))
-      ]);
+      let data: Dimension[] = [];
+      
+      switch(newDimension.type) {
+        case 'product':
+          const { data: products, error: productsError } = await supabase
+            .from('masterdimension1')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (productsError) throw productsError;
+          data = products.map(p => ({ ...p, dimension_type: 'product' as const }));
+          break;
+          
+        case 'region':
+          const { data: regions, error: regionsError } = await supabase
+            .from('masterdimension2')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (regionsError) throw regionsError;
+          data = regions.map(r => ({ ...r, dimension_type: 'region' as const }));
+          break;
+          
+        case 'datasource':
+          const { data: datasources, error: datasourcesError } = await supabase
+            .from('masterdatasourcedimension')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (datasourcesError) throw datasourcesError;
+          data = datasources.map(d => ({ ...d, dimension_type: 'datasource' as const }));
+          break;
+      }
+      
+      setDimensions(data);
     } catch (error) {
       console.error('Error fetching dimensions:', error);
       toast({
@@ -238,14 +242,19 @@ const MasterData = () => {
 
   const filteredDimensions = dimensions.filter(dim => {
     const searchString = searchTerm.toLowerCase();
-    return (
-      dim.product_id?.toLowerCase().includes(searchString) ||
-      dim.product_description?.toLowerCase().includes(searchString) ||
-      dim.region_id?.toLowerCase().includes(searchString) ||
-      dim.region_description?.toLowerCase().includes(searchString) ||
-      dim.datasource_id?.toLowerCase().includes(searchString) ||
-      dim.datasource_description?.toLowerCase().includes(searchString)
-    );
+    switch(dim.dimension_type) {
+      case 'product':
+        return dim.product_id?.toLowerCase().includes(searchString) ||
+               dim.product_description?.toLowerCase().includes(searchString);
+      case 'region':
+        return dim.region_id?.toLowerCase().includes(searchString) ||
+               dim.region_description?.toLowerCase().includes(searchString);
+      case 'datasource':
+        return dim.datasource_id?.toLowerCase().includes(searchString) ||
+               dim.datasource_description?.toLowerCase().includes(searchString);
+      default:
+        return false;
+    }
   });
 
   const paginatedDimensions = filteredDimensions.slice(
@@ -322,15 +331,29 @@ const MasterData = () => {
         
         <div className="flex justify-between items-center">
           <Button onClick={handleAddDimension}>Add Master Data</Button>
-          <Button 
-            variant="outline"
-            onClick={() => {
-              setShowData(!showData);
-              if (!showData) fetchDimensions();
-            }}
-          >
-            {showData ? 'Hide Master Data' : 'Show Master Data'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <select
+              className="border rounded-md p-2"
+              value={newDimension.type}
+              onChange={(e) => {
+                setNewDimension(prev => ({ ...prev, type: e.target.value }));
+                setCurrentPage(1);
+              }}
+            >
+              <option value="product">Product</option>
+              <option value="region">Region</option>
+              <option value="datasource">Data Source</option>
+            </select>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setShowData(!showData);
+                if (!showData) fetchDimensions();
+              }}
+            >
+              {showData ? 'Hide Master Data' : 'Show Master Data'}
+            </Button>
+          </div>
         </div>
 
         {showData && (
@@ -338,7 +361,7 @@ const MasterData = () => {
             <div className="flex items-center space-x-2 mb-4">
               <Search className="w-4 h-4 text-gray-500" />
               <Input
-                placeholder="Search master data..."
+                placeholder={`Search ${newDimension.type} by ID or description...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-sm"
@@ -350,10 +373,11 @@ const MasterData = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Category/Country</TableHead>
+                    <TableHead>Name/Description</TableHead>
+                    <TableHead>Category/Country/Type</TableHead>
+                    {newDimension.type === 'datasource' && (
+                      <TableHead>System of Origin</TableHead>
+                    )}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -386,20 +410,6 @@ const MasterData = () => {
                           dim.product_description || dim.region_description || dim.datasource_description
                         )}
                       </TableCell>
-                      <TableCell>{dim.dimension_type}</TableCell>
-                      <TableCell>
-                        {editingDimension?.id === dim.id ? (
-                          <Input
-                            value={editingDimension.datasource_description || ''}
-                            onChange={(e) => setEditingDimension(prev => ({
-                              ...prev!,
-                              datasource_description: e.target.value
-                            }))}
-                          />
-                        ) : (
-                          dim.datasource_description || '-'
-                        )}
-                      </TableCell>
                       <TableCell>
                         {editingDimension?.id === dim.id ? (
                           <Input
@@ -412,9 +422,24 @@ const MasterData = () => {
                             }))}
                           />
                         ) : (
-                          dim.category || dim.country || dim.datasource_type || '-'
+                          dim.category || dim.country || dim.datasource_type
                         )}
                       </TableCell>
+                      {newDimension.type === 'datasource' && (
+                        <TableCell>
+                          {editingDimension?.id === dim.id ? (
+                            <Input
+                              value={editingDimension.system_of_origin || ''}
+                              onChange={(e) => setEditingDimension(prev => ({
+                                ...prev!,
+                                system_of_origin: e.target.value
+                              }))}
+                            />
+                          ) : (
+                            dim.system_of_origin
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell>
                         {editingDimension?.id === dim.id ? (
                           <div className="space-x-2">
@@ -434,26 +459,35 @@ const MasterData = () => {
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
+                  <Button 
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                  />
+                    variant="outline"
+                    size="sm"
+                  >
+                    Previous
+                  </Button>
                 </PaginationItem>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <PaginationItem key={page}>
-                    <PaginationLink
+                    <Button
                       onClick={() => setCurrentPage(page)}
-                      isActive={currentPage === page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
                     >
                       {page}
-                    </PaginationLink>
+                    </Button>
                   </PaginationItem>
                 ))}
                 <PaginationItem>
-                  <PaginationNext
+                  <Button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                  />
+                    variant="outline"
+                    size="sm"
+                  >
+                    Next
+                  </Button>
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
