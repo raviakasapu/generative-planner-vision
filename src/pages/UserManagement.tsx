@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RoleManagementDialog } from '@/components/RoleManagementDialog';
+import { DataAccessDialog } from '@/components/DataAccessDialog';
+import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
 import {
   Table,
   TableBody,
@@ -16,6 +18,8 @@ import {
 const UserManagementPage = () => {
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<{ id: string; role: string } | null>(null);
+  const [dataAccessUser, setDataAccessUser] = useState<string | null>(null);
+  const [taskAssignmentUser, setTaskAssignmentUser] = useState<string | null>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
@@ -40,6 +44,14 @@ const UserManagementPage = () => {
 
   const handleRoleUpdate = (userId: string, currentRole: string) => {
     setSelectedUser({ id: userId, role: currentRole });
+  };
+
+  const handleDataAccess = (userId: string) => {
+    setDataAccessUser(userId);
+  };
+
+  const handleTaskAssignment = (userId: string) => {
+    setTaskAssignmentUser(userId);
   };
 
   if (isLoading) {
@@ -68,12 +80,24 @@ const UserManagementPage = () => {
                 <TableCell>{user.full_name}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>
+                <TableCell className="space-x-2">
                   <button
                     onClick={() => handleRoleUpdate(user.id, user.role)}
                     className="text-blue-600 hover:text-blue-800"
                   >
-                    Change Role
+                    Manage Role
+                  </button>
+                  <button
+                    onClick={() => handleDataAccess(user.id)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Data Access
+                  </button>
+                  <button
+                    onClick={() => handleTaskAssignment(user.id)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Assign Task
                   </button>
                 </TableCell>
               </TableRow>
@@ -88,6 +112,22 @@ const UserManagementPage = () => {
           onClose={() => setSelectedUser(null)}
           userId={selectedUser.id}
           currentRole={selectedUser.role}
+        />
+      )}
+
+      {dataAccessUser && (
+        <DataAccessDialog
+          isOpen={!!dataAccessUser}
+          onClose={() => setDataAccessUser(null)}
+          userId={dataAccessUser}
+        />
+      )}
+
+      {taskAssignmentUser && (
+        <TaskAssignmentDialog
+          isOpen={!!taskAssignmentUser}
+          onClose={() => setTaskAssignmentUser(null)}
+          userId={taskAssignmentUser}
         />
       )}
     </div>
