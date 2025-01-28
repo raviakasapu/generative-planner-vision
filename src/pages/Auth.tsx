@@ -1,19 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const validatePassword = (pass: string) => {
     if (pass.length < 6) {
@@ -26,31 +35,20 @@ const Auth = () => {
     console.error('Auth error:', error);
     let message = 'An error occurred during authentication';
     
-    // Parse error message if it's in JSON format
-    try {
-      if (typeof error.message === 'string' && error.message.includes('{')) {
-        const parsed = JSON.parse(error.message);
-        if (parsed.msg) message = parsed.msg;
-        if (parsed.message) message = parsed.message;
-      }
-    } catch (e) {
-      // If parsing fails, use the original message
-      message = error.message || message;
-    }
-
-    // Make error messages more user-friendly
-    if (message.includes('invalid_credentials')) {
-      message = 'Invalid email or password';
-    } else if (message.includes('Email not confirmed')) {
-      message = 'Please check your email to confirm your account';
-    } else if (message.includes('User already registered')) {
-      message = 'An account with this email already exists';
+    if (error.message.includes('invalid_credentials')) {
+      message = 'Invalid email or password. Please try again or sign up if you don\'t have an account.';
+    } else if (error.message.includes('Email not confirmed')) {
+      message = 'Please check your email to confirm your account before logging in.';
+    } else if (error.message.includes('User already registered')) {
+      message = 'An account with this email already exists. Please log in instead.';
+    } else if (typeof error.message === 'string') {
+      message = error.message;
     }
 
     setError(message);
     toast({
       variant: "destructive",
-      title: "Error",
+      title: "Authentication Error",
       description: message,
     });
   };
@@ -86,7 +84,6 @@ const Auth = () => {
     setIsLoading(true);
     setError(null);
 
-    // Validate password
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
@@ -99,7 +96,7 @@ const Auth = () => {
         email: email.trim(),
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
 
@@ -109,6 +106,9 @@ const Auth = () => {
         title: "Success",
         description: "Please check your email to verify your account.",
       });
+      
+      // Switch to login view after successful signup
+      setIsSignUp(false);
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -121,7 +121,9 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-8 p-8 border rounded-lg shadow-lg">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Enterprise Planning System</h2>
-          <p className="text-muted-foreground mt-2">Sign in to your account</p>
+          <p className="text-muted-foreground mt-2">
+            {isSignUp ? 'Create your account' : 'Sign in to your account'}
+          </p>
         </div>
 
         {error && (
@@ -130,7 +132,7 @@ const Auth = () => {
           </Alert>
         )}
 
-        <form className="space-y-6" onSubmit={handleLogin}>
+        <form className="space-y-6" onSubmit={isSignUp ? handleSignUp : handleLogin}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -166,17 +168,17 @@ const Auth = () => {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? 'Processing...' : (isSignUp ? 'Create account' : 'Sign in')}
             </Button>
 
             <Button
               type="button"
               variant="outline"
               className="w-full"
-              onClick={handleSignUp}
+              onClick={() => setIsSignUp(!isSignUp)}
               disabled={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
             </Button>
           </div>
         </form>
