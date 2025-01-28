@@ -1,30 +1,15 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import Spreadsheet from '@/components/Spreadsheet';
 import ChatInterface from '@/components/ChatInterface';
 import BusinessLogic from '@/components/BusinessLogic';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useToast } from "@/hooks/use-toast";
 import { MainNav } from '@/components/MainNav';
+import { UserNav } from '@/components/UserNav';
 
 const Index = () => {
   const { isLoading, user } = useAuth();
   const { hasPermission } = usePermissions();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: 'Signed out',
-      description: 'You have successfully signed out.',
-    });
-    navigate('/auth');
-  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -35,13 +20,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-4xl font-bold">Planning Application</h1>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
+          <UserNav />
         </div>
         
         <MainNav />
