@@ -1,23 +1,21 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/hooks/use-toast";
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
+import { Search, UserCog, Menu } from 'lucide-react';
+import { RoleManagementDialog } from '@/components/RoleManagementDialog';
+import { DataAccessDialog } from '@/components/DataAccessDialog';
+import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
+import { UserStats } from '@/components/users/UserStats';
+import { UserCharts } from '@/components/users/UserCharts';
+import { UserTable } from '@/components/users/UserTable';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { UserCog, Lock, CheckSquare, Search, Users, Mail } from 'lucide-react';
-import { RoleManagementDialog } from '@/components/RoleManagementDialog';
-import { DataAccessDialog } from '@/components/DataAccessDialog';
-import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
 
 interface UserProfile {
   id: string;
@@ -25,10 +23,10 @@ interface UserProfile {
   role: string | null;
   created_at: string;
   updated_at: string;
+  email?: string | null;
 }
 
 const UserManagement = () => {
-  const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUserRole, setSelectedUserRole] = useState<string>('');
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
@@ -40,7 +38,6 @@ const UserManagement = () => {
     queryKey: ['users'],
     queryFn: async () => {
       console.log('Fetching user profiles...');
-      // Get user profiles from the public schema
       const { data: profiles, error: profilesError } = await supabase
         .from('userprofiles')
         .select('*');
@@ -57,7 +54,6 @@ const UserManagement = () => {
 
       console.log('Found profiles:', profiles);
 
-      // Get user emails through the admin API
       const { data: adminData, error: adminError } = await supabase.functions.invoke('get-user-emails', {
         body: { userIds: profiles.map((profile: UserProfile) => profile.id) }
       });
@@ -69,7 +65,6 @@ const UserManagement = () => {
 
       console.log('Admin data received:', adminData);
 
-      // Combine the data
       const combinedData = profiles.map((profile: UserProfile) => {
         const userEmail = adminData?.emails?.[profile.id] || null;
         return {
@@ -99,13 +94,12 @@ const UserManagement = () => {
     setIsTaskDialogOpen(true);
   };
 
-  const filteredUsers = users?.filter(user => 
+  const filteredUsers = users?.filter(user =>
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  // Prepare data for charts
   const roleStats = users?.reduce((acc, user) => {
     const role = user.role || 'user';
     acc[role] = (acc[role] || 0) + 1;
@@ -116,8 +110,6 @@ const UserManagement = () => {
     name,
     value
   }));
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   if (isLoading) {
     return (
@@ -138,8 +130,6 @@ const UserManagement = () => {
     );
   }
 
-  // ... keep existing code (JSX for the component UI)
-
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
@@ -147,59 +137,29 @@ const UserManagement = () => {
           <UserCog className="h-6 w-6" />
           User Management
         </h1>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Menu className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              Export Users
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Import Users
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Bulk Actions
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Summary Statistics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredUsers.length}</div>
-          </CardContent>
-        </Card>
-
-        {/* Role Distribution Chart */}
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">User Roles Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-between">
-            <div className="w-1/2 h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={roleChartData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="w-1/2 h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={roleChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {roleChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <UserStats totalUsers={filteredUsers.length} />
+        <UserCharts roleChartData={roleChartData} />
       </div>
 
       <div className="mb-4 flex items-center gap-2">
@@ -212,70 +172,12 @@ const UserManagement = () => {
         />
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Full Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Last Updated</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.full_name || 'N/A'}</TableCell>
-                <TableCell className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-gray-500" />
-                  {user.email || 'N/A'}
-                </TableCell>
-                <TableCell>{user.role || 'user'}</TableCell>
-                <TableCell>
-                  {format(new Date(user.created_at), 'PPp')}
-                </TableCell>
-                <TableCell>
-                  {format(new Date(user.updated_at), 'PPp')}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <UserCog className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleRoleManagement(user.id, user.role || 'user')}
-                        className="flex items-center gap-2"
-                      >
-                        <UserCog className="h-4 w-4" />
-                        Manage Role
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDataAccess(user.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <Lock className="h-4 w-4" />
-                        Data Access
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleTaskAssignment(user.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <CheckSquare className="h-4 w-4" />
-                        Assign Tasks
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <UserTable
+        users={filteredUsers}
+        onRoleManagement={handleRoleManagement}
+        onDataAccess={handleDataAccess}
+        onTaskAssignment={handleTaskAssignment}
+      />
 
       {selectedUserId && (
         <>
