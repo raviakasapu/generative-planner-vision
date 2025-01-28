@@ -8,7 +8,6 @@ interface VersionListProps {
   versions: Version[];
   viewMode: 'grid' | 'list';
   onStatusChange: (version: Version) => void;
-  onAssignTask: (version: Version) => void;
   getStatusColor: (status: string) => string;
 }
 
@@ -16,14 +15,13 @@ export const VersionList = ({
   versions,
   viewMode,
   onStatusChange,
-  onAssignTask,
   getStatusColor,
 }: VersionListProps) => {
   return (
-    <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
+    <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-2'}>
       {versions?.map((version) => (
-        <Card key={version.id} className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card key={version.id} className={`hover:shadow-lg transition-shadow ${viewMode === 'list' ? 'p-2' : ''}`}>
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${viewMode === 'list' ? 'p-2' : 'pb-2'}`}>
             <CardTitle className="text-lg font-bold">
               {version.version_name}
             </CardTitle>
@@ -37,25 +35,18 @@ export const VersionList = ({
               </Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className={viewMode === 'list' ? 'p-2' : ''}>
             <CardDescription className="text-sm text-gray-500 mt-1">
               {version.version_description || 'No description provided'}
             </CardDescription>
-            <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
               <Layers className="h-4 w-4" />
               <span>{version.version_type}</span>
             </div>
             <div className="mt-2 text-sm text-gray-500">
               Created: {new Date(version.created_at).toLocaleDateString()}
             </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onAssignTask(version)}
-              >
-                Assign Task
-              </Button>
+            <div className="mt-2 flex justify-end">
               <Button
                 variant="outline"
                 size="sm"

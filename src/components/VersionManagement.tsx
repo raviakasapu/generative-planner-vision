@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import { VersionCreationDialog } from './version/VersionCreationDialog';
 import { VersionStatusDialog } from './version/VersionStatusDialog';
-import { TaskAssignmentDialog } from './TaskAssignmentDialog';
 import { VersionHeader } from './version/VersionHeader';
 import { VersionList } from './version/VersionList';
 import type { Version } from './version/types';
@@ -17,7 +16,6 @@ const VersionManagement = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
-  const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
@@ -53,8 +51,6 @@ const VersionManagement = () => {
     );
   });
 
-  console.log('Filtered versions:', filteredVersions);
-
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'draft': return 'bg-yellow-500';
@@ -69,11 +65,6 @@ const VersionManagement = () => {
   const handleStatusChange = (version: Version) => {
     setSelectedVersion(version);
     setShowStatusDialog(true);
-  };
-
-  const handleAssignTask = (version: Version) => {
-    setSelectedVersion(version);
-    setShowTaskDialog(true);
   };
 
   if (authLoading) return <div className="flex items-center justify-center p-8">Loading authentication...</div>;
@@ -103,7 +94,6 @@ const VersionManagement = () => {
           versions={filteredVersions}
           viewMode={viewMode}
           onStatusChange={handleStatusChange}
-          onAssignTask={handleAssignTask}
           getStatusColor={getStatusColor}
         />
       ) : (
@@ -125,32 +115,22 @@ const VersionManagement = () => {
       />
 
       {selectedVersion && (
-        <>
-          <VersionStatusDialog
-            isOpen={showStatusDialog}
-            onClose={() => {
-              setShowStatusDialog(false);
-              setSelectedVersion(null);
-            }}
-            version={selectedVersion}
-            onSuccess={() => {
-              refetch();
-              toast({
-                title: "Success",
-                description: "Version status updated successfully",
-              });
-            }}
-          />
-
-          <TaskAssignmentDialog
-            isOpen={showTaskDialog}
-            onClose={() => {
-              setShowTaskDialog(false);
-              setSelectedVersion(null);
-            }}
-            userId={selectedVersion.id}
-          />
-        </>
+        <VersionStatusDialog
+          isOpen={showStatusDialog}
+          onClose={() => {
+            setShowStatusDialog(false);
+            setSelectedVersion(null);
+            refetch(); // Add refetch here to update the list after status change
+          }}
+          version={selectedVersion}
+          onSuccess={() => {
+            refetch(); // Add refetch here to ensure the list updates
+            toast({
+              title: "Success",
+              description: "Version status updated successfully",
+            });
+          }}
+        />
       )}
     </div>
   );
