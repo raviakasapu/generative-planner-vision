@@ -53,15 +53,23 @@ export function RoleManagementDialog({
 
   const handleUpdateRole = async () => {
     try {
-      // Start a transaction to update both the user profile and audit log
+      console.log('Updating role for user:', userId, 'from', currentRole, 'to', selectedRole);
+      
+      // First update the user profile
       const { error: profileError } = await supabase
         .from('userprofiles')
-        .update({ role: selectedRole })
+        .update({ 
+          role: selectedRole,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error updating user profile:', profileError);
+        throw profileError;
+      }
 
-      // Log the role change in the audit table
+      // Then log the role change in the audit table
       const { error: auditError } = await supabase
         .from('role_change_audit')
         .insert([{
@@ -69,20 +77,25 @@ export function RoleManagementDialog({
           previous_role: currentRole,
           new_role: selectedRole,
           changed_by: user?.id,
+          changed_at: new Date().toISOString()
         }]);
 
-      if (auditError) throw auditError;
+      if (auditError) {
+        console.error('Error creating audit log:', auditError);
+        throw auditError;
+      }
 
       toast({
         title: 'Role Updated',
         description: `User role has been updated to ${selectedRole}`,
       });
+      
       onClose();
     } catch (error) {
       console.error('Error updating role:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update user role',
+        description: 'Failed to update user role. Please try again.',
         variant: 'destructive',
       });
     }
