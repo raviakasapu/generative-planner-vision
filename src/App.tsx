@@ -6,6 +6,7 @@ import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import UserManagement from '@/pages/UserManagement';
 import VersionManagement from '@/pages/VersionManagement';
+import MasterDataManagement from '@/pages/MasterDataManagement';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ function App() {
             <Route path="/auth" element={<Auth />} />
             <Route path="/users" element={<UserManagement />} />
             <Route path="/versions" element={<VersionManagement />} />
+            <Route path="/master-data" element={<MasterDataManagement />} />
           </Routes>
           <Toaster />
         </AuthProvider>

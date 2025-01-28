@@ -21,6 +21,12 @@ export function MainNav() {
       >
         User Management
       </Link>
+      <Link
+        to="/master-data"
+        className="text-sm font-medium transition-colors hover:text-primary"
+      >
+        Master Data
+      </Link>
     </nav>
   );
 }

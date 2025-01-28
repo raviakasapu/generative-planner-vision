@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import Spreadsheet from '@/components/Spreadsheet';
 import ChatInterface from '@/components/ChatInterface';
 import BusinessLogic from '@/components/BusinessLogic';
-import MasterData from '@/components/MasterData';
 import { Button } from '@/components/ui/button';
 import {
   LogOut,
@@ -78,12 +77,6 @@ const Index = () => {
             </div>
           </div>
           <div className="space-y-8">
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">Master Data</h2>
-                <MasterData />
-              </div>
-            </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Chat Interface</h2>
