@@ -58,15 +58,17 @@ export function RoleManagementDialog({
       console.log('Current Role:', currentRole);
       console.log('New Role:', selectedRole);
 
-      // First update the user profile
+      // First update the user profile with upsert to ensure the record exists
       const { data: profileData, error: profileError } = await supabase
         .from('userprofiles')
-        .update({ 
+        .upsert({ 
+          id: userId,
           role: selectedRole,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
         })
-        .eq('id', userId)
-        .select();
+        .select('*');
 
       if (profileError) {
         console.error('Error updating user profile:', profileError);
@@ -99,6 +101,9 @@ export function RoleManagementDialog({
       });
       
       onClose();
+      
+      // Force a page reload to reflect the changes
+      window.location.reload();
     } catch (error) {
       console.error('Error updating role:', error);
       toast({
