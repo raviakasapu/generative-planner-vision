@@ -39,11 +39,27 @@ export function VersionStatusDialog({
     setNewStatus(version.version_status);
   }, [version.version_status]);
 
+  const getStatusUpdateErrorMessage = (status: string, error?: any) => {
+    const statusMessages = {
+      'draft': 'Only planners can update versions in draft status',
+      'in_review': 'Only approvers and admins can update versions in review',
+      'approved': 'You need special permissions to update approved versions',
+      'published': 'Published versions can only be modified by authorized personnel',
+      'archived': 'Archived versions cannot be modified'
+    };
+
+    if (error?.message?.includes('row-level security')) {
+      return `Access denied: ${statusMessages[status as keyof typeof statusMessages] || 'You do not have permission to perform this action'}`;
+    }
+
+    return error?.message || 'An unexpected error occurred while updating the version status';
+  };
+
   const handleStatusChange = async () => {
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be logged in to perform this action",
+        title: "Authentication Required",
+        description: "Please sign in to update version status",
         variant: "destructive",
       });
       return;
@@ -65,11 +81,11 @@ export function VersionStatusDialog({
 
       if (checkError) {
         console.error('Error checking version:', checkError);
-        throw new Error('Failed to verify version status');
+        throw new Error('Unable to verify version status. Please try again later.');
       }
 
       if (!currentVersion) {
-        throw new Error('Version not found or access denied');
+        throw new Error('This version no longer exists or you do not have permission to access it.');
       }
 
       // Update version status
@@ -85,11 +101,11 @@ export function VersionStatusDialog({
 
       if (versionError) {
         console.error('Error updating version status:', versionError);
-        throw new Error('Failed to update version status. You may not have the required permissions.');
+        throw new Error(getStatusUpdateErrorMessage(version.version_status, versionError));
       }
 
       if (!versionUpdate) {
-        throw new Error('Version update failed or access denied');
+        throw new Error('Unable to update version status. This might be due to insufficient permissions or the version has been modified by another user.');
       }
 
       // Create audit log entry
@@ -106,24 +122,24 @@ export function VersionStatusDialog({
         console.error('Error creating audit log:', auditError);
         // Even if audit log fails, we don't want to roll back the status update
         toast({
-          title: "Warning",
-          description: "Version status updated but audit log creation failed",
-          variant: "destructive",
+          title: "Status Updated",
+          description: "Version status was updated but there was an issue logging the change.",
+          variant: "warning",
         });
       } else {
         toast({
           title: "Success",
-          description: `Version status updated to ${newStatus}`,
+          description: `Version status successfully updated from ${version.version_status} to ${newStatus}`,
         });
       }
       
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Error updating version status:', error);
+      console.error('Error in handleStatusChange:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update version status",
+        title: "Status Update Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred while updating the version status",
         variant: "destructive",
       });
     }
