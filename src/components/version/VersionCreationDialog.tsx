@@ -8,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from '@tanstack/react-query';
+import type { Version } from './types';
 
 interface VersionCreationDialogProps {
   isOpen: boolean;
@@ -33,9 +36,25 @@ export function VersionCreationDialog({
   const [versionName, setVersionName] = useState('');
   const [versionDescription, setVersionDescription] = useState('');
   const [versionType, setVersionType] = useState('');
-  const [securityLevel, setSecurityLevel] = useState('standard');
+  const [isBaseVersion, setIsBaseVersion] = useState(false);
+  const [baseVersionId, setBaseVersionId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Fetch existing versions for base version selection
+  const { data: existingVersions } = useQuery({
+    queryKey: ['versions-for-base'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('masterversiondimension')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Version[];
+    },
+    enabled: isOpen,
+  });
 
   const handleCreate = async () => {
     if (!user) {
@@ -52,9 +71,10 @@ export function VersionCreationDialog({
         version_name: versionName,
         version_description: versionDescription,
         version_type: versionType,
-        version_status: 'draft', // Always start as draft per RLS policy
+        version_status: 'draft',
         version_id: Date.now().toString(),
-        is_base_version: false, // Set explicitly to false for new versions
+        is_base_version: isBaseVersion,
+        base_version_id: baseVersionId,
       });
 
       if (error) {
@@ -88,7 +108,8 @@ export function VersionCreationDialog({
     setVersionName('');
     setVersionDescription('');
     setVersionType('');
-    setSecurityLevel('standard');
+    setIsBaseVersion(false);
+    setBaseVersionId(null);
   };
 
   return (
@@ -118,16 +139,36 @@ export function VersionCreationDialog({
               <SelectItem value="actual">Actual</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={securityLevel} onValueChange={setSecurityLevel}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Security Level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="standard">Standard</SelectItem>
-              <SelectItem value="confidential">Confidential</SelectItem>
-              <SelectItem value="restricted">Restricted</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isBaseVersion"
+              checked={isBaseVersion}
+              onCheckedChange={(checked) => setIsBaseVersion(checked as boolean)}
+            />
+            <label
+              htmlFor="isBaseVersion"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Is Base Version
+            </label>
+          </div>
+
+          {!isBaseVersion && (
+            <Select value={baseVersionId || ''} onValueChange={setBaseVersionId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Base Version (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {existingVersions?.map((version) => (
+                  <SelectItem key={version.id} value={version.id}>
+                    {version.version_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
           <Button
             onClick={handleCreate}
             className="w-full"

@@ -52,7 +52,9 @@ export function VersionStatusDialog({
         description: `Version status updated to ${newStatus}`,
       });
       
+      // Call onSuccess first to trigger the refetch
       onSuccess();
+      // Then close the dialog
       onClose();
     } catch (error) {
       console.error('Error updating version status:', error);
