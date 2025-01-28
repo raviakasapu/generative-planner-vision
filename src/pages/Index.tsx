@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Spreadsheet from '@/components/Spreadsheet';
 import ChatInterface from '@/components/ChatInterface';
 import BusinessLogic from '@/components/BusinessLogic';
@@ -15,7 +15,7 @@ import { LogOut, User } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
-  const { isLoading, userRole, user } = useAuth();
+  const { isLoading, user } = useAuth();
   const { hasPermission } = usePermissions();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -70,11 +70,6 @@ const Index = () => {
               </div>
             </div>
           </div>
-          {userRole === 'admin' && (
-            <Button asChild variant="outline">
-              <Link to="/admin">Admin Panel</Link>
-            </Button>
-          )}
           <Button 
             variant="ghost" 
             size="icon"
