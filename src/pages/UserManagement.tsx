@@ -54,16 +54,20 @@ const UserManagementPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>User ID</TableHead>
+              <TableHead>Full Name</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users?.map((user) => (
               <TableRow key={user.id}>
+                <TableCell className="font-mono">{user.id}</TableCell>
                 <TableCell>{user.full_name}</TableCell>
                 <TableCell>{user.role}</TableCell>
+                <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <button
                     onClick={() => handleRoleUpdate(user.id, user.role)}
