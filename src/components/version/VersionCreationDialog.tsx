@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from "@/hooks/use-toast";
 
 interface VersionCreationDialogProps {
   isOpen: boolean;
@@ -32,24 +34,53 @@ export function VersionCreationDialog({
   const [versionDescription, setVersionDescription] = useState('');
   const [versionType, setVersionType] = useState('');
   const [securityLevel, setSecurityLevel] = useState('standard');
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleCreate = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a version",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase.from('masterversiondimension').insert({
         version_name: versionName,
         version_description: versionDescription,
         version_type: versionType,
-        version_status: 'draft',
+        version_status: 'draft', // Always start as draft per RLS policy
         version_id: Date.now().toString(),
+        is_base_version: false, // Set explicitly to false for new versions
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating version:', error);
+        toast({
+          title: "Error creating version",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       onSuccess();
       onClose();
       resetForm();
+      toast({
+        title: "Success",
+        description: "Version created successfully",
+      });
     } catch (error) {
       console.error('Error creating version:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create version",
+        variant: "destructive",
+      });
     }
   };
 
