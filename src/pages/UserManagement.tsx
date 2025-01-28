@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { MainNav } from '@/components/MainNav';
 import {
   Table,
   TableBody,
@@ -101,6 +102,7 @@ const UserManagement = () => {
 
   return (
     <div className="container mx-auto py-10">
+      <MainNav />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <UserCog className="h-6 w-6" />
