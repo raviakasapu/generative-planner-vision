@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { User, UserPlus, UserMinus } from 'lucide-react';
+import { User, UserMinus } from 'lucide-react';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -38,11 +38,21 @@ const UserManagement = () => {
   });
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading users...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading users...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-500">Error loading users</div>;
+    return (
+      <div className="container mx-auto py-10">
+        <div className="text-red-500">
+          Error loading users. Please try again later.
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -52,12 +62,6 @@ const UserManagement = () => {
           <User className="h-6 w-6" />
           User Management
         </h1>
-        <div className="space-x-2">
-          <Button variant="outline" size="sm">
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
-        </div>
       </div>
 
       <div className="rounded-md border">
@@ -77,7 +81,9 @@ const UserManagement = () => {
                 <TableCell className="font-mono">{user.id}</TableCell>
                 <TableCell>{user.full_name || 'N/A'}</TableCell>
                 <TableCell>{user.role || 'user'}</TableCell>
-                <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {new Date(user.created_at).toLocaleDateString()}
+                </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm">
                     <UserMinus className="h-4 w-4" />
