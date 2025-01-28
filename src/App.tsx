@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import UserManagement from '@/pages/UserManagement';
+import VersionManagement from '@/pages/VersionManagement';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/users" element={<UserManagement />} />
+            <Route path="/versions" element={<VersionManagement />} />
           </Routes>
           <Toaster />
         </AuthProvider>

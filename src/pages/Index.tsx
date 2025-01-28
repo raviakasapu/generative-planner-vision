@@ -4,11 +4,11 @@ import Spreadsheet from '@/components/Spreadsheet';
 import ChatInterface from '@/components/ChatInterface';
 import BusinessLogic from '@/components/BusinessLogic';
 import MasterData from '@/components/MasterData';
-import VersionManagement from '@/components/VersionManagement';
 import { Button } from '@/components/ui/button';
 import {
   LogOut,
-  Users
+  Users,
+  Layers
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +41,12 @@ const Index = () => {
           <h1 className="text-4xl font-bold">Planning Application</h1>
           <div className="flex items-center gap-4">
             <Button asChild variant="outline">
+              <Link to="/versions" className="flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                Version Management
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link to="/users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 User Management
@@ -72,11 +78,6 @@ const Index = () => {
             </div>
           </div>
           <div className="space-y-8">
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="p-6">
-                <VersionManagement />
-              </div>
-            </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Master Data</h2>
