@@ -27,6 +27,7 @@ const VersionManagement = () => {
     queryFn: async () => {
       if (!user) throw new Error('Authentication required');
       
+      console.log('Fetching versions...');
       const { data, error } = await supabase
         .from('masterversiondimension')
         .select('*')
@@ -36,19 +37,26 @@ const VersionManagement = () => {
         console.error('Error fetching versions:', error);
         throw error;
       }
+      
+      console.log('Fetched versions:', data);
       return data as Version[];
     },
-    enabled: !!user, // Only run query when user is authenticated
+    enabled: !!user,
   });
 
-  const filteredVersions = versions?.filter(version => 
-    version.version_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    version.version_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    version.version_type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredVersions = versions?.filter(version => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      version.version_name.toLowerCase().includes(searchLower) ||
+      (version.version_description?.toLowerCase() || '').includes(searchLower) ||
+      version.version_type.toLowerCase().includes(searchLower)
+    );
+  });
+
+  console.log('Filtered versions:', filteredVersions);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'draft': return 'bg-yellow-500';
       case 'in_review': return 'bg-blue-500';
       case 'approved': return 'bg-green-500';
@@ -68,16 +76,16 @@ const VersionManagement = () => {
     setShowTaskDialog(true);
   };
 
-  if (authLoading) return <div>Loading authentication...</div>;
-  if (!user) return <div>Please sign in to manage versions</div>;
-  if (isLoading) return <div>Loading versions...</div>;
+  if (authLoading) return <div className="flex items-center justify-center p-8">Loading authentication...</div>;
+  if (!user) return <div className="flex items-center justify-center p-8">Please sign in to manage versions</div>;
+  if (isLoading) return <div className="flex items-center justify-center p-8">Loading versions...</div>;
   if (error) {
     toast({
       title: "Error loading versions",
       description: error.message,
       variant: "destructive",
     });
-    return <div>Error loading versions</div>;
+    return <div className="flex items-center justify-center p-8">Error loading versions</div>;
   }
 
   return (
@@ -90,13 +98,19 @@ const VersionManagement = () => {
         onCreateVersion={() => setShowCreateDialog(true)}
       />
 
-      <VersionList
-        versions={filteredVersions}
-        viewMode={viewMode}
-        onStatusChange={handleStatusChange}
-        onAssignTask={handleAssignTask}
-        getStatusColor={getStatusColor}
-      />
+      {filteredVersions && filteredVersions.length > 0 ? (
+        <VersionList
+          versions={filteredVersions}
+          viewMode={viewMode}
+          onStatusChange={handleStatusChange}
+          onAssignTask={handleAssignTask}
+          getStatusColor={getStatusColor}
+        />
+      ) : (
+        <div className="text-center p-8 text-gray-500">
+          {searchQuery ? 'No versions found matching your search' : 'No versions created yet'}
+        </div>
+      )}
 
       <VersionCreationDialog
         isOpen={showCreateDialog}
