@@ -1,13 +1,10 @@
-import { MainNav } from '@/components/MainNav';
-import { UserNav } from '@/components/UserNav';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useState } from 'react';
 import { format } from 'date-fns';
 import {
   DropdownMenu,
@@ -36,7 +33,12 @@ const UserManagement = () => {
     queryFn: async () => {
       const { data: profiles, error } = await supabase
         .from('userprofiles')
-        .select('*, auth_users:auth.users(email)');
+        .select(`
+          *,
+          user:id (
+            email
+          )
+        `);
 
       if (error) {
         console.error('Error fetching users:', error);
@@ -48,9 +50,9 @@ const UserManagement = () => {
         throw error;
       }
 
-      return profiles.map(profile => ({
+      return profiles.map((profile: any) => ({
         ...profile,
-        email: profile.auth_users?.email
+        email: profile.user?.email
       }));
     },
   });
