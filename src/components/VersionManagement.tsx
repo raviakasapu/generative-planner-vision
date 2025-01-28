@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/AuthContext';
 import { VersionCreationDialog } from './version/VersionCreationDialog';
 import { VersionStatusDialog } from './version/VersionStatusDialog';
 import { TaskAssignmentDialog } from './TaskAssignmentDialog';
@@ -19,18 +20,25 @@ const VersionManagement = () => {
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
 
   const { data: versions, isLoading, error, refetch } = useQuery({
     queryKey: ['versions'],
     queryFn: async () => {
+      if (!user) throw new Error('Authentication required');
+      
       const { data, error } = await supabase
         .from('masterversiondimension')
         .select('*')
         .order(sortField, { ascending: sortOrder === 'asc' });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching versions:', error);
+        throw error;
+      }
       return data as Version[];
     },
+    enabled: !!user, // Only run query when user is authenticated
   });
 
   const filteredVersions = versions?.filter(version => 
@@ -60,8 +68,17 @@ const VersionManagement = () => {
     setShowTaskDialog(true);
   };
 
+  if (authLoading) return <div>Loading authentication...</div>;
+  if (!user) return <div>Please sign in to manage versions</div>;
   if (isLoading) return <div>Loading versions...</div>;
-  if (error) return <div>Error loading versions</div>;
+  if (error) {
+    toast({
+      title: "Error loading versions",
+      description: error.message,
+      variant: "destructive",
+    });
+    return <div>Error loading versions</div>;
+  }
 
   return (
     <div className="space-y-4">
