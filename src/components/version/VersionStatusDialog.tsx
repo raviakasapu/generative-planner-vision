@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 interface VersionStatusDialogProps {
   isOpen: boolean;
@@ -32,20 +33,34 @@ export function VersionStatusDialog({
   onSuccess,
 }: VersionStatusDialogProps) {
   const [newStatus, setNewStatus] = React.useState(version.version_status);
+  const { toast } = useToast();
 
   const handleStatusChange = async () => {
     try {
       const { error } = await supabase
         .from('masterversiondimension')
-        .update({ version_status: newStatus })
+        .update({ 
+          version_status: newStatus,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', version.id);
 
       if (error) throw error;
 
+      toast({
+        title: "Success",
+        description: `Version status updated to ${newStatus}`,
+      });
+      
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error updating version status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update version status",
+        variant: "destructive",
+      });
     }
   };
 
