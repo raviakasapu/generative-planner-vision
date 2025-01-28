@@ -8,13 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
+import { format } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserCog, Lock, CheckSquare } from 'lucide-react';
+import { UserCog, Lock, CheckSquare, Search } from 'lucide-react';
 import { RoleManagementDialog } from '@/components/RoleManagementDialog';
 import { DataAccessDialog } from '@/components/DataAccessDialog';
 import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
@@ -26,6 +27,7 @@ const UserManagement = () => {
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [isDataAccessDialogOpen, setIsDataAccessDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -64,6 +66,11 @@ const UserManagement = () => {
     setIsTaskDialogOpen(true);
   };
 
+  const filteredUsers = users?.filter(user => 
+    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -91,25 +98,37 @@ const UserManagement = () => {
         </h1>
       </div>
 
+      <div className="mb-4 flex items-center gap-2">
+        <Search className="h-4 w-4 text-gray-500" />
+        <Input
+          placeholder="Search users by name or role..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User ID</TableHead>
               <TableHead>Full Name</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Created At</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Last Updated</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.map((user) => (
+            {filteredUsers?.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-mono">{user.id}</TableCell>
                 <TableCell>{user.full_name || 'N/A'}</TableCell>
                 <TableCell>{user.role || 'user'}</TableCell>
                 <TableCell>
-                  {new Date(user.created_at).toLocaleDateString()}
+                  {format(new Date(user.created_at), 'PPp')}
+                </TableCell>
+                <TableCell>
+                  {format(new Date(user.updated_at), 'PPp')}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
