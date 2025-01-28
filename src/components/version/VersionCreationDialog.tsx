@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,13 @@ interface VersionCreationDialogProps {
   onSuccess: () => void;
 }
 
+interface BusinessRule {
+  id: string;
+  rule_name: string;
+  rule_description: string | null;
+  rule_definition: any;
+}
+
 export function VersionCreationDialog({
   isOpen,
   onClose,
@@ -38,10 +45,11 @@ export function VersionCreationDialog({
   const [versionType, setVersionType] = useState('');
   const [isBaseVersion, setIsBaseVersion] = useState(false);
   const [baseVersionId, setBaseVersionId] = useState<string | null>(null);
+  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch existing versions for base version selection
+  // Fetch existing versions
   const { data: existingVersions } = useQuery({
     queryKey: ['versions-for-base'],
     queryFn: async () => {
@@ -56,6 +64,31 @@ export function VersionCreationDialog({
     enabled: isOpen,
   });
 
+  // Fetch business rules
+  const { data: businessRules } = useQuery({
+    queryKey: ['business-rules'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('businesslogicrules')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as BusinessRule[];
+    },
+    enabled: isOpen,
+  });
+
+  // Find default copy rule
+  useEffect(() => {
+    if (businessRules) {
+      const copyRule = businessRules.find(rule => rule.rule_name === 'Copy Data Rule');
+      if (copyRule && !selectedRuleId) {
+        setSelectedRuleId(copyRule.id);
+      }
+    }
+  }, [businessRules]);
+
   const handleCreate = async () => {
     if (!user) {
       toast({
@@ -67,33 +100,49 @@ export function VersionCreationDialog({
     }
 
     try {
-      const { error } = await supabase.from('masterversiondimension').insert({
-        version_name: versionName,
-        version_description: versionDescription,
-        version_type: versionType,
-        version_status: 'draft',
-        version_id: Date.now().toString(),
-        is_base_version: isBaseVersion,
-        base_version_id: baseVersionId,
-      });
+      // Create new version
+      const { data: newVersion, error: versionError } = await supabase
+        .from('masterversiondimension')
+        .insert({
+          version_name: versionName,
+          version_description: versionDescription,
+          version_type: versionType,
+          version_status: 'draft',
+          version_id: Date.now().toString(),
+          is_base_version: isBaseVersion,
+          base_version_id: baseVersionId,
+        })
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Error creating version:', error);
-        toast({
-          title: "Error creating version",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
+      if (versionError) throw versionError;
+
+      // If this is based on another version, copy the planning data
+      if (baseVersionId && newVersion) {
+        const { error: copyError } = await supabase
+          .rpc('copy_planning_data_for_version', {
+            source_version_id: baseVersionId,
+            target_version_id: newVersion.id
+          });
+
+        if (copyError) {
+          console.error('Error copying planning data:', copyError);
+          toast({
+            title: "Warning",
+            description: "Version created but data copying failed",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Version created and data copied successfully",
+          });
+        }
       }
 
       onSuccess();
       onClose();
       resetForm();
-      toast({
-        title: "Success",
-        description: "Version created successfully",
-      });
     } catch (error) {
       console.error('Error creating version:', error);
       toast({
@@ -110,6 +159,7 @@ export function VersionCreationDialog({
     setVersionType('');
     setIsBaseVersion(false);
     setBaseVersionId(null);
+    setSelectedRuleId(null);
   };
 
   return (
@@ -155,18 +205,35 @@ export function VersionCreationDialog({
           </div>
 
           {!isBaseVersion && (
-            <Select value={baseVersionId || ''} onValueChange={setBaseVersionId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Base Version (Optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {existingVersions?.map((version) => (
-                  <SelectItem key={version.id} value={version.id}>
-                    {version.version_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <>
+              <Select value={baseVersionId || ''} onValueChange={setBaseVersionId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Base Version (Optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {existingVersions?.map((version) => (
+                    <SelectItem key={version.id} value={version.id}>
+                      {version.version_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {baseVersionId && (
+                <Select value={selectedRuleId || ''} onValueChange={setSelectedRuleId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Copy Rule" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {businessRules?.map((rule) => (
+                      <SelectItem key={rule.id} value={rule.id}>
+                        {rule.rule_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </>
           )}
 
           <Button
