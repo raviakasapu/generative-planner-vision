@@ -17,10 +17,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserCog, Lock, CheckSquare } from 'lucide-react';
+import { UserCog, Lock, CheckSquare, Search, Menu } from 'lucide-react';
 import { RoleManagementDialog } from '@/components/RoleManagementDialog';
 import { DataAccessDialog } from '@/components/DataAccessDialog';
 import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
+import { Input } from '@/components/ui/input';
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarTrigger,
+} from '@/components/ui/menubar';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -29,6 +37,7 @@ const UserManagement = () => {
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [isDataAccessDialogOpen, setIsDataAccessDialogOpen] = useState(false);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -67,6 +76,11 @@ const UserManagement = () => {
     setIsTaskDialogOpen(true);
   };
 
+  const filteredUsers = users?.filter(user => 
+    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -92,27 +106,52 @@ const UserManagement = () => {
           <UserCog className="h-6 w-6" />
           User Management
         </h1>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 w-[250px]"
+            />
+          </div>
+          <Menubar>
+            <MenubarMenu>
+              <MenubarTrigger>
+                <Menu className="h-4 w-4" />
+              </MenubarTrigger>
+              <MenubarContent>
+                <MenubarItem>Export Users</MenubarItem>
+                <MenubarItem>Import Users</MenubarItem>
+                <MenubarItem>Bulk Actions</MenubarItem>
+              </MenubarContent>
+            </MenubarMenu>
+          </Menubar>
+        </div>
       </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User ID</TableHead>
               <TableHead>Full Name</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Last Updated</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.map((user) => (
+            {filteredUsers?.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-mono">{user.id}</TableCell>
                 <TableCell>{user.full_name || 'N/A'}</TableCell>
                 <TableCell>{user.role || 'user'}</TableCell>
                 <TableCell>
                   {new Date(user.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {new Date(user.updated_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
