@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UserCog, Key, Calendar } from "lucide-react";
+import { UserCog, Key, Calendar, ClipboardList } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -68,6 +68,14 @@ export function UserTable({
                   <Key className="h-4 w-4 mr-1" />
                   Access
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onTaskAssignment(user.id)}
+                >
+                  <ClipboardList className="h-4 w-4 mr-1" />
+                  Tasks
+                </Button>
               </div>
             </div>
           </Card>
@@ -115,6 +123,14 @@ export function UserTable({
                 >
                   <Key className="h-4 w-4 mr-1" />
                   Access
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onTaskAssignment(user.id)}
+                >
+                  <ClipboardList className="h-4 w-4 mr-1" />
+                  Tasks
                 </Button>
               </div>
             </TableCell>

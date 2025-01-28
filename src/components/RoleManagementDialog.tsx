@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RoleManagementDialogProps {
   isOpen: boolean;
@@ -32,8 +33,8 @@ export function RoleManagementDialog({
 }: RoleManagementDialogProps) {
   const { toast } = useToast();
   const [selectedRole, setSelectedRole] = React.useState(currentRole);
+  const { user } = useAuth();
 
-  // Fetch available roles from the roles table
   const { data: roles, isLoading: rolesLoading } = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
@@ -52,12 +53,25 @@ export function RoleManagementDialog({
 
   const handleUpdateRole = async () => {
     try {
-      const { error } = await supabase
+      // Start a transaction to update both the user profile and audit log
+      const { error: profileError } = await supabase
         .from('userprofiles')
         .update({ role: selectedRole })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Log the role change in the audit table
+      const { error: auditError } = await supabase
+        .from('role_change_audit')
+        .insert({
+          user_id: userId,
+          previous_role: currentRole,
+          new_role: selectedRole,
+          changed_by: user?.id,
+        });
+
+      if (auditError) throw auditError;
 
       toast({
         title: 'Role Updated',
@@ -75,7 +89,7 @@ export function RoleManagementDialog({
   };
 
   if (rolesLoading) {
-    return null; // Or show a loading spinner
+    return null;
   }
 
   return (
