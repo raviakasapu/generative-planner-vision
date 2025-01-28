@@ -15,6 +15,46 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const validatePassword = (pass: string) => {
+    if (pass.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    return null;
+  };
+
+  const handleError = (error: any) => {
+    console.error('Auth error:', error);
+    let message = 'An error occurred during authentication';
+    
+    // Parse error message if it's in JSON format
+    try {
+      if (typeof error.message === 'string' && error.message.includes('{')) {
+        const parsed = JSON.parse(error.message);
+        if (parsed.msg) message = parsed.msg;
+        if (parsed.message) message = parsed.message;
+      }
+    } catch (e) {
+      // If parsing fails, use the original message
+      message = error.message || message;
+    }
+
+    // Make error messages more user-friendly
+    if (message.includes('invalid_credentials')) {
+      message = 'Invalid email or password';
+    } else if (message.includes('Email not confirmed')) {
+      message = 'Please check your email to confirm your account';
+    } else if (message.includes('User already registered')) {
+      message = 'An account with this email already exists';
+    }
+
+    setError(message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: message,
+    });
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -22,7 +62,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -35,12 +75,7 @@ const Auth = () => {
       
       navigate('/');
     } catch (error: any) {
-      setError(error.message);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      handleError(error);
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +86,21 @@ const Auth = () => {
     setIsLoading(true);
     setError(null);
 
+    // Validate password
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
 
       if (error) throw error;
@@ -64,12 +110,7 @@ const Auth = () => {
         description: "Please check your email to verify your account.",
       });
     } catch (error: any) {
-      setError(error.message);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      handleError(error);
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +140,8 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Enter your email"
+              disabled={isLoading}
+              className="w-full"
             />
           </div>
 
@@ -111,6 +154,9 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="Enter your password"
+              disabled={isLoading}
+              className="w-full"
+              minLength={6}
             />
           </div>
 
@@ -130,7 +176,7 @@ const Auth = () => {
               onClick={handleSignUp}
               disabled={isLoading}
             >
-              Create account
+              {isLoading ? 'Creating account...' : 'Create account'}
             </Button>
           </div>
         </form>
