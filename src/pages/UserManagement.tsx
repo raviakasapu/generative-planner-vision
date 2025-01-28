@@ -39,6 +39,7 @@ const UserManagement = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
+      console.log('Fetching user profiles...');
       // Get user profiles from the public schema
       const { data: profiles, error: profilesError } = await supabase
         .from('userprofiles')
@@ -48,6 +49,13 @@ const UserManagement = () => {
         console.error('Error fetching user profiles:', profilesError);
         throw profilesError;
       }
+
+      if (!profiles || profiles.length === 0) {
+        console.log('No user profiles found');
+        return [];
+      }
+
+      console.log('Found profiles:', profiles);
 
       // Get user emails through the admin API
       const { data: adminData, error: adminError } = await supabase.functions.invoke('get-user-emails', {
@@ -59,14 +67,19 @@ const UserManagement = () => {
         throw adminError;
       }
 
+      console.log('Admin data received:', adminData);
+
       // Combine the data
-      return profiles.map((profile: UserProfile) => {
+      const combinedData = profiles.map((profile: UserProfile) => {
         const userEmail = adminData?.emails?.[profile.id] || null;
         return {
           ...profile,
           email: userEmail
         };
       });
+
+      console.log('Combined data:', combinedData);
+      return combinedData;
     },
   });
 
@@ -90,19 +103,19 @@ const UserManagement = () => {
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) || [];
 
   // Prepare data for charts
   const roleStats = users?.reduce((acc, user) => {
     const role = user.role || 'user';
     acc[role] = (acc[role] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, number>) || {};
 
-  const roleChartData = roleStats ? Object.entries(roleStats).map(([name, value]) => ({
+  const roleChartData = Object.entries(roleStats).map(([name, value]) => ({
     name,
     value
-  })) : [];
+  }));
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -115,14 +128,17 @@ const UserManagement = () => {
   }
 
   if (error) {
+    console.error('Error in UserManagement:', error);
     return (
       <div className="container mx-auto py-10">
         <div className="text-red-500">
-          Error loading users. Please try again later.
+          Error loading users: {error.message}
         </div>
       </div>
     );
   }
+
+  // ... keep existing code (JSX for the component UI)
 
   return (
     <div className="container mx-auto py-10">
@@ -141,7 +157,7 @@ const UserManagement = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users?.length || 0}</div>
+            <div className="text-2xl font-bold">{filteredUsers.length}</div>
           </CardContent>
         </Card>
 
@@ -209,7 +225,7 @@ const UserManagement = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers?.map((user) => (
+            {filteredUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.full_name || 'N/A'}</TableCell>
                 <TableCell className="flex items-center gap-2">
