@@ -31,29 +31,34 @@ const UserManagement = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const { data: profiles, error } = await supabase
+      // First, get all user profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('userprofiles')
-        .select(`
-          *,
-          user:id (
-            email
-          )
-        `);
+        .select('*');
 
-      if (error) {
-        console.error('Error fetching users:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch users',
-          variant: 'destructive',
-        });
-        throw error;
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+        throw profilesError;
       }
 
-      return profiles.map((profile: any) => ({
-        ...profile,
-        email: profile.user?.email
-      }));
+      // Then, get the corresponding auth users for their emails
+      const { data: authUsers, error: authError } = await supabase
+        .from('auth.users')
+        .select('id, email');
+
+      if (authError) {
+        console.error('Error fetching auth users:', authError);
+        throw authError;
+      }
+
+      // Combine the data
+      return profiles.map((profile: any) => {
+        const authUser = authUsers.find((user: any) => user.id === profile.id);
+        return {
+          ...profile,
+          email: authUser?.email
+        };
+      });
     },
   });
 
