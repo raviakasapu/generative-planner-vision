@@ -124,7 +124,7 @@ export function VersionStatusDialog({
         toast({
           title: "Status Updated",
           description: "Version status was updated but there was an issue logging the change.",
-          variant: "warning",
+          variant: "destructive",
         });
       } else {
         toast({
