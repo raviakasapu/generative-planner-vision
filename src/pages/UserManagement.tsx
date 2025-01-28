@@ -55,7 +55,6 @@ const UserManagementPage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -64,7 +63,6 @@ const UserManagementPage = () => {
             {users?.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.full_name}</TableCell>
-                <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
                   <button
