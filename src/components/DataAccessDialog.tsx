@@ -37,24 +37,49 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
   }, [dimensionType]);
 
   const fetchDimensions = async () => {
-    const tableName = dimensionType === 'time' ? 'mastertimedimension' :
-      dimensionType === 'dimension1' ? 'masterdimension1' : 'masterdimension2';
+    let tableName = '';
+    let selectColumns = '';
 
+    switch (dimensionType) {
+      case 'dimension1':
+        tableName = 'masterdimension1';
+        selectColumns = 'id, dimension_name, product_id, product_description';
+        break;
+      case 'dimension2':
+        tableName = 'masterdimension2';
+        selectColumns = 'id, dimension_name, region_id, region_description';
+        break;
+      case 'time':
+        tableName = 'mastertimedimension';
+        selectColumns = 'id, dimension_name, month_id, month_name';
+        break;
+      default:
+        return;
+    }
+
+    console.log(`Fetching dimensions from ${tableName}`);
     const { data, error } = await supabase
       .from(tableName)
-      .select('id, dimension_name');
+      .select(selectColumns);
 
     if (error) {
       console.error('Error fetching dimensions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch dimensions. Please try again.',
+        variant: 'destructive',
+      });
       return;
     }
 
+    console.log('Fetched dimensions:', data);
     setDimensions(data || []);
   };
 
   const handleGrantAccess = async () => {
     try {
       setIsSubmitting(true);
+      console.log('Granting access:', { userId, dimensionType, dimensionId, accessLevel });
 
       // First check if permission already exists
       const { data: existingPermission, error: checkError } = await supabase
@@ -65,8 +90,12 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
         .eq('dimension_id', dimensionId)
         .maybeSingle();
 
-      if (checkError) throw checkError;
+      if (checkError) {
+        console.error('Error checking existing permission:', checkError);
+        throw checkError;
+      }
 
+      console.log('Existing permission:', existingPermission);
       let result;
       
       if (existingPermission) {
@@ -87,8 +116,12 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
           });
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Error managing access:', result.error);
+        throw result.error;
+      }
 
+      console.log('Access granted/updated successfully');
       toast({
         title: existingPermission ? 'Access Updated' : 'Access Granted',
         description: existingPermission 
@@ -105,6 +138,19 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getDimensionLabel = (dimension: any) => {
+    switch (dimensionType) {
+      case 'dimension1':
+        return `${dimension.product_id} - ${dimension.product_description || 'No description'}`;
+      case 'dimension2':
+        return `${dimension.region_id} - ${dimension.region_description || 'No description'}`;
+      case 'time':
+        return `${dimension.month_id} - ${dimension.month_name || 'No name'}`;
+      default:
+        return dimension.dimension_name;
     }
   };
 
@@ -134,7 +180,7 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
               <SelectContent>
                 {dimensions.map((dim) => (
                   <SelectItem key={dim.id} value={dim.id}>
-                    {dim.dimension_name}
+                    {getDimensionLabel(dim)}
                   </SelectItem>
                 ))}
               </SelectContent>
