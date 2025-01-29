@@ -1,12 +1,9 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useDataTable } from '@/hooks/useDataTable';
 import DataTableHeader from './DataTableHeader';
 import DataTableBody from './DataTableBody';
 import DataTablePagination from './DataTablePagination';
-import AddColumnDialog from './AddColumnDialog';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,8 +19,6 @@ const DataTable = () => {
     updateColumnConfig,
     addColumn,
     setPagination,
-    isAddColumnDialogOpen,
-    setAddColumnDialogOpen
   } = useDataTable();
 
   if (loading) {
@@ -65,7 +60,7 @@ const DataTable = () => {
                       field={field}
                       config={columnConfigs[field]}
                       onConfigUpdate={(updates) => updateColumnConfig(field, updates)}
-                      onAddColumn={() => setAddColumnDialogOpen(true)}
+                      onAddColumn={addColumn}
                     />
                   ))}
                 </tr>
@@ -96,12 +91,6 @@ const DataTable = () => {
             page={pagination.page}
             pageSize={pagination.pageSize}
             onChange={setPagination}
-          />
-
-          <AddColumnDialog
-            open={isAddColumnDialogOpen}
-            onOpenChange={setAddColumnDialogOpen}
-            onAdd={addColumn}
           />
         </div>
       </Card>

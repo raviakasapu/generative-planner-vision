@@ -21,7 +21,7 @@ interface DataTableHeaderProps {
   field: string;
   config: ColumnConfig;
   onConfigUpdate: (updates: Partial<ColumnConfig>) => void;
-  onAddColumn: () => void;
+  onAddColumn: (attributeName: string) => void;
 }
 
 const DataTableHeader: React.FC<DataTableHeaderProps> = ({
@@ -65,46 +65,21 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Add Column</DropdownMenuLabel>
+              <DropdownMenuLabel>Add Attribute Column</DropdownMenuLabel>
               <DropdownMenuSeparator />
               
               {dimensionAttributes.length > 0 && (
                 <>
                   <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                    Attributes
+                    Available Attributes
                   </DropdownMenuLabel>
                   {dimensionAttributes.map((attr) => (
-                    <DropdownMenuItem key={attr} onSelect={() => onConfigUpdate({ selectedColumn: attr })}>
+                    <DropdownMenuItem key={attr} onSelect={() => onAddColumn(attr)}>
                       {attr}
                     </DropdownMenuItem>
                   ))}
-                  <DropdownMenuSeparator />
                 </>
               )}
-              
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                Dimensions
-              </DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => onAddColumn()}>
-                Product Dimension
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => onAddColumn()}>
-                Region Dimension
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => onAddColumn()}>
-                Time Dimension
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                Measures
-              </DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => onAddColumn()}>
-                Add Measure 1
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => onAddColumn()}>
-                Add Measure 2
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

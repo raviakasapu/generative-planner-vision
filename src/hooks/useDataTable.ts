@@ -2,8 +2,10 @@ import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ColumnConfig, NewColumnConfig, PaginationState } from '@/components/data-table/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useDataTable = () => {
+  const { user } = useAuth();
   const [columnConfigs, setColumnConfigs] = useState<Record<string, ColumnConfig>>({
     dimension1_id: {
       field: 'dimension1_id',
@@ -49,14 +51,16 @@ export const useDataTable = () => {
   const [isAddColumnDialogOpen, setAddColumnDialogOpen] = useState(false);
 
   const { data = [], isLoading: loading } = useQuery({
-    queryKey: ['planningData'],
+    queryKey: ['planningData', user?.id],
     queryFn: async () => {
-      console.info('Fetching planning data for user:', supabase.auth.getUser());
+      console.info('Fetching planning data for user:', user?.id);
 
+      // Fetch user's access permissions
       const { data: permissions } = await supabase
         .from('data_access_permissions')
         .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', user?.id)
+        .eq('approval_status', 'approved');
 
       console.info('User access permissions:', permissions);
 
@@ -66,9 +70,6 @@ export const useDataTable = () => {
       const dimension2Ids = permissions
         ?.filter(p => p.dimension_type === 'dimension2')
         .map(p => p.dimension_id);
-
-      console.info('Accessible dimension1 IDs:', dimension1Ids);
-      console.info('Accessible dimension2 IDs:', dimension2Ids);
 
       let query = supabase
         .from('planningdata')
@@ -90,6 +91,7 @@ export const useDataTable = () => {
           )
         `);
 
+      // Apply dimension access filters
       if (dimension1Ids?.length) {
         query = query.in('dimension1_id', dimension1Ids);
       }
@@ -104,9 +106,28 @@ export const useDataTable = () => {
         return [];
       }
 
-      console.info('Raw planning data:', planningData);
+      // Aggregate data based on dimensions
+      const aggregatedData = planningData?.reduce((acc: any[], row) => {
+        const existingRow = acc.find(r => 
+          r.dimension1_id === row.dimension1_id && 
+          r.dimension2_id === row.dimension2_id
+        );
 
-      return planningData || [];
+        if (existingRow) {
+          existingRow.measure1 = (existingRow.measure1 || 0) + (row.measure1 || 0);
+          existingRow.measure2 = (existingRow.measure2 || 0) + (row.measure2 || 0);
+        } else {
+          acc.push({
+            ...row,
+            measure1: row.measure1 || 0,
+            measure2: row.measure2 || 0
+          });
+        }
+
+        return acc;
+      }, []);
+
+      return aggregatedData || [];
     }
   });
 
@@ -130,20 +151,17 @@ export const useDataTable = () => {
     }));
   }, []);
 
-  const addColumn = useCallback((config: NewColumnConfig) => {
-    const field = `${config.type === 'dimension' ? 'dimension' : 'measure'}_${Date.now()}`;
-    
+  const addColumn = useCallback((attributeName: string) => {
+    const columnId = `attribute_${Date.now()}`;
     setColumnConfigs(prev => ({
       ...prev,
-      [field]: {
-        field,
-        type: config.type,
-        label: config.label,
-        description: config.description,
+      [columnId]: {
+        field: columnId,
+        type: 'dimension',
+        label: attributeName,
         filter: '',
         sortOrder: null,
-        selectedColumn: field,
-        ...(config.type === 'measure' ? { aggregation: 'sum' } : {})
+        selectedColumn: attributeName
       }
     }));
   }, []);
