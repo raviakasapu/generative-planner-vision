@@ -13,7 +13,7 @@ export const useDataTable = () => {
       label: 'Time Period',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'month_name',
+      selectedColumn: 'month_id',
       dimensionAttributes: ['month_id', 'quarter', 'year']
     },
     version_dimension_id: {
@@ -22,7 +22,7 @@ export const useDataTable = () => {
       label: 'Version',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'version_name',
+      selectedColumn: 'version_id',
       dimensionAttributes: ['version_id', 'version_type', 'version_status']
     },
     datasource_dimension_id: {
@@ -31,7 +31,7 @@ export const useDataTable = () => {
       label: 'Data Source',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'datasource_name',
+      selectedColumn: 'datasource_id',
       dimensionAttributes: ['datasource_id', 'datasource_type', 'system_of_origin']
     },
     dimension1_id: {
@@ -158,8 +158,28 @@ export const useDataTable = () => {
         if (!config.filter) return true;
 
         if (config.type === 'dimension') {
-          const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
-          if (!dimensionData) return false;
+          let dimensionData;
+          switch (field) {
+            case 'time_dimension_id':
+              dimensionData = row.mastertimedimension;
+              break;
+            case 'version_dimension_id':
+              dimensionData = row.masterversiondimension;
+              break;
+            case 'datasource_dimension_id':
+              dimensionData = row.masterdatasourcedimension;
+              break;
+            case 'dimension1_id':
+              dimensionData = row.masterdimension1;
+              break;
+            case 'dimension2_id':
+              dimensionData = row.masterdimension2;
+              break;
+            default:
+              dimensionData = null;
+          }
+          
+          if (!dimensionData) return true;
           const value = String(dimensionData[config.selectedColumn] || '').toLowerCase();
           return value.includes(config.filter.toLowerCase());
         } else {
