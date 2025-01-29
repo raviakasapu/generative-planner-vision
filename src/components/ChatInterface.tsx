@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Play, BarChart, Table } from "lucide-react";
+import { Loader2, Play, BarChart, Table, Filter } from "lucide-react";
 
 interface Message {
   text: string;
@@ -31,28 +31,77 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleActionButton = (action: string) => {
-    switch (action) {
-      case 'show_data':
-        toast({
-          title: "Show Data",
-          description: "Displaying data table...",
-        });
-        break;
-      case 'show_chart':
-        toast({
-          title: "Show Chart",
-          description: "Displaying visualization...",
-        });
-        break;
-      case 'run_analysis':
-        toast({
-          title: "Run Analysis",
-          description: "Running analysis...",
-        });
-        break;
-      default:
-        console.log(`Unhandled action: ${action}`);
+  const handleActionButton = async (action: string, messageText: string) => {
+    try {
+      let actionData = {};
+      
+      // Parse the message text to determine filters and parameters
+      if (messageText.toLowerCase().includes('filter')) {
+        const yearMatch = messageText.match(/year (\d{4})/);
+        const productMatch = messageText.match(/product ([^,\.]+)/i);
+        const regionMatch = messageText.match(/region ([^,\.]+)/i);
+        
+        actionData = {
+          filters: {
+            year: yearMatch ? parseInt(yearMatch[1]) : null,
+            product: productMatch ? productMatch[1].trim() : null,
+            region: regionMatch ? regionMatch[1].trim() : null
+          }
+        };
+      }
+
+      if (messageText.toLowerCase().includes('chart') || messageText.toLowerCase().includes('graph')) {
+        actionData = {
+          aggregation: messageText.toLowerCase().includes('average') ? 'average' : 'sum',
+          measure: messageText.toLowerCase().includes('measure2') ? 'measure2' : 'measure1',
+          groupBy: messageText.toLowerCase().includes('by product') ? 'product' :
+                  messageText.toLowerCase().includes('by region') ? 'region' : 'time'
+        };
+      }
+
+      if (messageText.toLowerCase().includes('analysis')) {
+        actionData = {
+          analysisType: messageText.toLowerCase().includes('trend') ? 'trend' : 'comparison',
+          timeRange: messageText.toLowerCase().includes('year') ? 'year' : 'month'
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('chat-data-actions', {
+        body: { action_type: action, action_data: actionData }
+      });
+
+      if (error) throw error;
+
+      // Display results in a toast or update UI
+      toast({
+        title: "Action Completed",
+        description: `Successfully processed ${action} action`,
+      });
+
+      // Add system message with results
+      let resultMessage = '';
+      if (data.result.data) {
+        resultMessage = `Found ${data.result.data.length} matching records.`;
+      } else if (data.result.trends) {
+        resultMessage = 'Analysis complete. Showing trends in the data.';
+      } else if (data.result.labels) {
+        resultMessage = 'Chart data prepared. You can view it in the visualization.';
+      }
+
+      setMessages(prev => [...prev, {
+        text: resultMessage,
+        isUser: false,
+        timestamp: new Date(),
+        actions: []
+      }]);
+
+    } catch (error) {
+      console.error('Error executing action:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process action. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -81,11 +130,23 @@ const ChatInterface = () => {
 
       const aiResponse = data.choices[0].message.content;
       
-      // Add some example actions based on keywords in the response
+      // Add actions based on message content
       const actions = [];
-      if (aiResponse.toLowerCase().includes('data')) actions.push('show_data');
-      if (aiResponse.toLowerCase().includes('chart') || aiResponse.toLowerCase().includes('graph')) actions.push('show_chart');
-      if (aiResponse.toLowerCase().includes('analysis')) actions.push('run_analysis');
+      if (aiResponse.toLowerCase().includes('filter') || 
+          aiResponse.toLowerCase().includes('show') || 
+          aiResponse.toLowerCase().includes('display')) {
+        actions.push('show_data');
+      }
+      if (aiResponse.toLowerCase().includes('chart') || 
+          aiResponse.toLowerCase().includes('graph') || 
+          aiResponse.toLowerCase().includes('visualize')) {
+        actions.push('show_chart');
+      }
+      if (aiResponse.toLowerCase().includes('analysis') || 
+          aiResponse.toLowerCase().includes('trend') || 
+          aiResponse.toLowerCase().includes('compare')) {
+        actions.push('run_analysis');
+      }
 
       setMessages(prev => [...prev, { 
         text: aiResponse, 
@@ -135,7 +196,7 @@ const ChatInterface = () => {
                     key={index}
                     variant="outline"
                     size="sm"
-                    onClick={() => handleActionButton(action)}
+                    onClick={() => handleActionButton(action, msg.text)}
                     className="flex items-center gap-2"
                   >
                     {action === 'show_data' && <Table className="h-4 w-4" />}

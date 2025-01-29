@@ -14,50 +14,106 @@ Deno.serve(async (req) => {
     const { action_type, action_data, chat_message_id } = await req.json();
 
     console.log(`Processing action: ${action_type} for message: ${chat_message_id}`);
+    console.log('Action data:', action_data);
 
     let result;
     switch (action_type) {
       case 'show_data':
-        // Fetch data based on action_data parameters
-        const { dimension_type } = action_data;
-        const table = dimension_type === 'product' ? 'masterdimension1' :
-                     dimension_type === 'region' ? 'masterdimension2' :
-                     'masterdatasourcedimension';
-        
-        const { data: dimensionData, error: dimensionError } = await supabase
-          .from(table)
-          .select('*')
-          .limit(10);
+        const { filters = {}, dimensions = [] } = action_data;
+        let query = supabase
+          .from('planningdata')
+          .select(`
+            *,
+            masterdimension1 (product_id, product_description, category),
+            masterdimension2 (region_id, region_description, country),
+            mastertimedimension (month_id, month_name, year),
+            masterversiondimension (version_id, version_name),
+            masterdatasourcedimension (datasource_id, datasource_name)
+          `);
 
-        if (dimensionError) throw dimensionError;
-        result = { data: dimensionData };
+        // Apply filters
+        if (filters.year) {
+          query = query.eq('mastertimedimension.year', filters.year);
+        }
+        if (filters.product) {
+          query = query.ilike('masterdimension1.product_description', `%${filters.product}%`);
+        }
+        if (filters.region) {
+          query = query.ilike('masterdimension2.region_description', `%${filters.region}%`);
+        }
+
+        const { data: filteredData, error: filterError } = await query;
+        if (filterError) throw filterError;
+        result = { data: filteredData };
         break;
 
       case 'show_chart':
-        // Fetch aggregated data for visualization
-        const { data: planningData, error: planningError } = await supabase
+        const { aggregation = 'sum', measure = 'measure1', groupBy = 'time' } = action_data;
+        let aggregationQuery = supabase
           .from('planningdata')
           .select(`
             measure1,
             measure2,
-            mastertimedimension (
-              month_name,
-              year
-            )
-          `)
-          .limit(12);
+            mastertimedimension!inner (month_name, year),
+            masterdimension1!inner (product_description),
+            masterdimension2!inner (region_description)
+          `);
 
-        if (planningError) throw planningError;
-        result = { data: planningData };
+        const { data: chartData, error: chartError } = await aggregationQuery;
+        if (chartError) throw chartError;
+
+        // Process data for visualization
+        const processedData = chartData.reduce((acc: any, curr: any) => {
+          const key = groupBy === 'time' 
+            ? `${curr.mastertimedimension.month_name} ${curr.mastertimedimension.year}`
+            : groupBy === 'product' 
+              ? curr.masterdimension1.product_description
+              : curr.masterdimension2.region_description;
+
+          if (!acc[key]) {
+            acc[key] = { total: 0, count: 0 };
+          }
+          acc[key].total += curr[measure] || 0;
+          acc[key].count += 1;
+          return acc;
+        }, {});
+
+        result = {
+          labels: Object.keys(processedData),
+          values: Object.values(processedData).map((v: any) => 
+            aggregation === 'average' ? v.total / v.count : v.total
+          )
+        };
         break;
 
       case 'run_analysis':
-        // Perform data analysis
-        const { data: analysisData, error: analysisError } = await supabase
-          .rpc('insert_planning_data_combinations');
+        const { analysisType = 'trend', timeRange } = action_data;
+        let analysisQuery = supabase
+          .from('planningdata')
+          .select(`
+            measure1,
+            measure2,
+            mastertimedimension!inner (month_name, year)
+          `)
+          .order('mastertimedimension.year', { ascending: true })
+          .order('mastertimedimension.month_name', { ascending: true });
 
+        const { data: analysisData, error: analysisError } = await analysisQuery;
         if (analysisError) throw analysisError;
-        result = { message: 'Analysis completed successfully' };
+
+        // Calculate trends or other analysis
+        const trends = analysisData.reduce((acc: any, curr: any) => {
+          const period = `${curr.mastertimedimension.month_name} ${curr.mastertimedimension.year}`;
+          acc[period] = {
+            measure1: curr.measure1,
+            measure2: curr.measure2,
+            variance: curr.measure2 - curr.measure1,
+            variancePercentage: ((curr.measure2 - curr.measure1) / curr.measure1) * 100
+          };
+          return acc;
+        }, {});
+
+        result = { trends };
         break;
 
       default:
