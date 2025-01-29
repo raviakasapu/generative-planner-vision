@@ -1,4 +1,5 @@
 from typing import Dict, TypedDict, Annotated, Sequence
+import pandas as pd
 from langgraph.graph import Graph
 from langgraph.prebuilt import ToolMessage
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
@@ -13,21 +14,31 @@ class AgentState(TypedDict):
 
 # Initialize our LLM
 llm = ChatOpenAI(
-    model="gpt-4-turbo-preview",
-    temperature=0.7
+    model="gpt-4o-mini",
+    temperature=1.0
 )
+
+def format_dataframe_result(df: pd.DataFrame) -> str:
+    """Format DataFrame results into a readable string summary."""
+    return f"Found {len(df)} records. Summary: {df.head(3).to_dict(orient='records')}"
 
 # Define our planning tools
 planning_tools = [
     Tool(
         name="update_spreadsheet",
         description="Update the planning spreadsheet with new information",
-        func=lambda x: "Spreadsheet updated successfully"  # Replace with actual implementation
+        func=lambda x: format_dataframe_result(pd.DataFrame({
+            'task': ['Task 1', 'Task 2'],
+            'status': ['In Progress', 'Completed']
+        }))
     ),
     Tool(
         name="get_business_logic",
         description="Retrieve business logic rules and constraints",
-        func=lambda x: "Retrieved business logic rules"  # Replace with actual implementation
+        func=lambda x: format_dataframe_result(pd.DataFrame({
+            'rule': ['Rule 1', 'Rule 2'],
+            'description': ['Description 1', 'Description 2']
+        }))
     )
 ]
 
@@ -56,9 +67,18 @@ def tool_caller(state: AgentState) -> AgentState:
     messages = state["messages"]
     last_message = messages[-1]
     
-    # Use tools based on the last message
-    # This is a simplified implementation
-    tool_response = "Tool execution result"
+    # Parse the tool name from the last message
+    # This is a simplified implementation - you might want to add more robust parsing
+    tool_name = "update_spreadsheet"  # Default tool
+    if "business logic" in last_message.content.lower():
+        tool_name = "get_business_logic"
+    
+    # Find and execute the requested tool
+    tool = next((t for t in planning_tools if t.name == tool_name), None)
+    if tool:
+        tool_response = tool.func("")  # Pass appropriate parameters based on the message
+    else:
+        tool_response = "Tool not found"
     
     new_messages = list(messages) + [ToolMessage(content=tool_response)]
     
@@ -94,8 +114,8 @@ class PlanningChatSDK:
             "tools": planning_tools
         }
     
-    async def process_message(self, message: str) -> str:
-        """Process a user message and return the response."""
+    async def process_message(self, message: str) -> Dict:
+        """Process a user message and return the response with any data."""
         initial_state = {
             "messages": [HumanMessage(content=message)],
             "next": "agent"
@@ -104,12 +124,23 @@ class PlanningChatSDK:
         # Run the workflow
         result = self.config["app"].invoke(initial_state)
         
-        # Extract the last AI message
-        for message in reversed(result["messages"]):
-            if isinstance(message, AIMessage):
-                return message.content
+        # Extract the last AI message and tool message
+        ai_response = None
+        tool_data = None
         
-        return "No response generated"
+        for message in reversed(result["messages"]):
+            if isinstance(message, AIMessage) and not ai_response:
+                ai_response = message.content
+            elif isinstance(message, ToolMessage) and not tool_data:
+                tool_data = message.content
+            
+            if ai_response and tool_data:
+                break
+        
+        return {
+            "response": ai_response or "No response generated",
+            "data": tool_data
+        }
 
     async def get_tools(self) -> list:
         """Return available planning tools."""
