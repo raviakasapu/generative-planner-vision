@@ -30,6 +30,45 @@ export const DimensionTable = ({
   onCancelEdit,
   onEditingChange,
 }: DimensionTableProps) => {
+  const getDimensionId = (dim: Dimension) => {
+    switch (dim.dimension_type) {
+      case 'product':
+        return dim.product_id;
+      case 'region':
+        return dim.region_id;
+      case 'datasource':
+        return dim.datasource_id;
+      default:
+        return '';
+    }
+  };
+
+  const getDimensionDescription = (dim: Dimension) => {
+    switch (dim.dimension_type) {
+      case 'product':
+        return dim.product_description;
+      case 'region':
+        return dim.region_description;
+      case 'datasource':
+        return dim.datasource_description;
+      default:
+        return '';
+    }
+  };
+
+  const getCategoryValue = (dim: Dimension) => {
+    switch (dim.dimension_type) {
+      case 'product':
+        return dim.category;
+      case 'region':
+        return dim.country;
+      case 'datasource':
+        return dim.datasource_type;
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="border rounded-md">
       <Table>
@@ -50,33 +89,33 @@ export const DimensionTable = ({
               <TableCell>
                 {editingDimension?.id === dim.id ? (
                   <Input
-                    value={editingDimension[`${dim.dimension_type}_id`] || ''}
+                    value={getDimensionId(editingDimension)}
                     onChange={(e) => onEditingChange({
                       ...editingDimension,
                       [`${dim.dimension_type}_id`]: e.target.value
                     })}
                   />
                 ) : (
-                  dim.product_id || dim.region_id || dim.datasource_id
+                  getDimensionId(dim)
                 )}
               </TableCell>
               <TableCell>
                 {editingDimension?.id === dim.id ? (
                   <Input
-                    value={editingDimension[`${dim.dimension_type}_description`] || ''}
+                    value={getDimensionDescription(editingDimension)}
                     onChange={(e) => onEditingChange({
                       ...editingDimension,
                       [`${dim.dimension_type}_description`]: e.target.value
                     })}
                   />
                 ) : (
-                  dim.product_description || dim.region_description || dim.datasource_description
+                  getDimensionDescription(dim)
                 )}
               </TableCell>
               <TableCell>
                 {editingDimension?.id === dim.id ? (
                   <Input
-                    value={editingDimension.category || editingDimension.country || editingDimension.datasource_type || ''}
+                    value={getCategoryValue(editingDimension)}
                     onChange={(e) => onEditingChange({
                       ...editingDimension,
                       [dim.dimension_type === 'product' ? 'category' : 
@@ -85,7 +124,7 @@ export const DimensionTable = ({
                     })}
                   />
                 ) : (
-                  dim.category || dim.country || dim.datasource_type
+                  getCategoryValue(dim)
                 )}
               </TableCell>
               {selectedType === 'datasource' && (
