@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -86,12 +93,39 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
           )}
         </div>
 
-        <Input
-          placeholder="Filter..."
-          value={config.filter || ''}
-          onChange={(e) => onConfigUpdate({ filter: e.target.value })}
-          className="w-full h-8"
-        />
+        {config.type === 'measure' ? (
+          <div className="flex gap-2">
+            <Select
+              value={config.filterOperator || 'eq'}
+              onValueChange={(value) => onConfigUpdate({ filterOperator: value })}
+            >
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Operator" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="eq">=</SelectItem>
+                <SelectItem value="gt">&gt;</SelectItem>
+                <SelectItem value="gte">≥</SelectItem>
+                <SelectItem value="lt">&lt;</SelectItem>
+                <SelectItem value="lte">≤</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              placeholder="Filter..."
+              value={config.filter || ''}
+              onChange={(e) => onConfigUpdate({ filter: e.target.value })}
+              className="w-full h-8"
+            />
+          </div>
+        ) : (
+          <Input
+            placeholder="Filter..."
+            value={config.filter || ''}
+            onChange={(e) => onConfigUpdate({ filter: e.target.value })}
+            className="w-full h-8"
+          />
+        )}
       </div>
     </th>
   );

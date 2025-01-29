@@ -10,19 +10,19 @@ export const useDataTable = () => {
     dimension1_id: {
       field: 'dimension1_id',
       type: 'dimension',
-      label: 'Product',
+      label: 'Product ID',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'product_description',
+      selectedColumn: 'product_id',
       dimensionAttributes: ['product_id', 'product_description', 'category', 'hierarchy_level']
     },
     dimension2_id: {
       field: 'dimension2_id',
       type: 'dimension',
-      label: 'Region',
+      label: 'Region ID',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'region_description',
+      selectedColumn: 'region_id',
       dimensionAttributes: ['region_id', 'region_description', 'country', 'sales_manager']
     },
     measure1: {
@@ -30,6 +30,7 @@ export const useDataTable = () => {
       type: 'measure',
       label: 'Measure 1',
       filter: '',
+      filterOperator: 'eq',
       sortOrder: null,
       selectedColumn: 'measure1'
     },
@@ -38,6 +39,7 @@ export const useDataTable = () => {
       type: 'measure',
       label: 'Measure 2',
       filter: '',
+      filterOperator: 'eq',
       sortOrder: null,
       selectedColumn: 'measure2'
     }
@@ -112,8 +114,38 @@ export const useDataTable = () => {
         (row.dimension2_id === null || row.masterdimension2)
       );
 
+      // Apply column filters
+      const filteredByColumns = filteredData?.filter(row => {
+        return Object.entries(columnConfigs).every(([field, config]) => {
+          if (!config.filter) return true;
+
+          if (config.type === 'dimension') {
+            const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
+            if (!dimensionData) return false;
+            const value = String(dimensionData[config.selectedColumn] || '').toLowerCase();
+            return value.includes(config.filter.toLowerCase());
+          } else {
+            const value = Number(row[field] || 0);
+            const filterValue = Number(config.filter);
+            
+            switch (config.filterOperator) {
+              case 'gt':
+                return value > filterValue;
+              case 'gte':
+                return value >= filterValue;
+              case 'lt':
+                return value < filterValue;
+              case 'lte':
+                return value <= filterValue;
+              default:
+                return value === filterValue;
+            }
+          }
+        });
+      });
+
       // Aggregate the filtered data
-      const aggregatedData = filteredData?.reduce((acc: any[], row) => {
+      const aggregatedData = filteredByColumns?.reduce((acc: any[], row) => {
         const existingRow = acc.find(r => 
           r.dimension1_id === row.dimension1_id && 
           r.dimension2_id === row.dimension2_id

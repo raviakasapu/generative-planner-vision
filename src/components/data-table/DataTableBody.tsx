@@ -55,6 +55,7 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
               value={getCellValue()}
               onChange={(e) => onChange(e.target.value)}
               className="w-full h-8 px-2"
+              readOnly={config.type === 'dimension'}
             />
           </div>
         </TooltipTrigger>
