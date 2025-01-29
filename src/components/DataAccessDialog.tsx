@@ -1,218 +1,66 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
+} from "@/components/ui/select";
 
-type TableNames = Database['public']['Tables'];
 type DimensionType = 'dimension1' | 'dimension2' | 'time';
 
 interface DataAccessDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
   userId: string;
+  onClose?: () => void;
 }
 
-export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogProps) {
-  const { toast } = useToast();
-  const [dimensionType, setDimensionType] = React.useState<DimensionType | ''>('');
-  const [dimensionId, setDimensionId] = React.useState('');
-  const [accessLevel, setAccessLevel] = React.useState('');
-  const [dimensions, setDimensions] = React.useState<any[]>([]);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  React.useEffect(() => {
-    if (dimensionType) {
-      fetchDimensions();
-    }
-  }, [dimensionType]);
-
-  const fetchDimensions = async () => {
-    if (!dimensionType) return;
-
-    let query;
-    
-    switch (dimensionType) {
-      case 'dimension1':
-        query = supabase
-          .from('masterdimension1')
-          .select('id, dimension_name, product_id, product_description');
-        break;
-      case 'dimension2':
-        query = supabase
-          .from('masterdimension2')
-          .select('id, dimension_name, region_id, region_description');
-        break;
-      case 'time':
-        query = supabase
-          .from('mastertimedimension')
-          .select('id, dimension_name, month_id, month_name');
-        break;
-      default:
-        return;
-    }
-
-    console.log(`Fetching dimensions for ${dimensionType}`);
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching dimensions:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch dimensions. Please try again.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    console.log('Fetched dimensions:', data);
-    setDimensions(data || []);
-  };
-
-  const handleGrantAccess = async () => {
-    try {
-      setIsSubmitting(true);
-      console.log('Granting access:', { userId, dimensionType, dimensionId, accessLevel });
-
-      // First check if permission already exists
-      const { data: existingPermission, error: checkError } = await supabase
-        .from('data_access_permissions')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('dimension_type', dimensionType)
-        .eq('dimension_id', dimensionId)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking existing permission:', checkError);
-        throw checkError;
-      }
-
-      console.log('Existing permission:', existingPermission);
-      let result;
-      
-      if (existingPermission) {
-        // Update existing permission
-        result = await supabase
-          .from('data_access_permissions')
-          .update({ access_level: accessLevel })
-          .eq('id', existingPermission.id);
-      } else {
-        // Insert new permission
-        result = await supabase
-          .from('data_access_permissions')
-          .insert({
-            user_id: userId,
-            dimension_type: dimensionType,
-            dimension_id: dimensionId,
-            access_level: accessLevel,
-          });
-      }
-
-      if (result.error) {
-        console.error('Error managing access:', result.error);
-        throw result.error;
-      }
-
-      console.log('Access granted/updated successfully');
-      toast({
-        title: existingPermission ? 'Access Updated' : 'Access Granted',
-        description: existingPermission 
-          ? 'Data access permission has been updated successfully'
-          : 'Data access permission has been granted successfully',
-      });
-      onClose();
-    } catch (error) {
-      console.error('Error managing access:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to manage data access. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const getDimensionLabel = (dimension: any) => {
-    switch (dimensionType) {
-      case 'dimension1':
-        return `${dimension.product_id} - ${dimension.product_description || 'No description'}`;
-      case 'dimension2':
-        return `${dimension.region_id} - ${dimension.region_description || 'No description'}`;
-      case 'time':
-        return `${dimension.month_id} - ${dimension.month_name || 'No name'}`;
-      default:
-        return dimension.dimension_name;
-    }
+const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, onClose }) => {
+  const [selectedDimensionType, setSelectedDimensionType] = useState<DimensionType | ''>('');
+  
+  const handleSave = () => {
+    // Logic to save the selected dimension type for the user
+    console.log(`Saving access for ${userId} to ${selectedDimensionType}`);
+    if (onClose) onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">Manage Data Access</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Manage Data Access</DialogTitle>
+          <DialogTitle>Data Access Management</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <Select value={dimensionType} onValueChange={setDimensionType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select dimension type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dimension1">Products</SelectItem>
-              <SelectItem value="dimension2">Regions</SelectItem>
-              <SelectItem value="time">Time</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {dimensions.length > 0 && (
-            <Select value={dimensionId} onValueChange={setDimensionId}>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Select 
+              value={selectedDimensionType}
+              onValueChange={(value: DimensionType) => setSelectedDimensionType(value)}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select dimension" />
+                <SelectValue placeholder="Select dimension type" />
               </SelectTrigger>
               <SelectContent>
-                {dimensions.map((dim) => (
-                  <SelectItem key={dim.id} value={dim.id}>
-                    {getDimensionLabel(dim)}
-                  </SelectItem>
-                ))}
+                <SelectItem value="dimension1">Product Dimension</SelectItem>
+                <SelectItem value="dimension2">Region Dimension</SelectItem>
+                <SelectItem value="time">Time Dimension</SelectItem>
               </SelectContent>
             </Select>
-          )}
-
-          <Select value={accessLevel} onValueChange={setAccessLevel}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select access level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="read">Read</SelectItem>
-              <SelectItem value="write">Write</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button
-            onClick={handleGrantAccess}
-            className="w-full"
-            disabled={!dimensionType || !dimensionId || !accessLevel || isSubmitting}
-          >
-            {isSubmitting ? 'Processing...' : 'Grant Access'}
-          </Button>
+          </div>
+          <Button onClick={handleSave} variant="primary">Save</Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default DataAccessDialog;

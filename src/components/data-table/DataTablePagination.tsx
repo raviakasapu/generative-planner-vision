@@ -8,12 +8,13 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { PaginationState } from './types';
 
 interface DataTablePaginationProps {
   page: number;
   pageSize: number;
   total: number;
-  onChange: (updates: { page?: number; pageSize?: number }) => void;
+  onChange: (updates: PaginationState) => void;
 }
 
 const DataTablePagination: React.FC<DataTablePaginationProps> = ({
@@ -34,7 +35,7 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
         </p>
         <Select
           value={String(pageSize)}
-          onValueChange={(value) => onChange({ pageSize: Number(value), page: 0 })}
+          onValueChange={(value) => onChange({ page: 0, pageSize: Number(value) })}
         >
           <SelectTrigger className="w-[100px]">
             <SelectValue />
@@ -51,7 +52,7 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onChange({ page: page - 1 })}
+          onClick={() => onChange({ page: page - 1, pageSize })}
           disabled={page === 0}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -62,7 +63,7 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onChange({ page: page + 1 })}
+          onClick={() => onChange({ page: page + 1, pageSize })}
           disabled={page >= totalPages - 1}
         >
           <ChevronRight className="h-4 w-4" />

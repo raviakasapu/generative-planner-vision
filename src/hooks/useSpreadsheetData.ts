@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { PlanningData, ColumnConfig } from '@/components/spreadsheet/types';
+import { useToast } from "@/hooks/use-toast";
+import { ColumnConfig } from '@/components/data-table/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useSpreadsheetData = () => {
-  const [data, setData] = useState<PlanningData[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -16,7 +16,8 @@ export const useSpreadsheetData = () => {
       type: 'dimension',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'product_description' // Changed to show name by default
+      selectedColumn: 'product_description',
+      dimensionAttributes: ['category', 'hierarchy_level']
     }
   });
 

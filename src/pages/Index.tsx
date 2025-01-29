@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { MainNav } from '@/components/MainNav';
 import { UserNav } from '@/components/UserNav';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const Index = () => {
   const { isLoading, user } = useAuth();
@@ -30,7 +31,9 @@ const Index = () => {
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Data Table</h2>
-                <DataTable />
+                <TooltipProvider>
+                  <DataTable />
+                </TooltipProvider>
               </div>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
