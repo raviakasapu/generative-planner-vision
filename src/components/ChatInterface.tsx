@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Play, BarChart, Table } from "lucide-react";
+import { Loader2, BarChart, Table, Play } from "lucide-react";
 import { useDataTable } from '@/hooks/useDataTable';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Message {
   text: string;
@@ -22,6 +23,7 @@ const ChatInterface = () => {
   const { toast } = useToast();
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const { data: spreadsheetData } = useDataTable();
+  const queryClient = useQueryClient();
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -62,6 +64,11 @@ const ChatInterface = () => {
       });
 
       if (error) throw error;
+
+      // If the action is show_data and we received data, invalidate the planningData query
+      if (action === 'show_data' && data?.result?.data) {
+        await queryClient.invalidateQueries({ queryKey: ['planningData'] });
+      }
 
       toast({
         title: "Action Completed",
