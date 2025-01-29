@@ -12,6 +12,7 @@ interface DataTableBodyProps {
   field: string;
   config: ColumnConfig;
   onChange: (value: string) => void;
+  isEven: boolean;
 }
 
 const DataTableBody: React.FC<DataTableBodyProps> = ({
@@ -19,10 +20,30 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
   field,
   config,
   onChange,
+  isEven,
 }) => {
   const getCellValue = () => {
     if (config.type === 'dimension') {
-      const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
+      let dimensionData;
+      switch (field) {
+        case 'time_dimension_id':
+          dimensionData = row.mastertimedimension;
+          break;
+        case 'version_dimension_id':
+          dimensionData = row.masterversiondimension;
+          break;
+        case 'datasource_dimension_id':
+          dimensionData = row.masterdatasourcedimension;
+          break;
+        case 'dimension1_id':
+          dimensionData = row.masterdimension1;
+          break;
+        case 'dimension2_id':
+          dimensionData = row.masterdimension2;
+          break;
+        default:
+          dimensionData = null;
+      }
       if (!dimensionData) return '-';
       const value = String(dimensionData[config.selectedColumn] || '');
       return value || '-';
@@ -34,7 +55,26 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
   const getDimensionAttributes = () => {
     if (!config.dimensionAttributes?.length) return null;
     
-    const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
+    let dimensionData;
+    switch (field) {
+      case 'time_dimension_id':
+        dimensionData = row.mastertimedimension;
+        break;
+      case 'version_dimension_id':
+        dimensionData = row.masterversiondimension;
+        break;
+      case 'datasource_dimension_id':
+        dimensionData = row.masterdatasourcedimension;
+        break;
+      case 'dimension1_id':
+        dimensionData = row.masterdimension1;
+        break;
+      case 'dimension2_id':
+        dimensionData = row.masterdimension2;
+        break;
+      default:
+        dimensionData = null;
+    }
     if (!dimensionData) return null;
 
     return config.dimensionAttributes.map(attr => ({
@@ -46,7 +86,7 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
   const attributes = getDimensionAttributes();
 
   return (
-    <td className="p-2 border">
+    <td className={`p-1 ${isEven ? 'bg-muted/30' : ''}`}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
@@ -54,7 +94,7 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
               type={config.type === 'measure' ? 'number' : 'text'}
               value={getCellValue()}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full h-8 px-2"
+              className="w-full h-7 px-2 border-0 bg-transparent"
               readOnly={config.type === 'dimension'}
             />
           </div>

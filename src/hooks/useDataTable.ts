@@ -7,10 +7,37 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useDataTable = () => {
   const { user } = useAuth();
   const [columnConfigs, setColumnConfigs] = useState<Record<string, ColumnConfig>>({
+    time_dimension_id: {
+      field: 'time_dimension_id',
+      type: 'dimension',
+      label: 'Time Period',
+      filter: '',
+      sortOrder: null,
+      selectedColumn: 'month_name',
+      dimensionAttributes: ['month_id', 'quarter', 'year']
+    },
+    version_dimension_id: {
+      field: 'version_dimension_id',
+      type: 'dimension',
+      label: 'Version',
+      filter: '',
+      sortOrder: null,
+      selectedColumn: 'version_name',
+      dimensionAttributes: ['version_id', 'version_type', 'version_status']
+    },
+    datasource_dimension_id: {
+      field: 'datasource_dimension_id',
+      type: 'dimension',
+      label: 'Data Source',
+      filter: '',
+      sortOrder: null,
+      selectedColumn: 'datasource_name',
+      dimensionAttributes: ['datasource_id', 'datasource_type', 'system_of_origin']
+    },
     dimension1_id: {
       field: 'dimension1_id',
       type: 'dimension',
-      label: 'Product ID',
+      label: 'Product',
       filter: '',
       sortOrder: null,
       selectedColumn: 'product_id',
@@ -19,7 +46,7 @@ export const useDataTable = () => {
     dimension2_id: {
       field: 'dimension2_id',
       type: 'dimension',
-      label: 'Region ID',
+      label: 'Region',
       filter: '',
       sortOrder: null,
       selectedColumn: 'region_id',
@@ -53,15 +80,11 @@ export const useDataTable = () => {
   const { data: rawData = [], isLoading: loading } = useQuery({
     queryKey: ['planningData', user?.id],
     queryFn: async () => {
-      console.info('Fetching planning data for user:', user?.id);
-
       const { data: permissions } = await supabase
         .from('data_access_permissions')
         .select('*')
         .eq('user_id', user?.id)
         .eq('approval_status', 'approved');
-
-      console.info('User access permissions:', permissions);
 
       const dimension1Ids = permissions
         ?.filter(p => p.dimension_type === 'dimension1')
@@ -69,10 +92,6 @@ export const useDataTable = () => {
       const dimension2Ids = permissions
         ?.filter(p => p.dimension_type === 'dimension2')
         .map(p => p.dimension_id);
-
-      if (!dimension1Ids?.length && !dimension2Ids?.length) {
-        return [];
-      }
 
       let query = supabase
         .from('planningdata')
@@ -91,6 +110,27 @@ export const useDataTable = () => {
             region_description,
             country,
             sales_manager
+          ),
+          mastertimedimension (
+            id,
+            month_id,
+            month_name,
+            quarter,
+            year
+          ),
+          masterversiondimension (
+            id,
+            version_id,
+            version_name,
+            version_type,
+            version_status
+          ),
+          masterdatasourcedimension (
+            id,
+            datasource_id,
+            datasource_name,
+            datasource_type,
+            system_of_origin
           )
         `);
 

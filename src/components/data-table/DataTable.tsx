@@ -49,7 +49,7 @@ const DataTable = () => {
   return (
     <TooltipProvider>
       <Card className="w-full overflow-auto">
-        <div className="p-4">
+        <div className="p-2">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -69,8 +69,8 @@ const DataTable = () => {
                 {data.slice(
                   pagination.page * pagination.pageSize,
                   (pagination.page + 1) * pagination.pageSize
-                ).map((row) => (
-                  <tr key={row.id} className="hover:bg-muted/50">
+                ).map((row, index) => (
+                  <tr key={row.id}>
                     {Object.keys(columnConfigs).map((field) => (
                       <DataTableBody
                         key={field}
@@ -78,6 +78,7 @@ const DataTable = () => {
                         field={field}
                         config={columnConfigs[field]}
                         onChange={(value) => updateCell(row.id, field, value)}
+                        isEven={index % 2 === 0}
                       />
                     ))}
                   </tr>
