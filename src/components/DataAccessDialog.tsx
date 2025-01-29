@@ -15,6 +15,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
+
+type TableNames = Database['public']['Tables'];
+type DimensionType = 'dimension1' | 'dimension2' | 'time';
 
 interface DataAccessDialogProps {
   isOpen: boolean;
@@ -24,7 +28,7 @@ interface DataAccessDialogProps {
 
 export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogProps) {
   const { toast } = useToast();
-  const [dimensionType, setDimensionType] = React.useState('');
+  const [dimensionType, setDimensionType] = React.useState<DimensionType | ''>('');
   const [dimensionId, setDimensionId] = React.useState('');
   const [accessLevel, setAccessLevel] = React.useState('');
   const [dimensions, setDimensions] = React.useState<any[]>([]);
@@ -37,30 +41,32 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
   }, [dimensionType]);
 
   const fetchDimensions = async () => {
-    let tableName = '';
-    let selectColumns = '';
+    if (!dimensionType) return;
 
+    let query;
+    
     switch (dimensionType) {
       case 'dimension1':
-        tableName = 'masterdimension1';
-        selectColumns = 'id, dimension_name, product_id, product_description';
+        query = supabase
+          .from('masterdimension1')
+          .select('id, dimension_name, product_id, product_description');
         break;
       case 'dimension2':
-        tableName = 'masterdimension2';
-        selectColumns = 'id, dimension_name, region_id, region_description';
+        query = supabase
+          .from('masterdimension2')
+          .select('id, dimension_name, region_id, region_description');
         break;
       case 'time':
-        tableName = 'mastertimedimension';
-        selectColumns = 'id, dimension_name, month_id, month_name';
+        query = supabase
+          .from('mastertimedimension')
+          .select('id, dimension_name, month_id, month_name');
         break;
       default:
         return;
     }
 
-    console.log(`Fetching dimensions from ${tableName}`);
-    const { data, error } = await supabase
-      .from(tableName)
-      .select(selectColumns);
+    console.log(`Fetching dimensions for ${dimensionType}`);
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching dimensions:', error);
