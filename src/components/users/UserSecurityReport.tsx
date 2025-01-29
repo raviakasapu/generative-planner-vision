@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, Key, ClipboardList, CheckCircle, AlertCircle, User } from "lucide-react";
+import { Shield, Key, ClipboardList, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -142,9 +142,10 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   const renderSecurityCard = (
     title: string,
     icon: React.ReactNode,
-    content: React.ReactNode
+    content: React.ReactNode,
+    className?: string
   ) => (
-    <Card className="mb-4">
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           {icon}
@@ -235,55 +236,57 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
 
   return (
     <div className="space-y-6">
-      {/* Role Permissions Section */}
-      {renderSecurityCard(
-        'Role Permissions',
-        <Key className="h-5 w-5" />,
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Permission</TableHead>
-              <TableHead>Description</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rolePermissions?.map((rp: any, index: number) => (
-              <TableRow key={index}>
-                <TableCell>{rp.permissions.permission_name}</TableCell>
-                <TableCell>{rp.permissions.permission_description}</TableCell>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Role Permissions Section */}
+        {renderSecurityCard(
+          'Role Permissions',
+          <Key className="h-5 w-5" />,
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Permission</TableHead>
+                <TableHead>Description</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+            </TableHeader>
+            <TableBody>
+              {rolePermissions?.map((rp: any, index: number) => (
+                <TableRow key={index}>
+                  <TableCell>{rp.permissions.permission_name}</TableCell>
+                  <TableCell>{rp.permissions.permission_description}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
 
-      {/* Pending Access Permissions */}
-      {renderSecurityCard(
-        'Pending Access Permissions',
-        <AlertCircle className="h-5 w-5 text-yellow-500" />,
-        renderAccessTable('pending')
-      )}
+        {/* Pending Access Permissions */}
+        {renderSecurityCard(
+          'Pending Access Permissions',
+          <AlertCircle className="h-5 w-5 text-yellow-500" />,
+          renderAccessTable('pending')
+        )}
 
-      {/* Approved Access Permissions */}
-      {renderSecurityCard(
-        'Approved Access Permissions',
-        <CheckCircle className="h-5 w-5 text-green-500" />,
-        renderAccessTable('approved')
-      )}
+        {/* Approved Access Permissions */}
+        {renderSecurityCard(
+          'Approved Access Permissions',
+          <CheckCircle className="h-5 w-5 text-green-500" />,
+          renderAccessTable('approved')
+        )}
 
-      {/* Pending Tasks */}
-      {renderSecurityCard(
-        'Pending Tasks',
-        <ClipboardList className="h-5 w-5 text-yellow-500" />,
-        renderTasksTable('pending')
-      )}
+        {/* Pending Tasks */}
+        {renderSecurityCard(
+          'Pending Tasks',
+          <ClipboardList className="h-5 w-5 text-yellow-500" />,
+          renderTasksTable('pending')
+        )}
 
-      {/* Approved Tasks */}
-      {renderSecurityCard(
-        'Approved Tasks',
-        <Shield className="h-5 w-5 text-green-500" />,
-        renderTasksTable('approved')
-      )}
+        {/* Approved Tasks */}
+        {renderSecurityCard(
+          'Approved Tasks',
+          <Shield className="h-5 w-5 text-green-500" />,
+          renderTasksTable('approved')
+        )}
+      </div>
     </div>
   );
 }
