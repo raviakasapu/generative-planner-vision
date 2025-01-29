@@ -10,6 +10,7 @@ import AddColumnDialog from './AddColumnDialog';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const DataTable = () => {
   const { 
@@ -51,67 +52,60 @@ const DataTable = () => {
   }
 
   return (
-    <Card className="w-full overflow-auto">
-      <div className="p-4">
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAddColumnDialogOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Column
-          </Button>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {Object.keys(columnConfigs).map((field) => (
-                  <DataTableHeader
-                    key={field}
-                    field={field}
-                    config={columnConfigs[field]}
-                    onConfigUpdate={(updates) => updateColumnConfig(field, updates)}
-                  />
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.slice(
-                pagination.page * pagination.pageSize,
-                (pagination.page + 1) * pagination.pageSize
-              ).map((row) => (
-                <tr key={row.id} className="hover:bg-muted/50">
+    <TooltipProvider>
+      <Card className="w-full overflow-auto">
+        <div className="p-4">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-muted/50">
                   {Object.keys(columnConfigs).map((field) => (
-                    <DataTableBody
+                    <DataTableHeader
                       key={field}
-                      row={row}
                       field={field}
                       config={columnConfigs[field]}
-                      onChange={(value) => updateCell(row.id, field, value)}
+                      onConfigUpdate={(updates) => updateColumnConfig(field, updates)}
+                      onAddColumn={() => setAddColumnDialogOpen(true)}
                     />
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.slice(
+                  pagination.page * pagination.pageSize,
+                  (pagination.page + 1) * pagination.pageSize
+                ).map((row) => (
+                  <tr key={row.id} className="hover:bg-muted/50">
+                    {Object.keys(columnConfigs).map((field) => (
+                      <DataTableBody
+                        key={field}
+                        row={row}
+                        field={field}
+                        config={columnConfigs[field]}
+                        onChange={(value) => updateCell(row.id, field, value)}
+                      />
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <DataTablePagination
+            total={data.length}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            onChange={setPagination}
+          />
+
+          <AddColumnDialog
+            open={isAddColumnDialogOpen}
+            onOpenChange={setAddColumnDialogOpen}
+            onAdd={addColumn}
+          />
         </div>
-
-        <DataTablePagination
-          total={data.length}
-          {...pagination}
-          onChange={setPagination}
-        />
-
-        <AddColumnDialog
-          open={isAddColumnDialogOpen}
-          onOpenChange={setAddColumnDialogOpen}
-          onAdd={addColumn}
-        />
-      </div>
-    </Card>
+      </Card>
+    </TooltipProvider>
   );
 };
 
