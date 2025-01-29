@@ -16,30 +16,7 @@ export const useSpreadsheetData = () => {
       type: 'dimension',
       filter: '',
       sortOrder: null,
-      selectedColumn: 'product_id'
-    },
-    dimension2_id: { 
-      field: 'dimension2_id', 
-      type: 'dimension',
-      filter: '',
-      sortOrder: null,
-      selectedColumn: 'region_id'
-    },
-    measure1: { 
-      field: 'measure1', 
-      type: 'measure',
-      aggregation: 'sum',
-      filter: '',
-      sortOrder: null,
-      selectedColumn: 'measure1'
-    },
-    measure2: { 
-      field: 'measure2', 
-      type: 'measure',
-      aggregation: 'sum',
-      filter: '',
-      sortOrder: null,
-      selectedColumn: 'measure2'
+      selectedColumn: 'product_description' // Changed to show name by default
     }
   });
 
