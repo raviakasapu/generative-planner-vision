@@ -103,8 +103,38 @@ export const useSpreadsheetData = () => {
         throw planningError;
       }
 
-      console.log('Fetched planning data:', planningData);
-      setData(planningData || []);
+      console.log('Raw planning data:', planningData);
+
+      // Filter out rows with empty master data and aggregate
+      const aggregatedData = planningData
+        ?.filter(row => 
+          row.masterdimension1 && 
+          row.masterdimension2 && 
+          Object.keys(row.masterdimension1).length > 0 && 
+          Object.keys(row.masterdimension2).length > 0
+        )
+        .reduce((acc: PlanningData[], current) => {
+          // Create a unique key for each dimension combination
+          const key = `${current.dimension1_id}-${current.dimension2_id}`;
+          
+          const existingIndex = acc.findIndex(item => 
+            `${item.dimension1_id}-${item.dimension2_id}` === key
+          );
+
+          if (existingIndex >= 0) {
+            // Aggregate measures for existing combinations
+            acc[existingIndex].measure1 = (acc[existingIndex].measure1 || 0) + (current.measure1 || 0);
+            acc[existingIndex].measure2 = (acc[existingIndex].measure2 || 0) + (current.measure2 || 0);
+          } else {
+            // Add new unique combination
+            acc.push(current);
+          }
+
+          return acc;
+        }, []);
+
+      console.log('Aggregated planning data:', aggregatedData);
+      setData(aggregatedData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
