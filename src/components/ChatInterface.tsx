@@ -33,6 +33,24 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
+  const formatActionResponse = (result: any): string => {
+    if (!result) return 'Action completed successfully';
+    
+    if (result.data) {
+      return `Found ${result.data.length} records matching your criteria`;
+    }
+    
+    if (result.trends) {
+      return `Analysis complete: ${result.trends.join(', ')}`;
+    }
+    
+    if (result.chartData) {
+      return `Chart data prepared with ${result.chartData.length} data points`;
+    }
+    
+    return JSON.stringify(result);
+  };
+
   const handleActionButton = async (action: string, messageText: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('chat-data-actions', {
@@ -51,7 +69,7 @@ const ChatInterface = () => {
       });
 
       setMessages(prev => [...prev, {
-        text: data.result || 'Action completed successfully',
+        text: formatActionResponse(data.result),
         isUser: false,
         timestamp: new Date(),
         actions: []
