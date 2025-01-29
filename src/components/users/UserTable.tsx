@@ -10,8 +10,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserCog, Key, Calendar, ClipboardList, ChevronDown, ChevronRight } from "lucide-react";
-import { UserSecurityReport } from "./UserSecurityReport";
-import { useState } from "react";
+import { lazy, useState } from "react";
+import { LazyUserSecurityReport } from "./LazyUserSecurityReport";
 
 interface UserProfile {
   id: string;
@@ -108,7 +108,7 @@ export function UserTable({
                 )}
               </Button>
               {expandedUsers.includes(user.id) && (
-                <UserSecurityReport userId={user.id} />
+                <LazyUserSecurityReport userId={user.id} />
               )}
             </div>
           </Card>
@@ -188,7 +188,7 @@ export function UserTable({
             {expandedUsers.includes(user.id) && (
               <TableRow>
                 <TableCell colSpan={6} className="p-0">
-                  <UserSecurityReport userId={user.id} />
+                  <LazyUserSecurityReport userId={user.id} />
                 </TableCell>
               </TableRow>
             )}
