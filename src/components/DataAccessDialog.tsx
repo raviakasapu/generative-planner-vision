@@ -28,6 +28,7 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
   const [dimensionId, setDimensionId] = React.useState('');
   const [accessLevel, setAccessLevel] = React.useState('');
   const [dimensions, setDimensions] = React.useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (dimensionType) {
@@ -53,29 +54,57 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
 
   const handleGrantAccess = async () => {
     try {
-      const { error } = await supabase
-        .from('data_access_permissions')
-        .insert({
-          user_id: userId,
-          dimension_type: dimensionType,
-          dimension_id: dimensionId,
-          access_level: accessLevel,
-        });
+      setIsSubmitting(true);
 
-      if (error) throw error;
+      // First check if permission already exists
+      const { data: existingPermission, error: checkError } = await supabase
+        .from('data_access_permissions')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('dimension_type', dimensionType)
+        .eq('dimension_id', dimensionId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      let result;
+      
+      if (existingPermission) {
+        // Update existing permission
+        result = await supabase
+          .from('data_access_permissions')
+          .update({ access_level: accessLevel })
+          .eq('id', existingPermission.id);
+      } else {
+        // Insert new permission
+        result = await supabase
+          .from('data_access_permissions')
+          .insert({
+            user_id: userId,
+            dimension_type: dimensionType,
+            dimension_id: dimensionId,
+            access_level: accessLevel,
+          });
+      }
+
+      if (result.error) throw result.error;
 
       toast({
-        title: 'Access Granted',
-        description: 'Data access permission has been granted successfully',
+        title: existingPermission ? 'Access Updated' : 'Access Granted',
+        description: existingPermission 
+          ? 'Data access permission has been updated successfully'
+          : 'Data access permission has been granted successfully',
       });
       onClose();
     } catch (error) {
-      console.error('Error granting access:', error);
+      console.error('Error managing access:', error);
       toast({
         title: 'Error',
-        description: 'Failed to grant data access',
+        description: 'Failed to manage data access. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -126,9 +155,9 @@ export function DataAccessDialog({ isOpen, onClose, userId }: DataAccessDialogPr
           <Button
             onClick={handleGrantAccess}
             className="w-full"
-            disabled={!dimensionType || !dimensionId || !accessLevel}
+            disabled={!dimensionType || !dimensionId || !accessLevel || isSubmitting}
           >
-            Grant Access
+            {isSubmitting ? 'Processing...' : 'Grant Access'}
           </Button>
         </div>
       </DialogContent>
