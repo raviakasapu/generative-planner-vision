@@ -25,7 +25,12 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
   const getCellValue = () => {
     if (config.type === 'dimension') {
       let dimensionData;
-      switch (field) {
+      const attributeName = field.includes('_') ? field.split('_').pop() : config.selectedColumn;
+      
+      // Get the base dimension field (e.g., 'dimension1_id' from 'dimension1_id_product_description')
+      const baseDimensionField = field.split('_').slice(0, -1).join('_');
+      
+      switch (baseDimensionField || field) {
         case 'time_dimension_id':
           dimensionData = row.mastertimedimension;
           break;
@@ -44,8 +49,9 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
         default:
           dimensionData = null;
       }
+      
       if (!dimensionData) return '-';
-      const value = String(dimensionData[config.selectedColumn] || '');
+      const value = String(dimensionData[attributeName || config.selectedColumn] || '');
       return value || '-';
     }
     const value = String(row[field] || '');

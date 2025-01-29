@@ -159,7 +159,9 @@ export const useDataTable = () => {
 
         if (config.type === 'dimension') {
           let dimensionData;
-          switch (field) {
+          const baseDimensionField = field.split('_').slice(0, -1).join('_');
+          
+          switch (baseDimensionField || field) {
             case 'time_dimension_id':
               dimensionData = row.mastertimedimension;
               break;
@@ -180,7 +182,9 @@ export const useDataTable = () => {
           }
           
           if (!dimensionData) return true;
-          const value = String(dimensionData[config.selectedColumn] || '').toLowerCase();
+          
+          const attributeName = field.includes('_') ? field.split('_').pop() : config.selectedColumn;
+          const value = String(dimensionData[attributeName || config.selectedColumn] || '').toLowerCase();
           return value.includes(config.filter.toLowerCase());
         } else {
           const value = Number(row[field] || 0);
