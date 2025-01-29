@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 type DimensionType = 'dimension1' | 'dimension2' | 'time';
 
+interface DimensionMember {
+  id: string;
+  dimension_name: string;
+}
+
 interface DataAccessDialogProps {
   userId: string;
   isOpen: boolean;
@@ -28,14 +33,70 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
   const [selectedDimensionType, setSelectedDimensionType] = useState<DimensionType | ''>('');
   const [selectedDimensionId, setSelectedDimensionId] = useState<string>('');
   const [accessLevel, setAccessLevel] = useState<string>('read');
+  const [dimensionMembers, setDimensionMembers] = useState<DimensionMember[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
+
+  useEffect(() => {
+    const fetchDimensionMembers = async () => {
+      if (!selectedDimensionType) {
+        setDimensionMembers([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        let tableName = '';
+        switch (selectedDimensionType) {
+          case 'dimension1':
+            tableName = 'masterdimension1';
+            break;
+          case 'dimension2':
+            tableName = 'masterdimension2';
+            break;
+          case 'time':
+            tableName = 'mastertimedimension';
+            break;
+          default:
+            return;
+        }
+
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('id, dimension_name');
+
+        if (error) {
+          console.error('Error fetching dimension members:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch dimension members",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setDimensionMembers(data || []);
+      } catch (error) {
+        console.error('Error in fetchDimensionMembers:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while fetching dimension members",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDimensionMembers();
+  }, [selectedDimensionType, toast]);
+
   const handleSave = async () => {
     try {
       if (!selectedDimensionType || !selectedDimensionId) {
         toast({
           title: "Error",
-          description: "Please select both dimension type and access level",
+          description: "Please select both dimension type and dimension member",
           variant: "destructive",
         });
         return;
@@ -92,7 +153,10 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
           <div className="grid gap-2">
             <Select 
               value={selectedDimensionType}
-              onValueChange={(value: DimensionType) => setSelectedDimensionType(value)}
+              onValueChange={(value: DimensionType) => {
+                setSelectedDimensionType(value);
+                setSelectedDimensionId(''); // Reset member selection when type changes
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select dimension type" />
@@ -103,6 +167,25 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
                 <SelectItem value="time">Time Dimension</SelectItem>
               </SelectContent>
             </Select>
+
+            {selectedDimensionType && (
+              <Select
+                value={selectedDimensionId}
+                onValueChange={setSelectedDimensionId}
+                disabled={isLoading || dimensionMembers.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={isLoading ? "Loading..." : "Select dimension member"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {dimensionMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.dimension_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             <Select
               value={accessLevel}
@@ -118,7 +201,13 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleSave} variant="default">Save</Button>
+          <Button 
+            onClick={handleSave} 
+            variant="default"
+            disabled={isLoading || !selectedDimensionType || !selectedDimensionId}
+          >
+            Save
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
