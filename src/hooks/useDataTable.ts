@@ -68,6 +68,10 @@ export const useDataTable = () => {
         ?.filter(p => p.dimension_type === 'dimension2')
         .map(p => p.dimension_id);
 
+      if (!dimension1Ids?.length && !dimension2Ids?.length) {
+        return [];
+      }
+
       let query = supabase
         .from('planningdata')
         .select(`
@@ -102,7 +106,14 @@ export const useDataTable = () => {
         return [];
       }
 
-      const aggregatedData = planningData?.reduce((acc: any[], row) => {
+      // Filter out rows where master data is null (user doesn't have access)
+      const filteredData = planningData?.filter(row => 
+        (row.dimension1_id === null || row.masterdimension1) &&
+        (row.dimension2_id === null || row.masterdimension2)
+      );
+
+      // Aggregate the filtered data
+      const aggregatedData = filteredData?.reduce((acc: any[], row) => {
         const existingRow = acc.find(r => 
           r.dimension1_id === row.dimension1_id && 
           r.dimension2_id === row.dimension2_id

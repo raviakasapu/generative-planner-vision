@@ -26,28 +26,29 @@ const Index = () => {
         
         <MainNav />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-8">
+        <div className="space-y-8">
+          {/* Full-width Data Table */}
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">Data Table</h2>
+              <TooltipProvider>
+                <DataTable />
+              </TooltipProvider>
+            </div>
+          </div>
+
+          {/* Chat Interface and Business Logic side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">Data Table</h2>
-                <TooltipProvider>
-                  <DataTable />
-                </TooltipProvider>
+                <h2 className="text-2xl font-semibold mb-4">Chat Interface</h2>
+                <ChatInterface />
               </div>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">Business Logic</h2>
                 <BusinessLogic />
-              </div>
-            </div>
-          </div>
-          <div className="space-y-8">
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">Chat Interface</h2>
-                <ChatInterface />
               </div>
             </div>
           </div>
