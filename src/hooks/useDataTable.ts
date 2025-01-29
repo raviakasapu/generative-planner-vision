@@ -48,14 +48,11 @@ export const useDataTable = () => {
     pageSize: 20
   });
 
-  const [isAddColumnDialogOpen, setAddColumnDialogOpen] = useState(false);
-
   const { data = [], isLoading: loading } = useQuery({
     queryKey: ['planningData', user?.id],
     queryFn: async () => {
       console.info('Fetching planning data for user:', user?.id);
 
-      // Fetch user's access permissions
       const { data: permissions } = await supabase
         .from('data_access_permissions')
         .select('*')
@@ -91,7 +88,6 @@ export const useDataTable = () => {
           )
         `);
 
-      // Apply dimension access filters
       if (dimension1Ids?.length) {
         query = query.in('dimension1_id', dimension1Ids);
       }
@@ -106,7 +102,6 @@ export const useDataTable = () => {
         return [];
       }
 
-      // Aggregate data based on dimensions
       const aggregatedData = planningData?.reduce((acc: any[], row) => {
         const existingRow = acc.find(r => 
           r.dimension1_id === row.dimension1_id && 
@@ -151,19 +146,28 @@ export const useDataTable = () => {
     }));
   }, []);
 
-  const addColumn = useCallback((attributeName: string) => {
-    const columnId = `attribute_${Date.now()}`;
-    setColumnConfigs(prev => ({
-      ...prev,
-      [columnId]: {
-        field: columnId,
-        type: 'dimension',
-        label: attributeName,
-        filter: '',
-        sortOrder: null,
-        selectedColumn: attributeName
-      }
-    }));
+  const addColumn = useCallback((attributeName: string, afterField: string) => {
+    const columnId = `${afterField}_${attributeName}`;
+    
+    setColumnConfigs(prev => {
+      const entries = Object.entries(prev);
+      const afterIndex = entries.findIndex(([field]) => field === afterField);
+      
+      const newEntries = [
+        ...entries.slice(0, afterIndex + 1),
+        [columnId, {
+          field: columnId,
+          type: 'dimension',
+          label: attributeName,
+          filter: '',
+          sortOrder: null,
+          selectedColumn: attributeName
+        }],
+        ...entries.slice(afterIndex + 1)
+      ];
+
+      return Object.fromEntries(newEntries);
+    });
   }, []);
 
   return {
@@ -174,8 +178,6 @@ export const useDataTable = () => {
     updateCell,
     updateColumnConfig,
     addColumn,
-    setPagination,
-    isAddColumnDialogOpen,
-    setAddColumnDialogOpen
+    setPagination
   };
 };

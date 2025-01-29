@@ -22,22 +22,24 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
 }) => {
   const getCellValue = () => {
     if (config.type === 'dimension') {
-      const dimensionData = field === 'dimension1_id' ? row.masterdimension1 : row.masterdimension2;
-      if (!dimensionData) return '';
-      return String(dimensionData[config.selectedColumn] || '');
+      const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
+      if (!dimensionData) return '-';
+      const value = String(dimensionData[config.selectedColumn] || '');
+      return value || '-';
     }
-    return String(row[field] || '');
+    const value = String(row[field] || '');
+    return value || '0';
   };
 
   const getDimensionAttributes = () => {
     if (!config.dimensionAttributes?.length) return null;
     
-    const dimensionData = field === 'dimension1_id' ? row.masterdimension1 : row.masterdimension2;
+    const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
     if (!dimensionData) return null;
 
     return config.dimensionAttributes.map(attr => ({
       label: attr,
-      value: dimensionData[attr]
+      value: dimensionData[attr] || '-'
     }));
   };
 

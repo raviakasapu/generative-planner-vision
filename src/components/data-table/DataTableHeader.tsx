@@ -21,7 +21,7 @@ interface DataTableHeaderProps {
   field: string;
   config: ColumnConfig;
   onConfigUpdate: (updates: Partial<ColumnConfig>) => void;
-  onAddColumn: (attributeName: string) => void;
+  onAddColumn: (attributeName: string, afterField: string) => void;
 }
 
 const DataTableHeader: React.FC<DataTableHeaderProps> = ({
@@ -54,34 +54,36 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
               {config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
             </TooltipContent>
           </Tooltip>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Add Attribute Column</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              {dimensionAttributes.length > 0 && (
-                <>
-                  <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                    Available Attributes
-                  </DropdownMenuLabel>
-                  {dimensionAttributes.map((attr) => (
-                    <DropdownMenuItem key={attr} onSelect={() => onAddColumn(attr)}>
-                      {attr}
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {dimensionAttributes.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Add Attribute Column</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                {dimensionAttributes.length > 0 && (
+                  <>
+                    <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                      Available Attributes
+                    </DropdownMenuLabel>
+                    {dimensionAttributes.map((attr) => (
+                      <DropdownMenuItem key={attr} onSelect={() => onAddColumn(attr, field)}>
+                        {attr}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         <Input
