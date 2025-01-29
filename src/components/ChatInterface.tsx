@@ -76,30 +76,23 @@ const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      // First, process with LLM
-      const { data: llmData, error: llmError } = await supabase.functions.invoke('chat-llm-processor', {
+      const { data, error } = await supabase.functions.invoke('chat-planning', {
         body: {
-          messages: messages.map(msg => ({
-            role: msg.isUser ? 'user' : 'assistant',
-            content: msg.text
-          })).concat([{
-            role: 'user',
-            content: input
-          }]),
+          message: input,
           context: {
             available_data: spreadsheetData?.length || 0,
-            // Add any other relevant context
+            data_sample: spreadsheetData?.slice(0, 5) || []
           }
         }
       });
 
-      if (llmError) throw llmError;
+      if (error) throw error;
 
       setMessages(prev => [...prev, { 
-        text: llmData.response, 
+        text: data.response, 
         isUser: false, 
         timestamp: new Date(),
-        actions: llmData.suggested_actions 
+        actions: data.suggested_actions 
       }]);
       
       toast({
@@ -115,26 +108,6 @@ const ChatInterface = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const sendMessage = async (message: string) => {
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message }),
-      });
-      
-      const data = await response.json();
-      setMessages(prev => [...prev, 
-        { role: 'user', content: message },
-        { role: 'assistant', content: data.response }
-      ]);
-    } catch (error) {
-      console.error('Error sending message:', error);
     }
   };
 
