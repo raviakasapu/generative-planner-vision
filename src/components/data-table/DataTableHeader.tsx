@@ -44,6 +44,15 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
     if (field === 'dimension2_id') {
       return ['region_id', 'region_description', 'country', 'sales_manager'];
     }
+    if (field === 'time_dimension_id') {
+      return ['month_id', 'quarter', 'year'];
+    }
+    if (field === 'version_dimension_id') {
+      return ['version_id', 'version_type', 'version_status'];
+    }
+    if (field === 'datasource_dimension_id') {
+      return ['datasource_id', 'datasource_type', 'system_of_origin'];
+    }
     return [];
   };
 
