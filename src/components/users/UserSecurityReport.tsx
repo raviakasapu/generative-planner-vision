@@ -29,12 +29,18 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   const { data: accessPermissions, refetch: refetchAccess } = useQuery({
     queryKey: ['userAccess', userId],
     queryFn: async () => {
+      console.log('Fetching access permissions for user:', userId);
       const { data: permissions, error: permissionsError } = await supabase
         .from('data_access_permissions')
         .select('id, access_level, approval_status, dimension_type')
         .eq('user_id', userId);
 
-      if (permissionsError) throw permissionsError;
+      if (permissionsError) {
+        console.error('Error fetching permissions:', permissionsError);
+        throw permissionsError;
+      }
+
+      console.log('Raw permissions:', permissions);
 
       const enrichedPermissions = await Promise.all((permissions || []).map(async (permission) => {
         let dimensionDetails = null;
@@ -107,8 +113,10 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
         };
       }));
 
+      console.log('Enriched permissions:', enrichedPermissions);
       return enrichedPermissions;
     },
+    refetchInterval: 5000, // Refetch every 5 seconds to show updates
   });
 
   const { data: tasks, refetch: refetchTasks } = useQuery({
@@ -172,6 +180,7 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
       .eq('id', id);
 
     if (error) {
+      console.error(`Error approving ${type}:`, error);
       toast({
         title: 'Error',
         description: `Failed to approve ${type}. Please try again.`,
@@ -229,8 +238,15 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   );
 
   const renderAccessTable = (status: 'pending' | 'approved') => {
+    console.log('Rendering access table for status:', status);
+    console.log('Current access permissions:', accessPermissions);
+    
     const filteredAccess = accessPermissions?.filter(p => p.approval_status === status) || [];
-    if (filteredAccess.length === 0) return <p className="text-sm text-gray-500">No {status} access permissions</p>;
+    console.log('Filtered access permissions:', filteredAccess);
+    
+    if (filteredAccess.length === 0) {
+      return <p className="text-sm text-gray-500">No {status} access permissions</p>;
+    }
 
     return (
       <Table>
