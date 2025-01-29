@@ -5,7 +5,7 @@ import SpreadsheetHeader from './spreadsheet/SpreadsheetHeader';
 import SpreadsheetCell from './spreadsheet/SpreadsheetCell';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, AlertCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Spreadsheet = () => {
   const { 
@@ -62,6 +63,31 @@ const Spreadsheet = () => {
       return cellValue.includes(config.filter.toLowerCase());
     });
   });
+
+  if (loading) {
+    return (
+      <Card className="w-full p-4">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (!data.length) {
+    return (
+      <Card className="w-full p-4">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            No data available. This could be because you don't have access to any planning data yet.
+            Please contact your administrator to request access.
+          </AlertDescription>
+        </Alert>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full overflow-auto">

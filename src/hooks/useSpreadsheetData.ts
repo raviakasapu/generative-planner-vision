@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { PlanningData, ColumnConfig } from '@/components/spreadsheet/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useSpreadsheetData = () => {
   const [data, setData] = useState<PlanningData[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [columnConfigs, setColumnConfigs] = useState<Record<string, ColumnConfig>>({
     dimension1_id: { 
@@ -42,13 +44,17 @@ export const useSpreadsheetData = () => {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      console.log('Fetching planning data for user:', user?.id);
+      
+      const { data: planningData, error } = await supabase
         .from('planningdata')
         .select(`
           *,
@@ -61,8 +67,13 @@ export const useSpreadsheetData = () => {
         `)
         .limit(100);
 
-      if (error) throw error;
-      setData(data || []);
+      if (error) {
+        console.error('Error fetching planning data:', error);
+        throw error;
+      }
+
+      console.log('Fetched planning data:', planningData);
+      setData(planningData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
