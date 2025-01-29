@@ -25,8 +25,8 @@ def format_dataframe_result(df: pd.DataFrame) -> str:
 # Define our planning tools
 planning_tools = [
     Tool(
-        name="update_spreadsheet",
-        description="Update the planning spreadsheet with new information",
+        name="return filtered dataframe",
+        description="return filtered dataframe",
         func=lambda x: format_dataframe_result(pd.DataFrame({
             'task': ['Task 1', 'Task 2'],
             'status': ['In Progress', 'Completed']
@@ -48,8 +48,7 @@ def agent(state: AgentState) -> AgentState:
     messages = state["messages"]
     
     # Prepare the system message
-    system_message = """You are a planning assistant that helps with project management and scheduling.
-    You can update spreadsheets and check business logic rules."""
+    system_message = """You are a text to sql model that helps users to filter slice and dice data returnn a dataframe"""
     
     # Generate response using the LLM
     response = llm.invoke(messages)
@@ -115,7 +114,7 @@ class PlanningChatSDK:
         }
     
     async def process_message(self, message: str) -> Dict:
-        """Process a user message and return the response with any data."""
+        """Process a user message and return the response with summary data."""
         initial_state = {
             "messages": [HumanMessage(content=message)],
             "next": "agent"
