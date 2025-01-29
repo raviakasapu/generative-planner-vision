@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ColumnConfig } from './types';
+import { ColumnConfig, FilterOperator } from './types';
 
 interface DataTableHeaderProps {
   field: string;
@@ -97,7 +97,7 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
           <div className="flex gap-2">
             <Select
               value={config.filterOperator || 'eq'}
-              onValueChange={(value) => onConfigUpdate({ filterOperator: value })}
+              onValueChange={(value: FilterOperator) => onConfigUpdate({ filterOperator: value })}
             >
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="Operator" />

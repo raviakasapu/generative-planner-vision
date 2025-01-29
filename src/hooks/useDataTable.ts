@@ -51,7 +51,7 @@ export const useDataTable = () => {
   });
 
   const { data = [], isLoading: loading } = useQuery({
-    queryKey: ['planningData', user?.id],
+    queryKey: ['planningData', user?.id, columnConfigs],
     queryFn: async () => {
       console.info('Fetching planning data for user:', user?.id);
 
@@ -128,6 +128,8 @@ export const useDataTable = () => {
             const value = Number(row[field] || 0);
             const filterValue = Number(config.filter);
             
+            if (isNaN(filterValue)) return true;
+            
             switch (config.filterOperator) {
               case 'gt':
                 return value > filterValue;
@@ -144,28 +146,7 @@ export const useDataTable = () => {
         });
       });
 
-      // Aggregate the filtered data
-      const aggregatedData = filteredByColumns?.reduce((acc: any[], row) => {
-        const existingRow = acc.find(r => 
-          r.dimension1_id === row.dimension1_id && 
-          r.dimension2_id === row.dimension2_id
-        );
-
-        if (existingRow) {
-          existingRow.measure1 = (existingRow.measure1 || 0) + (row.measure1 || 0);
-          existingRow.measure2 = (existingRow.measure2 || 0) + (row.measure2 || 0);
-        } else {
-          acc.push({
-            ...row,
-            measure1: row.measure1 || 0,
-            measure2: row.measure2 || 0
-          });
-        }
-
-        return acc;
-      }, []);
-
-      return aggregatedData || [];
+      return filteredByColumns || [];
     }
   });
 
