@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Play, BarChart, Table, Filter } from "lucide-react";
+import { Loader2, Play, BarChart, Table } from "lucide-react";
+import { useDataTable } from '@/hooks/useDataTable';
 
 interface Message {
   text: string;
@@ -20,6 +21,7 @@ const ChatInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+  const { data: spreadsheetData } = useDataTable();
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -33,63 +35,23 @@ const ChatInterface = () => {
 
   const handleActionButton = async (action: string, messageText: string) => {
     try {
-      let actionData = {};
-      
-      // Parse the message text to determine filters and parameters
-      if (messageText.toLowerCase().includes('filter')) {
-        const yearMatch = messageText.match(/year (\d{4})/);
-        const productMatch = messageText.match(/product ([^,\.]+)/i);
-        const regionMatch = messageText.match(/region ([^,\.]+)/i);
-        
-        actionData = {
-          filters: {
-            year: yearMatch ? parseInt(yearMatch[1]) : null,
-            product: productMatch ? productMatch[1].trim() : null,
-            region: regionMatch ? regionMatch[1].trim() : null
-          }
-        };
-      }
-
-      if (messageText.toLowerCase().includes('chart') || messageText.toLowerCase().includes('graph')) {
-        actionData = {
-          aggregation: messageText.toLowerCase().includes('average') ? 'average' : 'sum',
-          measure: messageText.toLowerCase().includes('measure2') ? 'measure2' : 'measure1',
-          groupBy: messageText.toLowerCase().includes('by product') ? 'product' :
-                  messageText.toLowerCase().includes('by region') ? 'region' : 'time'
-        };
-      }
-
-      if (messageText.toLowerCase().includes('analysis')) {
-        actionData = {
-          analysisType: messageText.toLowerCase().includes('trend') ? 'trend' : 'comparison',
-          timeRange: messageText.toLowerCase().includes('year') ? 'year' : 'month'
-        };
-      }
-
       const { data, error } = await supabase.functions.invoke('chat-data-actions', {
-        body: { action_type: action, action_data: actionData }
+        body: { 
+          action_type: action, 
+          message: messageText,
+          spreadsheet_data: spreadsheetData 
+        }
       });
 
       if (error) throw error;
 
-      // Display results in a toast or update UI
       toast({
         title: "Action Completed",
         description: `Successfully processed ${action} action`,
       });
 
-      // Add system message with results
-      let resultMessage = '';
-      if (data.result.data) {
-        resultMessage = `Found ${data.result.data.length} matching records.`;
-      } else if (data.result.trends) {
-        resultMessage = 'Analysis complete. Showing trends in the data.';
-      } else if (data.result.labels) {
-        resultMessage = 'Chart data prepared. You can view it in the visualization.';
-      }
-
       setMessages(prev => [...prev, {
-        text: resultMessage,
+        text: data.result || 'Action completed successfully',
         isUser: false,
         timestamp: new Date(),
         actions: []
@@ -114,7 +76,8 @@ const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
+      // First, process with LLM
+      const { data: llmData, error: llmError } = await supabase.functions.invoke('chat-llm-processor', {
         body: {
           messages: messages.map(msg => ({
             role: msg.isUser ? 'user' : 'assistant',
@@ -122,37 +85,21 @@ const ChatInterface = () => {
           })).concat([{
             role: 'user',
             content: input
-          }])
+          }]),
+          context: {
+            available_data: spreadsheetData?.length || 0,
+            // Add any other relevant context
+          }
         }
       });
 
-      if (error) throw error;
-
-      const aiResponse = data.choices[0].message.content;
-      
-      // Add actions based on message content
-      const actions = [];
-      if (aiResponse.toLowerCase().includes('filter') || 
-          aiResponse.toLowerCase().includes('show') || 
-          aiResponse.toLowerCase().includes('display')) {
-        actions.push('show_data');
-      }
-      if (aiResponse.toLowerCase().includes('chart') || 
-          aiResponse.toLowerCase().includes('graph') || 
-          aiResponse.toLowerCase().includes('visualize')) {
-        actions.push('show_chart');
-      }
-      if (aiResponse.toLowerCase().includes('analysis') || 
-          aiResponse.toLowerCase().includes('trend') || 
-          aiResponse.toLowerCase().includes('compare')) {
-        actions.push('run_analysis');
-      }
+      if (llmError) throw llmError;
 
       setMessages(prev => [...prev, { 
-        text: aiResponse, 
+        text: llmData.response, 
         isUser: false, 
         timestamp: new Date(),
-        actions 
+        actions: llmData.suggested_actions 
       }]);
       
       toast({
@@ -160,7 +107,7 @@ const ChatInterface = () => {
         description: "The AI has processed your request.",
       });
     } catch (error) {
-      console.error('Error calling OpenAI:', error);
+      console.error('Error processing message:', error);
       toast({
         title: "Error",
         description: "Failed to get AI response. Please try again.",
