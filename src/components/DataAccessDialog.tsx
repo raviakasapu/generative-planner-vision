@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,10 +18,11 @@ type DimensionType = 'dimension1' | 'dimension2' | 'time';
 
 interface DataAccessDialogProps {
   userId: string;
+  isOpen: boolean;
   onClose?: () => void;
 }
 
-const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, onClose }) => {
+const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onClose }) => {
   const [selectedDimensionType, setSelectedDimensionType] = useState<DimensionType | ''>('');
   
   const handleSave = () => {
@@ -31,10 +31,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, onClose }) 
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">Manage Data Access</Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Data Access Management</DialogTitle>
