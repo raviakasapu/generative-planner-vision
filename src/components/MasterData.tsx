@@ -42,7 +42,13 @@ const MasterData = () => {
             .select('*')
             .order('created_at', { ascending: false });
           if (productsError) throw productsError;
-          data = products.map(p => ({ ...p, dimension_type: 'product' }));
+          data = products.map(p => ({
+            ...p,
+            dimension_type: 'product' as DimensionType,
+            product_id: p.product_id || '',
+            product_description: p.product_description || '',
+            category: p.category || ''
+          }));
           break;
           
         case 'region':
@@ -51,7 +57,13 @@ const MasterData = () => {
             .select('*')
             .order('created_at', { ascending: false });
           if (regionsError) throw regionsError;
-          data = regions.map(r => ({ ...r, dimension_type: 'region' }));
+          data = regions.map(r => ({
+            ...r,
+            dimension_type: 'region' as DimensionType,
+            region_id: r.region_id || '',
+            region_description: r.region_description || '',
+            country: r.country || ''
+          }));
           break;
           
         case 'datasource':
@@ -60,7 +72,15 @@ const MasterData = () => {
             .select('*')
             .order('created_at', { ascending: false });
           if (datasourcesError) throw datasourcesError;
-          data = datasources.map(d => ({ ...d, dimension_type: 'datasource' }));
+          data = datasources.map(d => ({
+            ...d,
+            dimension_type: 'datasource' as DimensionType,
+            datasource_id: d.datasource_id || '',
+            datasource_name: d.datasource_name || '',
+            datasource_description: d.datasource_description || '',
+            datasource_type: d.datasource_type || '',
+            system_of_origin: d.system_of_origin || ''
+          }));
           break;
       }
       
