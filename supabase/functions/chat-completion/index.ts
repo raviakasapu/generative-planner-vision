@@ -1,50 +1,111 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { OpenAI } from 'https://esm.sh/openai@4.20.1';
+import { corsHeaders } from '../_shared/cors.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+const openai = new OpenAI({
+  apiKey: Deno.env.get('OPENAI_API_KEY') || '',
+});
 
-serve(async (req) => {
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { messages } = await req.json()
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { messages, userId } = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured')
+    // Store the incoming message
+    const { data: chatMessage, error: insertError } = await supabase
+      .from('chat_messages')
+      .insert({
+        user_id: userId,
+        message: messages[messages.length - 1].content,
+        context: { full_conversation: messages }
+      })
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+
+    // Get AI completion
+    const completion = await openai.chat.completions.create({
+      messages: messages.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      model: 'gpt-3.5-turbo',
+    });
+
+    const aiResponse = completion.choices[0].message.content;
+
+    // Update the chat message with AI response
+    const { error: updateError } = await supabase
+      .from('chat_messages')
+      .update({ response: aiResponse })
+      .eq('id', chatMessage.id);
+
+    if (updateError) throw updateError;
+
+    // Check for action triggers in the response
+    const actions = [];
+    if (aiResponse.toLowerCase().includes('data')) {
+      actions.push({
+        chat_message_id: chatMessage.id,
+        action_type: 'show_data',
+        action_data: { trigger: 'data_keyword' }
+      });
+    }
+    if (aiResponse.toLowerCase().includes('chart') || aiResponse.toLowerCase().includes('graph')) {
+      actions.push({
+        chat_message_id: chatMessage.id,
+        action_type: 'show_chart',
+        action_data: { trigger: 'visualization_keyword' }
+      });
+    }
+    if (aiResponse.toLowerCase().includes('analysis')) {
+      actions.push({
+        chat_message_id: chatMessage.id,
+        action_type: 'run_analysis',
+        action_data: { trigger: 'analysis_keyword' }
+      });
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful AI assistant for a planning application. You help users understand their data, create visualizations, and manage planning tasks.'
-          },
-          ...messages
-        ],
-      }),
-    })
+    // Store actions if any were triggered
+    if (actions.length > 0) {
+      const { error: actionsError } = await supabase
+        .from('chat_actions')
+        .insert(actions);
 
-    const data = await response.json()
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+      if (actionsError) throw actionsError;
+    }
+
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: aiResponse } }],
+        actions: actions
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
-})
+});

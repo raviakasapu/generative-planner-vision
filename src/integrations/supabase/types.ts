@@ -72,6 +72,74 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_actions: {
+        Row: {
+          action_data: Json | null
+          action_type: string
+          chat_message_id: string | null
+          created_at: string | null
+          id: string
+          result: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type: string
+          chat_message_id?: string | null
+          created_at?: string | null
+          id?: string
+          result?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string
+          chat_message_id?: string | null
+          created_at?: string | null
+          id?: string
+          result?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_actions_chat_message_id_fkey"
+            columns: ["chat_message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          context: Json | null
+          created_at: string | null
+          id: string
+          message: string
+          response: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          message: string
+          response?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          response?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       data_access_dimension1: {
         Row: {
           access_permission_id: string
