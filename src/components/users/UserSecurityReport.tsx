@@ -28,17 +28,16 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   const { data: accessPermissions, refetch: refetchAccess } = useQuery({
     queryKey: ['userAccess', userId],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('data_access_permissions')
         .select(`
           *,
-          masterdimension1!dimension1:masterdimension1(dimension_name, product_id, product_description),
-          masterdimension2!dimension2:masterdimension2(dimension_name, region_id, region_description),
-          mastertimedimension!time:mastertimedimension(dimension_name, month_id, month_name)
+          dimension1:masterdimension1(dimension_name, product_id, product_description),
+          dimension2:masterdimension2(dimension_name, region_id, region_description),
+          time:mastertimedimension(dimension_name, month_id, month_name)
         `)
         .eq('user_id', userId);
 
-      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -129,11 +128,11 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   const getDimensionName = (permission: any) => {
     switch (permission.dimension_type) {
       case 'dimension1':
-        return `Product: ${permission.masterdimension1?.product_id} - ${permission.masterdimension1?.product_description}`;
+        return `Product: ${permission.dimension1?.product_id} - ${permission.dimension1?.product_description}`;
       case 'dimension2':
-        return `Region: ${permission.masterdimension2?.region_id} - ${permission.masterdimension2?.region_description}`;
+        return `Region: ${permission.dimension2?.region_id} - ${permission.dimension2?.region_description}`;
       case 'time':
-        return `Time: ${permission.mastertimedimension?.month_id} - ${permission.mastertimedimension?.month_name}`;
+        return `Time: ${permission.time?.month_id} - ${permission.time?.month_name}`;
       default:
         return permission.dimension_type;
     }
