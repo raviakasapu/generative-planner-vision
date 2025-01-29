@@ -29,64 +29,62 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
       
       let dimensionData;
       let businessIdField;
+      let dimensionTable;
       
-      // Map dimension fields to their corresponding business ID fields
-      switch (field) {
-        case 'time_dimension_id':
-          dimensionData = row.mastertimedimension;
-          businessIdField = 'month_id';
-          console.log('Time dimension data:', dimensionData);
-          break;
-        case 'version_dimension_id':
-          dimensionData = row.masterversiondimension;
-          businessIdField = 'version_id';
-          console.log('Version dimension data:', dimensionData);
-          break;
-        case 'datasource_dimension_id':
-          dimensionData = row.masterdatasourcedimension;
-          businessIdField = 'datasource_id';
-          console.log('Datasource dimension data:', dimensionData);
-          break;
-        case 'dimension1_id':
-          dimensionData = row.masterdimension1;
-          businessIdField = 'product_id';
-          console.log('Product dimension data:', dimensionData);
-          break;
-        case 'dimension2_id':
-          dimensionData = row.masterdimension2;
-          businessIdField = 'region_id';
-          console.log('Region dimension data:', dimensionData);
-          break;
-        default:
-          // Handle attribute columns
-          if (field.includes('_')) {
-            const [baseDimension, ...attributeParts] = field.split('_');
-            const attributeName = attributeParts.join('_');
-            
-            switch (baseDimension) {
-              case 'time':
-                dimensionData = row.mastertimedimension;
-                businessIdField = attributeName;
-                break;
-              case 'version':
-                dimensionData = row.masterversiondimension;
-                businessIdField = attributeName;
-                break;
-              case 'datasource':
-                dimensionData = row.masterdatasourcedimension;
-                businessIdField = attributeName;
-                break;
-              case 'dimension1':
-                dimensionData = row.masterdimension1;
-                businessIdField = attributeName;
-                break;
-              case 'dimension2':
-                dimensionData = row.masterdimension2;
-                businessIdField = attributeName;
-                break;
-            }
-          }
+      // Map dimension fields to their corresponding business ID fields and tables
+      if (field.includes('_')) {
+        const [baseDimension, ...attributeParts] = field.split('_');
+        const attributeName = attributeParts.join('_');
+        
+        switch (baseDimension) {
+          case 'time':
+            dimensionTable = 'mastertimedimension';
+            businessIdField = attributeName;
+            break;
+          case 'version':
+            dimensionTable = 'masterversiondimension';
+            businessIdField = attributeName;
+            break;
+          case 'datasource':
+            dimensionTable = 'masterdatasourcedimension';
+            businessIdField = attributeName;
+            break;
+          case 'dimension1':
+            dimensionTable = 'masterdimension1';
+            businessIdField = attributeName;
+            break;
+          case 'dimension2':
+            dimensionTable = 'masterdimension2';
+            businessIdField = attributeName;
+            break;
+        }
+      } else {
+        switch (field) {
+          case 'time_dimension_id':
+            dimensionTable = 'mastertimedimension';
+            businessIdField = 'month_id';
+            break;
+          case 'version_dimension_id':
+            dimensionTable = 'masterversiondimension';
+            businessIdField = 'version_id';
+            break;
+          case 'datasource_dimension_id':
+            dimensionTable = 'masterdatasourcedimension';
+            businessIdField = 'datasource_id';
+            break;
+          case 'dimension1_id':
+            dimensionTable = 'masterdimension1';
+            businessIdField = 'product_id';
+            break;
+          case 'dimension2_id':
+            dimensionTable = 'masterdimension2';
+            businessIdField = 'region_id';
+            break;
+        }
       }
+
+      dimensionData = row[dimensionTable];
+      console.log(`${dimensionTable} data:`, dimensionData);
 
       if (!dimensionData) {
         console.log('No dimension data found for field:', field);
