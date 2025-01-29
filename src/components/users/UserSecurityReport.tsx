@@ -185,6 +185,7 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
       description: `${type === 'access' ? 'Access permission' : 'Task'} approved successfully.`,
     });
 
+    // Immediately refetch data after approval
     if (type === 'access') {
       refetchAccess();
     } else {
@@ -308,55 +309,61 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Role Permissions Section */}
-        {renderSecurityCard(
-          'Role Permissions',
-          <Key className="h-5 w-5" />,
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Permission</TableHead>
-                <TableHead>Description</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rolePermissions?.map((rp: any, index: number) => (
-                <TableRow key={index}>
-                  <TableCell>{rp.permissions.permission_name}</TableCell>
-                  <TableCell>{rp.permissions.permission_description}</TableCell>
+        {/* Role and Permissions Section */}
+        <div className="lg:col-span-3">
+          {renderSecurityCard(
+            'Role Permissions',
+            <Key className="h-5 w-5" />,
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Permission</TableHead>
+                  <TableHead>Description</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+              </TableHeader>
+              <TableBody>
+                {rolePermissions?.map((rp: any, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell>{rp.permissions.permission_name}</TableCell>
+                    <TableCell>{rp.permissions.permission_description}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
 
-        {/* Pending Access Permissions */}
-        {renderSecurityCard(
-          'Pending Access Permissions',
-          <AlertCircle className="h-5 w-5 text-yellow-500" />,
-          renderAccessTable('pending')
-        )}
+        {/* Access Permissions Section - Group pending and approved together */}
+        <div className="lg:col-span-2">
+          {renderSecurityCard(
+            'Pending Access Permissions',
+            <AlertCircle className="h-5 w-5 text-yellow-500" />,
+            renderAccessTable('pending')
+          )}
+        </div>
+        <div className="lg:col-span-1">
+          {renderSecurityCard(
+            'Approved Access Permissions',
+            <CheckCircle className="h-5 w-5 text-green-500" />,
+            renderAccessTable('approved')
+          )}
+        </div>
 
-        {/* Approved Access Permissions */}
-        {renderSecurityCard(
-          'Approved Access Permissions',
-          <CheckCircle className="h-5 w-5 text-green-500" />,
-          renderAccessTable('approved')
-        )}
-
-        {/* Pending Tasks */}
-        {renderSecurityCard(
-          'Pending Tasks',
-          <ClipboardList className="h-5 w-5 text-yellow-500" />,
-          renderTasksTable('pending')
-        )}
-
-        {/* Approved Tasks */}
-        {renderSecurityCard(
-          'Approved Tasks',
-          <Shield className="h-5 w-5 text-green-500" />,
-          renderTasksTable('approved')
-        )}
+        {/* Tasks Section - Group pending and approved together */}
+        <div className="lg:col-span-2">
+          {renderSecurityCard(
+            'Pending Tasks',
+            <ClipboardList className="h-5 w-5 text-yellow-500" />,
+            renderTasksTable('pending')
+          )}
+        </div>
+        <div className="lg:col-span-1">
+          {renderSecurityCard(
+            'Approved Tasks',
+            <Shield className="h-5 w-5 text-green-500" />,
+            renderTasksTable('approved')
+          )}
+        </div>
       </div>
     </div>
   );
