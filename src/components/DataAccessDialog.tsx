@@ -26,7 +26,6 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, onClose }) 
   const [selectedDimensionType, setSelectedDimensionType] = useState<DimensionType | ''>('');
   
   const handleSave = () => {
-    // Logic to save the selected dimension type for the user
     console.log(`Saving access for ${userId} to ${selectedDimensionType}`);
     if (onClose) onClose();
   };
@@ -56,7 +55,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, onClose }) 
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleSave} variant="primary">Save</Button>
+          <Button onClick={handleSave} variant="default">Save</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Search, UserCog, Menu, Grid2X2, List } from 'lucide-react';
 import { RoleManagementDialog } from '@/components/RoleManagementDialog';
-import { DataAccessDialog } from '@/components/DataAccessDialog';
+import DataAccessDialog from '@/components/DataAccessDialog';
 import { TaskAssignmentDialog } from '@/components/TaskAssignmentDialog';
 import { UserStats } from '@/components/users/UserStats';
 import { UserCharts } from '@/components/users/UserCharts';
