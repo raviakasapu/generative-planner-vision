@@ -11,14 +11,14 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { action_type, action_data, chat_message_id } = await req.json();
+    const { action_type, action_data = {}, message_id } = await req.json();
 
-    console.log(`Processing action: ${action_type} for message: ${chat_message_id}`);
+    console.log(`Processing action: ${action_type}`);
     console.log('Action data:', action_data);
 
     let result;
     switch (action_type) {
-      case 'show_data':
+      case 'show_data': {
         const { filters = {}, dimensions = [] } = action_data;
         let query = supabase
           .from('planningdata')
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
             masterdatasourcedimension (datasource_id, datasource_name)
           `);
 
-        // Apply filters
+        // Apply filters if they exist
         if (filters.year) {
           query = query.eq('mastertimedimension.year', filters.year);
         }
@@ -46,10 +46,16 @@ Deno.serve(async (req) => {
         if (filterError) throw filterError;
         result = { data: filteredData };
         break;
+      }
 
-      case 'show_chart':
-        const { aggregation = 'sum', measure = 'measure1', groupBy = 'time' } = action_data;
-        let aggregationQuery = supabase
+      case 'show_chart': {
+        const { 
+          aggregation = 'sum', 
+          measure = 'measure1', 
+          groupBy = 'time' 
+        } = action_data;
+
+        let query = supabase
           .from('planningdata')
           .select(`
             measure1,
@@ -59,7 +65,7 @@ Deno.serve(async (req) => {
             masterdimension2!inner (region_description)
           `);
 
-        const { data: chartData, error: chartError } = await aggregationQuery;
+        const { data: chartData, error: chartError } = await query;
         if (chartError) throw chartError;
 
         // Process data for visualization
@@ -85,10 +91,12 @@ Deno.serve(async (req) => {
           )
         };
         break;
+      }
 
-      case 'run_analysis':
+      case 'run_analysis': {
         const { analysisType = 'trend', timeRange } = action_data;
-        let analysisQuery = supabase
+        
+        let query = supabase
           .from('planningdata')
           .select(`
             measure1,
@@ -98,7 +106,7 @@ Deno.serve(async (req) => {
           .order('mastertimedimension.year', { ascending: true })
           .order('mastertimedimension.month_name', { ascending: true });
 
-        const { data: analysisData, error: analysisError } = await analysisQuery;
+        const { data: analysisData, error: analysisError } = await query;
         if (analysisError) throw analysisError;
 
         // Calculate trends or other analysis
@@ -115,22 +123,25 @@ Deno.serve(async (req) => {
 
         result = { trends };
         break;
+      }
 
       default:
         throw new Error(`Unsupported action type: ${action_type}`);
     }
 
     // Store the action result
-    const { error: actionError } = await supabase
-      .from('chat_actions')
-      .insert({
-        chat_message_id,
-        action_type,
-        action_data,
-        result
-      });
+    if (message_id) {
+      const { error: actionError } = await supabase
+        .from('chat_actions')
+        .insert({
+          chat_message_id: message_id,
+          action_type,
+          action_data,
+          result
+        });
 
-    if (actionError) throw actionError;
+      if (actionError) throw actionError;
+    }
 
     return new Response(
       JSON.stringify({ result }),
