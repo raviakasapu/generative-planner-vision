@@ -1,6 +1,7 @@
 import React from 'react';
 import ChatInterface from '@/components/ChatInterface';
 import BusinessLogic from '@/components/BusinessLogic';
+import PlanningSpreadsheet from '@/components/PlanningSpreadsheet';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { MainNav } from '@/components/MainNav';
@@ -25,6 +26,14 @@ const Index = () => {
         <MainNav />
         
         <div className="space-y-8">
+          {/* Planning Spreadsheet */}
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">Planning Spreadsheet</h2>
+              <PlanningSpreadsheet />
+            </div>
+          </div>
+
           {/* Chat Interface and Business Logic side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
