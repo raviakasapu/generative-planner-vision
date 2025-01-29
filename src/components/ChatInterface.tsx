@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Play, BarChart, Table } from "lucide-react";
 
 interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  actions?: string[];
 }
 
 const ChatInterface = () => {
@@ -29,6 +30,31 @@ const ChatInterface = () => {
   React.useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleActionButton = (action: string) => {
+    switch (action) {
+      case 'show_data':
+        toast({
+          title: "Show Data",
+          description: "Displaying data table...",
+        });
+        break;
+      case 'show_chart':
+        toast({
+          title: "Show Chart",
+          description: "Displaying visualization...",
+        });
+        break;
+      case 'run_analysis':
+        toast({
+          title: "Run Analysis",
+          description: "Running analysis...",
+        });
+        break;
+      default:
+        console.log(`Unhandled action: ${action}`);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -54,7 +80,19 @@ const ChatInterface = () => {
       if (error) throw error;
 
       const aiResponse = data.choices[0].message.content;
-      setMessages(prev => [...prev, { text: aiResponse, isUser: false, timestamp: new Date() }]);
+      
+      // Add some example actions based on keywords in the response
+      const actions = [];
+      if (aiResponse.toLowerCase().includes('data')) actions.push('show_data');
+      if (aiResponse.toLowerCase().includes('chart') || aiResponse.toLowerCase().includes('graph')) actions.push('show_chart');
+      if (aiResponse.toLowerCase().includes('analysis')) actions.push('run_analysis');
+
+      setMessages(prev => [...prev, { 
+        text: aiResponse, 
+        isUser: false, 
+        timestamp: new Date(),
+        actions 
+      }]);
       
       toast({
         title: "Response received",
@@ -77,18 +115,37 @@ const ChatInterface = () => {
       <div className="p-4 font-medium border-b">AI Assistant</div>
       <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`mb-4 p-3 rounded-lg ${
-              msg.isUser
-                ? "bg-primary text-primary-foreground ml-auto"
-                : "bg-muted"
-            } max-w-[80%] ${msg.isUser ? "ml-auto" : "mr-auto"}`}
-          >
-            {msg.text}
-            <div className="text-xs opacity-50 mt-1">
-              {msg.timestamp.toLocaleTimeString()}
+          <div key={i} className="mb-4">
+            <div
+              className={`p-3 rounded-lg ${
+                msg.isUser
+                  ? "bg-primary text-primary-foreground ml-auto"
+                  : "bg-muted"
+              } max-w-[80%] ${msg.isUser ? "ml-auto" : "mr-auto"}`}
+            >
+              {msg.text}
+              <div className="text-xs opacity-50 mt-1">
+                {msg.timestamp.toLocaleTimeString()}
+              </div>
             </div>
+            {!msg.isUser && msg.actions && msg.actions.length > 0 && (
+              <div className="mt-2 flex gap-2">
+                {msg.actions.map((action, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleActionButton(action)}
+                    className="flex items-center gap-2"
+                  >
+                    {action === 'show_data' && <Table className="h-4 w-4" />}
+                    {action === 'show_chart' && <BarChart className="h-4 w-4" />}
+                    {action === 'run_analysis' && <Play className="h-4 w-4" />}
+                    {action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         {isLoading && (
