@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Key, ClipboardList, CheckCircle, AlertCircle, User } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface UserSecurityReportProps {
   userId: string;
@@ -138,134 +139,150 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
     }
   };
 
-  const renderSecuritySection = (title: string, icon: React.ReactNode, status: 'pending' | 'approved') => {
-    const filteredAccess = accessPermissions?.filter(p => p.approval_status === status) || [];
-    const filteredTasks = tasks?.filter(t => t.approval_status === status) || [];
-
-    if (filteredAccess.length === 0 && filteredTasks.length === 0) return null;
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-semibold">
+  const renderSecurityCard = (
+    title: string,
+    icon: React.ReactNode,
+    content: React.ReactNode
+  ) => (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
           {icon}
           {title}
-        </div>
-        
-        {filteredAccess.length > 0 && (
-          <div className="bg-white rounded-md p-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Dimension</TableHead>
-                  <TableHead>Access Level</TableHead>
-                  {status === 'pending' && isApprover && <TableHead>Action</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAccess.map((ap: any) => (
-                  <TableRow key={ap.id}>
-                    <TableCell>{getDimensionName(ap)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {ap.access_level}
-                      </Badge>
-                    </TableCell>
-                    {status === 'pending' && isApprover && (
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleApprove('access', ap.id)}
-                        >
-                          Approve
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{content}</CardContent>
+    </Card>
+  );
 
-        {filteredTasks.length > 0 && (
-          <div className="bg-white rounded-md p-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  {status === 'pending' && isApprover && <TableHead>Action</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTasks.map((task: any) => (
-                  <TableRow key={task.id}>
-                    <TableCell>{task.task_name}</TableCell>
-                    <TableCell>
-                      {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
-                    </TableCell>
-                    {status === 'pending' && isApprover && (
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleApprove('task', task.id)}
-                        >
-                          Approve
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
+  const renderAccessTable = (status: 'pending' | 'approved') => {
+    const filteredAccess = accessPermissions?.filter(p => p.approval_status === status) || [];
+    if (filteredAccess.length === 0) return <p className="text-sm text-gray-500">No {status} access permissions</p>;
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Dimension</TableHead>
+            <TableHead>Access Level</TableHead>
+            {status === 'pending' && isApprover && <TableHead>Action</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredAccess.map((ap: any) => (
+            <TableRow key={ap.id}>
+              <TableCell>{getDimensionName(ap)}</TableCell>
+              <TableCell>
+                <Badge variant={status === 'approved' ? 'default' : 'secondary'}>
+                  {ap.access_level}
+                </Badge>
+              </TableCell>
+              {status === 'pending' && isApprover && (
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleApprove('access', ap.id)}
+                  >
+                    Approve
+                  </Button>
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  const renderTasksTable = (status: 'pending' | 'approved') => {
+    const filteredTasks = tasks?.filter(t => t.approval_status === status) || [];
+    if (filteredTasks.length === 0) return <p className="text-sm text-gray-500">No {status} tasks</p>;
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Task</TableHead>
+            <TableHead>Due Date</TableHead>
+            {status === 'pending' && isApprover && <TableHead>Action</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredTasks.map((task: any) => (
+            <TableRow key={task.id}>
+              <TableCell>{task.task_name}</TableCell>
+              <TableCell>
+                {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
+              </TableCell>
+              {status === 'pending' && isApprover && (
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleApprove('task', task.id)}
+                  >
+                    Approve
+                  </Button>
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     );
   };
 
   return (
-    <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
+    <div className="space-y-6">
       {/* Role Permissions Section */}
-      <div className="space-y-2">
-        <h4 className="text-sm font-semibold flex items-center gap-2">
-          <User className="h-4 w-4" />
-          Role Permissions
-        </h4>
-        <div className="bg-white rounded-md p-2">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Permission</TableHead>
-                <TableHead>Description</TableHead>
+      {renderSecurityCard(
+        'Role Permissions',
+        <Key className="h-5 w-5" />,
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Permission</TableHead>
+              <TableHead>Description</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rolePermissions?.map((rp: any, index: number) => (
+              <TableRow key={index}>
+                <TableCell>{rp.permissions.permission_name}</TableCell>
+                <TableCell>{rp.permissions.permission_description}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rolePermissions?.map((rp: any, index: number) => (
-                <TableRow key={index}>
-                  <TableCell>{rp.permissions.permission_name}</TableCell>
-                  <TableCell>{rp.permissions.permission_description}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Pending Security Updates */}
-      {renderSecuritySection(
-        'Pending Security Updates',
-        <AlertCircle className="h-4 w-4 text-yellow-500" />,
-        'pending'
+            ))}
+          </TableBody>
+        </Table>
       )}
 
-      {/* Approved Security Settings */}
-      {renderSecuritySection(
-        'Approved Security Settings',
-        <CheckCircle className="h-4 w-4 text-green-500" />,
-        'approved'
+      {/* Pending Access Permissions */}
+      {renderSecurityCard(
+        'Pending Access Permissions',
+        <AlertCircle className="h-5 w-5 text-yellow-500" />,
+        renderAccessTable('pending')
+      )}
+
+      {/* Approved Access Permissions */}
+      {renderSecurityCard(
+        'Approved Access Permissions',
+        <CheckCircle className="h-5 w-5 text-green-500" />,
+        renderAccessTable('approved')
+      )}
+
+      {/* Pending Tasks */}
+      {renderSecurityCard(
+        'Pending Tasks',
+        <ClipboardList className="h-5 w-5 text-yellow-500" />,
+        renderTasksTable('pending')
+      )}
+
+      {/* Approved Tasks */}
+      {renderSecurityCard(
+        'Approved Tasks',
+        <Shield className="h-5 w-5 text-green-500" />,
+        renderTasksTable('approved')
       )}
     </div>
   );
