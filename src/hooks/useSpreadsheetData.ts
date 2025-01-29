@@ -54,7 +54,37 @@ export const useSpreadsheetData = () => {
       setLoading(true);
       console.log('Fetching planning data for user:', user?.id);
       
-      const { data: planningData, error } = await supabase
+      // First, get the user's approved dimension access permissions
+      const { data: accessPermissions, error: accessError } = await supabase
+        .from('data_access_permissions')
+        .select(`
+          id,
+          dimension_type,
+          dimension_id
+        `)
+        .eq('user_id', user?.id)
+        .eq('approval_status', 'approved');
+
+      if (accessError) {
+        console.error('Error fetching access permissions:', accessError);
+        throw accessError;
+      }
+
+      console.log('User access permissions:', accessPermissions);
+
+      // Get the dimension IDs the user has access to
+      const dimension1Ids = accessPermissions
+        ?.filter(p => p.dimension_type === 'dimension1')
+        .map(p => p.dimension_id) || [];
+      const dimension2Ids = accessPermissions
+        ?.filter(p => p.dimension_type === 'dimension2')
+        .map(p => p.dimension_id) || [];
+
+      console.log('Accessible dimension1 IDs:', dimension1Ids);
+      console.log('Accessible dimension2 IDs:', dimension2Ids);
+
+      // Only fetch planning data where user has access to both dimensions
+      const { data: planningData, error: planningError } = await supabase
         .from('planningdata')
         .select(`
           *,
@@ -65,11 +95,12 @@ export const useSpreadsheetData = () => {
             id, region_id, region_description, country, sales_manager
           )
         `)
-        .limit(100);
+        .in('dimension1_id', dimension1Ids)
+        .in('dimension2_id', dimension2Ids);
 
-      if (error) {
-        console.error('Error fetching planning data:', error);
-        throw error;
+      if (planningError) {
+        console.error('Error fetching planning data:', planningError);
+        throw planningError;
       }
 
       console.log('Fetched planning data:', planningData);
