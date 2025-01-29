@@ -1,5 +1,5 @@
 import React from 'react';
-import Spreadsheet from '@/components/Spreadsheet';
+import DataTable from '@/components/data-table/DataTable';
 import ChatInterface from '@/components/ChatInterface';
 import BusinessLogic from '@/components/BusinessLogic';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,8 +29,8 @@ const Index = () => {
           <div className="space-y-8">
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">Spreadsheet</h2>
-                <Spreadsheet />
+                <h2 className="text-2xl font-semibold mb-4">Data Table</h2>
+                <DataTable />
               </div>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
