@@ -25,26 +25,92 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   const { toast } = useToast();
   const isApprover = userRole === 'admin' || userRole === 'manager';
 
-  // Fetch user's data access permissions with dimension details
+  // Fetch user's data access permissions with dimension details through junction tables
   const { data: accessPermissions, refetch: refetchAccess } = useQuery({
     queryKey: ['userAccess', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: permissions, error: permissionsError } = await supabase
         .from('data_access_permissions')
-        .select(`
-          *,
-          dimension1:masterdimension1(dimension_name, product_id, product_description),
-          dimension2:masterdimension2(dimension_name, region_id, region_description),
-          time:mastertimedimension(dimension_name, month_id, month_name)
-        `)
+        .select('id, access_level, approval_status, dimension_type')
         .eq('user_id', userId);
 
-      if (error) throw error;
-      return data || [];
+      if (permissionsError) throw permissionsError;
+
+      const enrichedPermissions = await Promise.all((permissions || []).map(async (permission) => {
+        let dimensionDetails = null;
+
+        if (permission.dimension_type === 'dimension1') {
+          const { data, error } = await supabase
+            .from('data_access_dimension1')
+            .select(`
+              dimension_id,
+              masterdimension1 (
+                dimension_name,
+                product_id,
+                product_description
+              )
+            `)
+            .eq('access_permission_id', permission.id)
+            .single();
+
+          if (!error && data) {
+            dimensionDetails = {
+              ...data.masterdimension1,
+              type: 'Product'
+            };
+          }
+        } else if (permission.dimension_type === 'dimension2') {
+          const { data, error } = await supabase
+            .from('data_access_dimension2')
+            .select(`
+              dimension_id,
+              masterdimension2 (
+                dimension_name,
+                region_id,
+                region_description
+              )
+            `)
+            .eq('access_permission_id', permission.id)
+            .single();
+
+          if (!error && data) {
+            dimensionDetails = {
+              ...data.masterdimension2,
+              type: 'Region'
+            };
+          }
+        } else if (permission.dimension_type === 'time') {
+          const { data, error } = await supabase
+            .from('data_access_time')
+            .select(`
+              dimension_id,
+              mastertimedimension (
+                dimension_name,
+                month_id,
+                month_name
+              )
+            `)
+            .eq('access_permission_id', permission.id)
+            .single();
+
+          if (!error && data) {
+            dimensionDetails = {
+              ...data.mastertimedimension,
+              type: 'Time'
+            };
+          }
+        }
+
+        return {
+          ...permission,
+          dimensionDetails
+        };
+      }));
+
+      return enrichedPermissions;
     },
   });
 
-  // Fetch user's tasks with more details
   const { data: tasks, refetch: refetchTasks } = useQuery({
     queryKey: ['userTasks', userId],
     queryFn: async () => {
@@ -127,13 +193,16 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   };
 
   const getDimensionName = (permission: any) => {
+    if (!permission.dimensionDetails) return permission.dimension_type;
+    
+    const details = permission.dimensionDetails;
     switch (permission.dimension_type) {
       case 'dimension1':
-        return `Product: ${permission.dimension1?.product_id} - ${permission.dimension1?.product_description}`;
+        return `Product: ${details.product_id} - ${details.product_description}`;
       case 'dimension2':
-        return `Region: ${permission.dimension2?.region_id} - ${permission.dimension2?.region_description}`;
+        return `Region: ${details.region_id} - ${details.region_description}`;
       case 'time':
-        return `Time: ${permission.time?.month_id} - ${permission.time?.month_name}`;
+        return `Time: ${details.month_id} - ${details.month_name}`;
       default:
         return permission.dimension_type;
     }

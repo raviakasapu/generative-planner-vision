@@ -72,6 +72,66 @@ export type Database = {
         }
         Relationships: []
       }
+      data_access_dimension1: {
+        Row: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Insert: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Update: {
+          access_permission_id?: string
+          dimension_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_access_dimension1_access_permission_id_fkey"
+            columns: ["access_permission_id"]
+            isOneToOne: false
+            referencedRelation: "data_access_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_access_dimension1_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterdimension1"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_access_dimension2: {
+        Row: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Insert: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Update: {
+          access_permission_id?: string
+          dimension_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_access_dimension2_access_permission_id_fkey"
+            columns: ["access_permission_id"]
+            isOneToOne: false
+            referencedRelation: "data_access_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_access_dimension2_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterdimension2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_access_permissions: {
         Row: {
           access_level: string
@@ -107,6 +167,36 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      data_access_time: {
+        Row: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Insert: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Update: {
+          access_permission_id?: string
+          dimension_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_access_time_access_permission_id_fkey"
+            columns: ["access_permission_id"]
+            isOneToOne: false
+            referencedRelation: "data_access_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_access_time_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "mastertimedimension"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lockstable: {
         Row: {
