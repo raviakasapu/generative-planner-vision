@@ -118,6 +118,26 @@ const ChatInterface = () => {
     }
   };
 
+  const sendMessage = async (message: string) => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      });
+      
+      const data = await response.json();
+      setMessages(prev => [...prev, 
+        { role: 'user', content: message },
+        { role: 'assistant', content: data.response }
+      ]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
   return (
     <Card className="flex flex-col h-[600px]">
       <div className="p-4 font-medium border-b">AI Assistant</div>
