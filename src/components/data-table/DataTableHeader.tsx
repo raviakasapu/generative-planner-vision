@@ -7,6 +7,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ColumnConfig } from './types';
 
 interface DataTableHeaderProps {
@@ -34,14 +42,46 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
               {config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
             </TooltipContent>
           </Tooltip>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onAddColumn}
-            className="h-6 w-6"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Add Column</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                Attributes
+              </DropdownMenuLabel>
+              {config.dimensionAttributes?.map((attr) => (
+                <DropdownMenuItem key={attr} onSelect={() => onConfigUpdate({ selectedColumn: attr })}>
+                  {attr}
+                </DropdownMenuItem>
+              ))}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                Dimensions
+              </DropdownMenuLabel>
+              <DropdownMenuItem onSelect={onAddColumn}>
+                Add New Dimension
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                Measures
+              </DropdownMenuLabel>
+              <DropdownMenuItem onSelect={onAddColumn}>
+                Add New Measure
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <Input
