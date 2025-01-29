@@ -76,6 +76,7 @@ export const useColumnConfig = () => {
   }, []);
 
   const addColumn = useCallback((attributeName: string, afterField: string) => {
+    const baseDimensionField = afterField.split('_')[0];
     const columnId = `${afterField}_${attributeName}`;
     
     setColumnConfigs(prev => {
@@ -90,7 +91,8 @@ export const useColumnConfig = () => {
           label: attributeName,
           filter: '',
           sortOrder: null,
-          selectedColumn: attributeName
+          selectedColumn: attributeName,
+          dimensionAttributes: prev[afterField].dimensionAttributes
         }],
         ...entries.slice(afterIndex + 1)
       ];

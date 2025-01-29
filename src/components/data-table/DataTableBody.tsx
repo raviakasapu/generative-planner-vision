@@ -25,12 +25,13 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
   const getCellValue = () => {
     if (config.type === 'dimension') {
       let dimensionData;
+      // Get the attribute name from either the field or config
       const attributeName = field.includes('_') ? field.split('_').pop() : config.selectedColumn;
       
-      // Get the base dimension field (e.g., 'dimension1_id' from 'dimension1_id_product_description')
-      const baseDimensionField = field.split('_').slice(0, -1).join('_');
+      // Get the base dimension field
+      const baseDimensionField = field.includes('_') ? field.split('_').slice(0, -1).join('_') : field;
       
-      switch (baseDimensionField || field) {
+      switch (baseDimensionField) {
         case 'time_dimension_id':
           dimensionData = row.mastertimedimension;
           break;
@@ -49,20 +50,24 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
         default:
           dimensionData = null;
       }
-      
+
       if (!dimensionData) return '-';
-      const value = String(dimensionData[attributeName || config.selectedColumn] || '');
-      return value || '-';
+      const value = dimensionData[attributeName || config.selectedColumn];
+      return value !== null && value !== undefined ? String(value) : '-';
     }
-    const value = String(row[field] || '');
-    return value || '0';
+    
+    // Handle measure type
+    const value = row[field];
+    return value !== null && value !== undefined ? String(value) : '0';
   };
 
   const getDimensionAttributes = () => {
     if (!config.dimensionAttributes?.length) return null;
     
     let dimensionData;
-    switch (field) {
+    const baseDimensionField = field.includes('_') ? field.split('_').slice(0, -1).join('_') : field;
+    
+    switch (baseDimensionField) {
       case 'time_dimension_id':
         dimensionData = row.mastertimedimension;
         break;
@@ -81,6 +86,7 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
       default:
         dimensionData = null;
     }
+    
     if (!dimensionData) return null;
 
     return config.dimensionAttributes.map(attr => ({

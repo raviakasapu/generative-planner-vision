@@ -9,9 +9,10 @@ export const useDataFiltering = (rawData: any[], columnConfigs: Record<string, C
 
         if (config.type === 'dimension') {
           let dimensionData;
-          const baseDimensionField = field.split('_').slice(0, -1).join('_');
+          const baseDimensionField = field.includes('_') ? field.split('_').slice(0, -1).join('_') : field;
+          const attributeName = field.includes('_') ? field.split('_').pop() : config.selectedColumn;
           
-          switch (baseDimensionField || field) {
+          switch (baseDimensionField) {
             case 'time_dimension_id':
               dimensionData = row.mastertimedimension;
               break;
@@ -33,9 +34,9 @@ export const useDataFiltering = (rawData: any[], columnConfigs: Record<string, C
           
           if (!dimensionData) return true;
           
-          const attributeName = field.includes('_') ? field.split('_').pop() : config.selectedColumn;
           const value = String(dimensionData[attributeName || config.selectedColumn] || '').toLowerCase();
-          return value.includes(config.filter.toLowerCase());
+          const filterValue = config.filter.toLowerCase();
+          return value.includes(filterValue);
         } else {
           const value = Number(row[field] || 0);
           const filterValue = Number(config.filter);
