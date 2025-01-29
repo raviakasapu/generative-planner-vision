@@ -30,6 +30,18 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
   onConfigUpdate,
   onAddColumn,
 }) => {
+  const getDimensionAttributes = () => {
+    if (field === 'dimension1_id') {
+      return ['product_id', 'product_description', 'category', 'hierarchy_level'];
+    }
+    if (field === 'dimension2_id') {
+      return ['region_id', 'region_description', 'country', 'sales_manager'];
+    }
+    return [];
+  };
+
+  const dimensionAttributes = getDimensionAttributes();
+
   return (
     <th className="p-2 border-b">
       <div className="space-y-2">
@@ -56,29 +68,42 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
               <DropdownMenuLabel>Add Column</DropdownMenuLabel>
               <DropdownMenuSeparator />
               
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                Attributes
-              </DropdownMenuLabel>
-              {config.dimensionAttributes?.map((attr) => (
-                <DropdownMenuItem key={attr} onSelect={() => onConfigUpdate({ selectedColumn: attr })}>
-                  {attr}
-                </DropdownMenuItem>
-              ))}
+              {dimensionAttributes.length > 0 && (
+                <>
+                  <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                    Attributes
+                  </DropdownMenuLabel>
+                  {dimensionAttributes.map((attr) => (
+                    <DropdownMenuItem key={attr} onSelect={() => onConfigUpdate({ selectedColumn: attr })}>
+                      {attr}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
               
-              <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
                 Dimensions
               </DropdownMenuLabel>
-              <DropdownMenuItem onSelect={onAddColumn}>
-                Add New Dimension
+              <DropdownMenuItem onSelect={() => onAddColumn()}>
+                Product Dimension
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onAddColumn()}>
+                Region Dimension
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onAddColumn()}>
+                Time Dimension
               </DropdownMenuItem>
               
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
                 Measures
               </DropdownMenuLabel>
-              <DropdownMenuItem onSelect={onAddColumn}>
-                Add New Measure
+              <DropdownMenuItem onSelect={() => onAddColumn()}>
+                Add Measure 1
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onAddColumn()}>
+                Add Measure 2
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

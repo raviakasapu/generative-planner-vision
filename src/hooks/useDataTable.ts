@@ -12,7 +12,32 @@ export const useDataTable = () => {
       filter: '',
       sortOrder: null,
       selectedColumn: 'product_description',
-      dimensionAttributes: ['category', 'hierarchy_level']
+      dimensionAttributes: ['product_id', 'product_description', 'category', 'hierarchy_level']
+    },
+    dimension2_id: {
+      field: 'dimension2_id',
+      type: 'dimension',
+      label: 'Region',
+      filter: '',
+      sortOrder: null,
+      selectedColumn: 'region_description',
+      dimensionAttributes: ['region_id', 'region_description', 'country', 'sales_manager']
+    },
+    measure1: {
+      field: 'measure1',
+      type: 'measure',
+      label: 'Measure 1',
+      filter: '',
+      sortOrder: null,
+      selectedColumn: 'measure1'
+    },
+    measure2: {
+      field: 'measure2',
+      type: 'measure',
+      label: 'Measure 2',
+      filter: '',
+      sortOrder: null,
+      selectedColumn: 'measure2'
     }
   });
 
