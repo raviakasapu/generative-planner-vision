@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { PaginationState } from '@/components/data-table/types';
+
+interface PaginationState {
+  page: number;
+  pageSize: number;
+}
 
 export const usePagination = () => {
   const [pagination, setPagination] = useState<PaginationState>({
