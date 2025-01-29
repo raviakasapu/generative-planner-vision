@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ColumnConfig, NewColumnConfig, PaginationState } from '@/components/data-table/types';
@@ -50,8 +50,8 @@ export const useDataTable = () => {
     pageSize: 20
   });
 
-  const { data = [], isLoading: loading } = useQuery({
-    queryKey: ['planningData', user?.id, columnConfigs],
+  const { data: rawData = [], isLoading: loading } = useQuery({
+    queryKey: ['planningData', user?.id],
     queryFn: async () => {
       console.info('Fetching planning data for user:', user?.id);
 
@@ -108,47 +108,42 @@ export const useDataTable = () => {
         return [];
       }
 
-      // Filter out rows where master data is null (user doesn't have access)
-      const filteredData = planningData?.filter(row => 
-        (row.dimension1_id === null || row.masterdimension1) &&
-        (row.dimension2_id === null || row.masterdimension2)
-      );
-
-      // Apply column filters
-      const filteredByColumns = filteredData?.filter(row => {
-        return Object.entries(columnConfigs).every(([field, config]) => {
-          if (!config.filter) return true;
-
-          if (config.type === 'dimension') {
-            const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
-            if (!dimensionData) return false;
-            const value = String(dimensionData[config.selectedColumn] || '').toLowerCase();
-            return value.includes(config.filter.toLowerCase());
-          } else {
-            const value = Number(row[field] || 0);
-            const filterValue = Number(config.filter);
-            
-            if (isNaN(filterValue)) return true;
-            
-            switch (config.filterOperator) {
-              case 'gt':
-                return value > filterValue;
-              case 'gte':
-                return value >= filterValue;
-              case 'lt':
-                return value < filterValue;
-              case 'lte':
-                return value <= filterValue;
-              default:
-                return value === filterValue;
-            }
-          }
-        });
-      });
-
-      return filteredByColumns || [];
+      return planningData || [];
     }
   });
+
+  const filteredData = useMemo(() => {
+    return rawData.filter(row => {
+      return Object.entries(columnConfigs).every(([field, config]) => {
+        if (!config.filter) return true;
+
+        if (config.type === 'dimension') {
+          const dimensionData = field.startsWith('dimension1') ? row.masterdimension1 : row.masterdimension2;
+          if (!dimensionData) return false;
+          const value = String(dimensionData[config.selectedColumn] || '').toLowerCase();
+          return value.includes(config.filter.toLowerCase());
+        } else {
+          const value = Number(row[field] || 0);
+          const filterValue = Number(config.filter);
+          
+          if (isNaN(filterValue)) return true;
+          
+          switch (config.filterOperator) {
+            case 'gt':
+              return value > filterValue;
+            case 'gte':
+              return value >= filterValue;
+            case 'lt':
+              return value < filterValue;
+            case 'lte':
+              return value <= filterValue;
+            default:
+              return value === filterValue;
+          }
+        }
+      });
+    });
+  }, [rawData, columnConfigs]);
 
   const updateCell = useCallback(async (id: string, field: string, value: string) => {
     try {
@@ -195,13 +190,13 @@ export const useDataTable = () => {
   }, []);
 
   return {
-    data,
+    data: filteredData,
     loading,
     columnConfigs,
     pagination,
     updateCell,
     updateColumnConfig,
     addColumn,
-    setPagination
+    setPagination,
   };
 };

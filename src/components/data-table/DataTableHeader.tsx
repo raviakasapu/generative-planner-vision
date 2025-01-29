@@ -49,6 +49,14 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
 
   const dimensionAttributes = getDimensionAttributes();
 
+  const handleFilterChange = (value: string) => {
+    onConfigUpdate({ filter: value });
+  };
+
+  const handleOperatorChange = (value: FilterOperator) => {
+    onConfigUpdate({ filterOperator: value });
+  };
+
   return (
     <th className="p-2 border-b">
       <div className="space-y-2">
@@ -97,7 +105,7 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
           <div className="flex gap-2">
             <Select
               value={config.filterOperator || 'eq'}
-              onValueChange={(value: FilterOperator) => onConfigUpdate({ filterOperator: value })}
+              onValueChange={handleOperatorChange}
             >
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="Operator" />
@@ -114,7 +122,7 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
               type="number"
               placeholder="Filter..."
               value={config.filter || ''}
-              onChange={(e) => onConfigUpdate({ filter: e.target.value })}
+              onChange={(e) => handleFilterChange(e.target.value)}
               className="w-full h-8"
             />
           </div>
@@ -122,7 +130,7 @@ const DataTableHeader: React.FC<DataTableHeaderProps> = ({
           <Input
             placeholder="Filter..."
             value={config.filter || ''}
-            onChange={(e) => onConfigUpdate({ filter: e.target.value })}
+            onChange={(e) => handleFilterChange(e.target.value)}
             className="w-full h-8"
           />
         )}
