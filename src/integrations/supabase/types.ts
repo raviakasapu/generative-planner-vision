@@ -75,6 +75,9 @@ export type Database = {
       data_access_permissions: {
         Row: {
           access_level: string
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           created_at: string | null
           dimension_id: string
           dimension_type: string
@@ -83,6 +86,9 @@ export type Database = {
         }
         Insert: {
           access_level: string
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           dimension_id: string
           dimension_type: string
@@ -91,6 +97,9 @@ export type Database = {
         }
         Update: {
           access_level?: string
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           dimension_id?: string
           dimension_type?: string
@@ -572,6 +581,9 @@ export type Database = {
       }
       task_assignments: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           created_at: string | null
           due_date: string | null
           id: string
@@ -582,6 +594,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           due_date?: string | null
           id?: string
@@ -592,6 +607,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           due_date?: string | null
           id?: string

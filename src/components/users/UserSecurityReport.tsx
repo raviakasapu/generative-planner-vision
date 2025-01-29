@@ -10,29 +10,42 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Key, ClipboardList } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, Key, ClipboardList, CheckCircle, AlertCircle, User } from "lucide-react";
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserSecurityReportProps {
   userId: string;
 }
 
 export function UserSecurityReport({ userId }: UserSecurityReportProps) {
-  // Fetch user's data access permissions
-  const { data: accessPermissions } = useQuery({
+  const { user, userRole } = useAuth();
+  const { toast } = useToast();
+  const isApprover = userRole === 'admin' || userRole === 'manager';
+
+  // Fetch user's data access permissions with dimension details
+  const { data: accessPermissions, refetch: refetchAccess } = useQuery({
     queryKey: ['userAccess', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('data_access_permissions')
-        .select('*')
+        .select(`
+          *,
+          masterdimension1!dimension1:masterdimension1(dimension_name, product_id, product_description),
+          masterdimension2!dimension2:masterdimension2(dimension_name, region_id, region_description),
+          mastertimedimension!time:mastertimedimension(dimension_name, month_id, month_name)
+        `)
         .eq('user_id', userId);
 
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch user's tasks
-  const { data: tasks } = useQuery({
+  // Fetch user's tasks with more details
+  const { data: tasks, refetch: refetchTasks } = useQuery({
     queryKey: ['userTasks', userId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -79,15 +92,150 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
     },
   });
 
+  const handleApprove = async (type: 'access' | 'task', id: string) => {
+    if (!isApprover) return;
+
+    const table = type === 'access' ? 'data_access_permissions' : 'task_assignments';
+    const { error } = await supabase
+      .from(table)
+      .update({
+        approval_status: 'approved',
+        approved_by: user?.id,
+        approved_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: `Failed to approve ${type}. Please try again.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Success',
+      description: `${type === 'access' ? 'Access permission' : 'Task'} approved successfully.`,
+    });
+
+    if (type === 'access') {
+      refetchAccess();
+    } else {
+      refetchTasks();
+    }
+  };
+
+  const getDimensionName = (permission: any) => {
+    switch (permission.dimension_type) {
+      case 'dimension1':
+        return `Product: ${permission.masterdimension1?.product_id} - ${permission.masterdimension1?.product_description}`;
+      case 'dimension2':
+        return `Region: ${permission.masterdimension2?.region_id} - ${permission.masterdimension2?.region_description}`;
+      case 'time':
+        return `Time: ${permission.mastertimedimension?.month_id} - ${permission.mastertimedimension?.month_name}`;
+      default:
+        return permission.dimension_type;
+    }
+  };
+
+  const renderSecuritySection = (title: string, icon: React.ReactNode, status: 'pending' | 'approved') => {
+    const filteredAccess = accessPermissions?.filter(p => p.approval_status === status) || [];
+    const filteredTasks = tasks?.filter(t => t.approval_status === status) || [];
+
+    if (filteredAccess.length === 0 && filteredTasks.length === 0) return null;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          {icon}
+          {title}
+        </div>
+        
+        {filteredAccess.length > 0 && (
+          <div className="bg-white rounded-md p-2">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Dimension</TableHead>
+                  <TableHead>Access Level</TableHead>
+                  {status === 'pending' && isApprover && <TableHead>Action</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAccess.map((ap: any) => (
+                  <TableRow key={ap.id}>
+                    <TableCell>{getDimensionName(ap)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {ap.access_level}
+                      </Badge>
+                    </TableCell>
+                    {status === 'pending' && isApprover && (
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove('access', ap.id)}
+                        >
+                          Approve
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {filteredTasks.length > 0 && (
+          <div className="bg-white rounded-md p-2">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  {status === 'pending' && isApprover && <TableHead>Action</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTasks.map((task: any) => (
+                  <TableRow key={task.id}>
+                    <TableCell>{task.task_name}</TableCell>
+                    <TableCell>
+                      {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
+                    </TableCell>
+                    {status === 'pending' && isApprover && (
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApprove('task', task.id)}
+                        >
+                          Approve
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
       {/* Role Permissions Section */}
-      <div>
-        <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-          <Shield className="h-4 w-4" />
+      <div className="space-y-2">
+        <h4 className="text-sm font-semibold flex items-center gap-2">
+          <User className="h-4 w-4" />
           Role Permissions
         </h4>
-        <div className="bg-white rounded-md">
+        <div className="bg-white rounded-md p-2">
           <Table>
             <TableHeader>
               <TableRow>
@@ -107,69 +255,19 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
         </div>
       </div>
 
-      {/* Data Access Section */}
-      <div>
-        <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-          <Key className="h-4 w-4" />
-          Data Access
-        </h4>
-        <div className="bg-white rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Dimension Type</TableHead>
-                <TableHead>Access Level</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accessPermissions?.map((ap: any) => (
-                <TableRow key={ap.id}>
-                  <TableCell className="capitalize">{ap.dimension_type}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {ap.access_level}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      {/* Pending Security Updates */}
+      {renderSecuritySection(
+        'Pending Security Updates',
+        <AlertCircle className="h-4 w-4 text-yellow-500" />,
+        'pending'
+      )}
 
-      {/* Tasks Section */}
-      <div>
-        <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-          <ClipboardList className="h-4 w-4" />
-          Assigned Tasks
-        </h4>
-        <div className="bg-white rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Due Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks?.map((task: any) => (
-                <TableRow key={task.id}>
-                  <TableCell>{task.task_name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {task.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      {/* Approved Security Settings */}
+      {renderSecuritySection(
+        'Approved Security Settings',
+        <CheckCircle className="h-4 w-4 text-green-500" />,
+        'approved'
+      )}
     </div>
   );
 }
