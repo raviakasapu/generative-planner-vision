@@ -24,63 +24,77 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
 }) => {
   const getCellValue = () => {
     if (config.type === 'dimension') {
-      let dimensionData;
-      let attributeName;
+      console.log('Getting cell value for field:', field);
+      console.log('Row data:', row);
       
-      // Handle both base dimension fields and added attribute columns
-      if (field.includes('_')) {
-        const [baseDimension, ...attributeParts] = field.split('_');
-        attributeName = attributeParts.join('_');
-        
-        switch (baseDimension) {
-          case 'time':
-            dimensionData = row.mastertimedimension;
-            break;
-          case 'version':
-            dimensionData = row.masterversiondimension;
-            break;
-          case 'datasource':
-            dimensionData = row.masterdatasourcedimension;
-            break;
-          case 'dimension1':
-            dimensionData = row.masterdimension1;
-            break;
-          case 'dimension2':
-            dimensionData = row.masterdimension2;
-            break;
-          default:
-            dimensionData = null;
-        }
-      } else {
-        // Handle base dimension fields
-        switch (field) {
-          case 'time_dimension_id':
-            dimensionData = row.mastertimedimension;
-            attributeName = 'month_id';
-            break;
-          case 'version_dimension_id':
-            dimensionData = row.masterversiondimension;
-            attributeName = 'version_id';
-            break;
-          case 'datasource_dimension_id':
-            dimensionData = row.masterdatasourcedimension;
-            attributeName = 'datasource_id';
-            break;
-          case 'dimension1_id':
-            dimensionData = row.masterdimension1;
-            attributeName = 'product_id';
-            break;
-          case 'dimension2_id':
-            dimensionData = row.masterdimension2;
-            attributeName = 'region_id';
-            break;
-          default:
-            dimensionData = null;
-        }
+      let dimensionData;
+      let businessIdField;
+      
+      // Map dimension fields to their corresponding business ID fields
+      switch (field) {
+        case 'time_dimension_id':
+          dimensionData = row.mastertimedimension;
+          businessIdField = 'month_id';
+          console.log('Time dimension data:', dimensionData);
+          break;
+        case 'version_dimension_id':
+          dimensionData = row.masterversiondimension;
+          businessIdField = 'version_id';
+          console.log('Version dimension data:', dimensionData);
+          break;
+        case 'datasource_dimension_id':
+          dimensionData = row.masterdatasourcedimension;
+          businessIdField = 'datasource_id';
+          console.log('Datasource dimension data:', dimensionData);
+          break;
+        case 'dimension1_id':
+          dimensionData = row.masterdimension1;
+          businessIdField = 'product_id';
+          console.log('Product dimension data:', dimensionData);
+          break;
+        case 'dimension2_id':
+          dimensionData = row.masterdimension2;
+          businessIdField = 'region_id';
+          console.log('Region dimension data:', dimensionData);
+          break;
+        default:
+          // Handle attribute columns
+          if (field.includes('_')) {
+            const [baseDimension, ...attributeParts] = field.split('_');
+            const attributeName = attributeParts.join('_');
+            
+            switch (baseDimension) {
+              case 'time':
+                dimensionData = row.mastertimedimension;
+                businessIdField = attributeName;
+                break;
+              case 'version':
+                dimensionData = row.masterversiondimension;
+                businessIdField = attributeName;
+                break;
+              case 'datasource':
+                dimensionData = row.masterdatasourcedimension;
+                businessIdField = attributeName;
+                break;
+              case 'dimension1':
+                dimensionData = row.masterdimension1;
+                businessIdField = attributeName;
+                break;
+              case 'dimension2':
+                dimensionData = row.masterdimension2;
+                businessIdField = attributeName;
+                break;
+            }
+          }
       }
 
-      if (!dimensionData) return '-';
-      const value = dimensionData[attributeName || config.selectedColumn];
+      if (!dimensionData) {
+        console.log('No dimension data found for field:', field);
+        return '-';
+      }
+
+      const value = dimensionData[businessIdField];
+      console.log('Retrieved value:', value, 'using business ID field:', businessIdField);
       return value !== null && value !== undefined ? String(value) : '-';
     }
     
@@ -95,6 +109,7 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
     let dimensionData;
     const baseDimensionField = field.includes('_') ? field.split('_')[0] : field;
     
+    // Map dimension fields to their corresponding dimension data
     switch (baseDimensionField) {
       case 'time_dimension_id':
       case 'time':
@@ -116,8 +131,6 @@ const DataTableBody: React.FC<DataTableBodyProps> = ({
       case 'dimension2':
         dimensionData = row.masterdimension2;
         break;
-      default:
-        dimensionData = null;
     }
     
     if (!dimensionData) return null;
