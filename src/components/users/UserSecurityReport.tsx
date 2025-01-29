@@ -51,7 +51,7 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
               )
             `)
             .eq('access_permission_id', permission.id)
-            .single();
+            .maybeSingle();
 
           if (!error && data) {
             dimensionDetails = {
@@ -71,7 +71,7 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
               )
             `)
             .eq('access_permission_id', permission.id)
-            .single();
+            .maybeSingle();
 
           if (!error && data) {
             dimensionDetails = {
@@ -91,7 +91,7 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
               )
             `)
             .eq('access_permission_id', permission.id)
-            .single();
+            .maybeSingle();
 
           if (!error && data) {
             dimensionDetails = {
@@ -193,16 +193,18 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
   };
 
   const getDimensionName = (permission: any) => {
-    if (!permission.dimensionDetails) return permission.dimension_type;
+    if (!permission.dimensionDetails) {
+      return `${permission.dimension_type} (No details available)`;
+    }
     
     const details = permission.dimensionDetails;
     switch (permission.dimension_type) {
       case 'dimension1':
-        return `Product: ${details.product_id} - ${details.product_description}`;
+        return `Product: ${details.product_id} - ${details.product_description || 'No description'}`;
       case 'dimension2':
-        return `Region: ${details.region_id} - ${details.region_description}`;
+        return `Region: ${details.region_id} - ${details.region_description || 'No description'}`;
       case 'time':
-        return `Time: ${details.month_id} - ${details.month_name}`;
+        return `Time: ${details.month_id} - ${details.month_name || 'No name'}`;
       default:
         return permission.dimension_type;
     }
