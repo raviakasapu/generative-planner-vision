@@ -42,6 +42,60 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_role_change: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          id: string
+          new_role: string | null
+          previous_role: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          id?: string
+          new_role?: string | null
+          previous_role?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          id?: string
+          new_role?: string | null
+          previous_role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_version_status: {
+        Row: {
+          created_at: string | null
+          id: string
+          new_status: string
+          previous_status: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          new_status: string
+          previous_status: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          new_status?: string
+          previous_status?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: []
+      }
       businesslogicrules: {
         Row: {
           created_at: string | null
@@ -548,33 +602,6 @@ export type Database = {
         }
         Relationships: []
       }
-      role_change_audit: {
-        Row: {
-          changed_at: string | null
-          changed_by: string
-          id: string
-          new_role: string | null
-          previous_role: string | null
-          user_id: string
-        }
-        Insert: {
-          changed_at?: string | null
-          changed_by: string
-          id?: string
-          new_role?: string | null
-          previous_role?: string | null
-          user_id: string
-        }
-        Update: {
-          changed_at?: string | null
-          changed_by?: string
-          id?: string
-          new_role?: string | null
-          previous_role?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       rolepermissions: {
         Row: {
           created_at: string | null
@@ -823,33 +850,6 @@ export type Database = {
           id?: string
           role?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      version_status_audit: {
-        Row: {
-          created_at: string | null
-          id: string
-          new_status: string
-          previous_status: string
-          user_id: string
-          version_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          new_status: string
-          previous_status: string
-          user_id: string
-          version_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          new_status?: string
-          previous_status?: string
-          user_id?: string
-          version_id?: string
         }
         Relationships: []
       }
