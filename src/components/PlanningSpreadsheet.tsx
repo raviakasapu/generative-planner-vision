@@ -34,13 +34,13 @@ const PlanningSpreadsheet = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
+      // Get user's approved dimension access permissions
       const { data: permissions } = await supabase
         .from('data_access_permissions')
         .select(`
-          id,
           dimension_type,
           dimension_id,
-          approval_status
+          access_level
         `)
         .eq('user_id', user.id)
         .eq('approval_status', 'approved');
@@ -55,6 +55,7 @@ const PlanningSpreadsheet = () => {
         .filter(p => p.dimension_type === 'region')
         .map(p => p.dimension_id);
 
+      // Query planning data with proper joins and access checks
       let query = supabase
         .from('planningdata')
         .select(`
@@ -106,13 +107,14 @@ const PlanningSpreadsheet = () => {
         throw error;
       }
 
-      // Filter out rows where required dimensions are missing
+      // Filter out rows where required dimensions are missing or user doesn't have access
       const filteredData = (data || []).filter(row => {
-        const hasRequiredProduct = !productPermissions.length || (row.product_dimension_id && productPermissions.includes(row.product_dimension_id));
-        const hasRequiredRegion = !regionPermissions.length || (row.region_dimension_id && regionPermissions.includes(row.region_dimension_id));
-        const hasRequiredData = row.masterproductdimension || row.masterregiondimension;
+        const hasProduct = !productPermissions.length || 
+          (row.product_dimension_id && productPermissions.includes(row.product_dimension_id) && row.masterproductdimension);
+        const hasRegion = !regionPermissions.length || 
+          (row.region_dimension_id && regionPermissions.includes(row.region_dimension_id) && row.masterregiondimension);
         
-        return hasRequiredProduct && hasRequiredRegion && hasRequiredData;
+        return hasProduct && hasRegion;
       });
 
       return filteredData;
