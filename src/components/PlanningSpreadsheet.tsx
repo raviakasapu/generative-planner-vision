@@ -34,7 +34,6 @@ const PlanningSpreadsheet = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // First, get user's dimension access permissions
       const { data: permissions } = await supabase
         .from('data_access_permissions')
         .select(`
@@ -107,7 +106,16 @@ const PlanningSpreadsheet = () => {
         throw error;
       }
 
-      return data || [];
+      // Filter out rows where required dimensions are missing
+      const filteredData = (data || []).filter(row => {
+        const hasRequiredProduct = !productPermissions.length || (row.product_dimension_id && productPermissions.includes(row.product_dimension_id));
+        const hasRequiredRegion = !regionPermissions.length || (row.region_dimension_id && regionPermissions.includes(row.region_dimension_id));
+        const hasRequiredData = row.masterproductdimension || row.masterregiondimension;
+        
+        return hasRequiredProduct && hasRequiredRegion && hasRequiredData;
+      });
+
+      return filteredData;
     },
     enabled: !!user?.id
   });
@@ -120,6 +128,8 @@ const PlanningSpreadsheet = () => {
   };
 
   const filteredData = planningData?.filter(row => {
+    if (!row) return false;
+    
     const searchLower = searchTerm.toLowerCase();
     return (
       row.masterproductdimension?.product_description?.toLowerCase().includes(searchLower) ||
