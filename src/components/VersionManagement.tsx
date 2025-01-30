@@ -27,7 +27,7 @@ const VersionManagement = () => {
       
       console.log('Fetching versions...');
       const { data, error } = await supabase
-        .from('masterversiondimension')
+        .from('m_u_version')
         .select('*')
         .order(sortField, { ascending: sortOrder === 'asc' });
 
@@ -36,7 +36,6 @@ const VersionManagement = () => {
         throw error;
       }
       
-      console.log('Fetched versions:', data);
       return data as Version[];
     },
     enabled: !!user,
@@ -45,9 +44,9 @@ const VersionManagement = () => {
   const filteredVersions = versions?.filter(version => {
     const searchLower = searchQuery.toLowerCase();
     return (
-      version.version_name.toLowerCase().includes(searchLower) ||
-      (version.version_description?.toLowerCase() || '').includes(searchLower) ||
-      version.version_type.toLowerCase().includes(searchLower)
+      version.dimension_name.toLowerCase().includes(searchLower) ||
+      (version.description?.toLowerCase() || '').includes(searchLower) ||
+      version.dimension_type.toLowerCase().includes(searchLower)
     );
   });
 
@@ -122,7 +121,8 @@ const VersionManagement = () => {
             setShowStatusDialog(false);
             setSelectedVersion(null);
           }}
-          version={selectedVersion}
+          versionId={selectedVersion.id}
+          currentStatus={selectedVersion.attributes?.version_status || 'draft'}
           onSuccess={() => {
             refetch();
             toast({

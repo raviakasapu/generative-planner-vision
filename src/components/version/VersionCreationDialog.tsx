@@ -28,13 +28,6 @@ interface VersionCreationDialogProps {
   onSuccess: () => void;
 }
 
-interface BusinessRule {
-  id: string;
-  rule_name: string;
-  rule_description: string | null;
-  rule_definition: any;
-}
-
 export function VersionCreationDialog({
   isOpen,
   onClose,
@@ -45,7 +38,6 @@ export function VersionCreationDialog({
   const [versionType, setVersionType] = useState('');
   const [isBaseVersion, setIsBaseVersion] = useState(false);
   const [baseVersionId, setBaseVersionId] = useState<string | null>(null);
-  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -54,7 +46,7 @@ export function VersionCreationDialog({
     queryKey: ['versions-for-base'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('masterversiondimension')
+        .from('m_u_version')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -63,31 +55,6 @@ export function VersionCreationDialog({
     },
     enabled: isOpen,
   });
-
-  // Fetch business rules
-  const { data: businessRules } = useQuery({
-    queryKey: ['business-rules'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('businesslogicrules')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as BusinessRule[];
-    },
-    enabled: isOpen,
-  });
-
-  // Find default copy rule
-  useEffect(() => {
-    if (businessRules) {
-      const copyRule = businessRules.find(rule => rule.rule_name === 'Copy Data Rule');
-      if (copyRule && !selectedRuleId) {
-        setSelectedRuleId(copyRule.id);
-      }
-    }
-  }, [businessRules]);
 
   const handleCreate = async () => {
     if (!user) {
@@ -102,15 +69,18 @@ export function VersionCreationDialog({
     try {
       // Create new version
       const { data: newVersion, error: versionError } = await supabase
-        .from('masterversiondimension')
+        .from('m_u_version')
         .insert({
-          version_name: versionName,
-          version_description: versionDescription,
-          version_type: versionType,
-          version_status: 'draft',
-          version_id: Date.now().toString(),
-          is_base_version: isBaseVersion,
-          base_version_id: baseVersionId,
+          dimension_name: versionName,
+          description: versionDescription,
+          dimension_type: 'version',
+          identifier: Date.now().toString(),
+          attributes: {
+            version_type: versionType,
+            version_status: 'draft',
+            is_base_version: isBaseVersion,
+            base_version_id: baseVersionId
+          }
         })
         .select()
         .single();
@@ -119,7 +89,7 @@ export function VersionCreationDialog({
 
       // If this is based on another version, copy the planning data
       if (baseVersionId && newVersion) {
-        const { data, error: copyError } = await supabase
+        const { error: copyError } = await supabase
           .rpc('copy_planning_data_for_version', {
             source_version_id: baseVersionId,
             target_version_id: newVersion.id
@@ -159,7 +129,6 @@ export function VersionCreationDialog({
     setVersionType('');
     setIsBaseVersion(false);
     setBaseVersionId(null);
-    setSelectedRuleId(null);
   };
 
   return (
@@ -205,35 +174,18 @@ export function VersionCreationDialog({
           </div>
 
           {!isBaseVersion && (
-            <>
-              <Select value={baseVersionId || ''} onValueChange={setBaseVersionId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Base Version (Optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {existingVersions?.map((version) => (
-                    <SelectItem key={version.id} value={version.id}>
-                      {version.version_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {baseVersionId && (
-                <Select value={selectedRuleId || ''} onValueChange={setSelectedRuleId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Copy Rule" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {businessRules?.map((rule) => (
-                      <SelectItem key={rule.id} value={rule.id}>
-                        {rule.rule_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </>
+            <Select value={baseVersionId || ''} onValueChange={setBaseVersionId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Base Version (Optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {existingVersions?.map((version) => (
+                  <SelectItem key={version.id} value={version.id}>
+                    {version.dimension_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
           <Button

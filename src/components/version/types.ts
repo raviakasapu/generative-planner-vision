@@ -1,11 +1,17 @@
-export type Version = {
+export interface Version {
   id: string;
-  version_id: string;
-  version_name: string;
-  version_description: string | null;
-  version_type: string;
-  version_status: string;
-  created_at: string;
-  is_base_version: boolean;
-  base_version_id: string | null;
-};
+  dimension_name: string;
+  dimension_type: string;
+  identifier: string;
+  unique_identifier: string | null;
+  description: string | null;
+  hierarchy: string | null;
+  attributes: {
+    version_type: string | null;
+    version_status: string;
+    base_version_id: string | null;
+    is_base_version: boolean;
+  } | null;
+  created_at?: string;
+  updated_at?: string;
+}
