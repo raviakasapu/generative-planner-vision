@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
-type DimensionType = 'dimension1' | 'dimension2' | 'time';
+type DimensionType = 'product' | 'region' | 'time';
 
 interface DimensionMember {
   id: string;
@@ -48,11 +48,11 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
       try {
         let tableName = '';
         switch (selectedDimensionType) {
-          case 'dimension1':
-            tableName = 'masterdimension1';
+          case 'product':
+            tableName = 'masterproductdimension';
             break;
-          case 'dimension2':
-            tableName = 'masterdimension2';
+          case 'region':
+            tableName = 'masterregiondimension';
             break;
           case 'time':
             tableName = 'mastertimedimension';
@@ -162,8 +162,8 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
                 <SelectValue placeholder="Select dimension type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="dimension1">Product Dimension</SelectItem>
-                <SelectItem value="dimension2">Region Dimension</SelectItem>
+                <SelectItem value="product">Product Dimension</SelectItem>
+                <SelectItem value="region">Region Dimension</SelectItem>
                 <SelectItem value="time">Time Dimension</SelectItem>
               </SelectContent>
             </Select>

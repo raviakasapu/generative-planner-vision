@@ -39,23 +39,23 @@ const PlanningSpreadsheet = () => {
         .eq('user_id', user?.id)
         .eq('approval_status', 'approved');
 
-      const dimension1Ids = permissions
-        ?.filter(p => p.dimension_type === 'dimension1')
+      const productIds = permissions
+        ?.filter(p => p.dimension_type === 'product')
         .map(p => p.dimension_id);
-      const dimension2Ids = permissions
-        ?.filter(p => p.dimension_type === 'dimension2')
+      const regionIds = permissions
+        ?.filter(p => p.dimension_type === 'region')
         .map(p => p.dimension_id);
 
       let query = supabase
         .from('planningdata')
         .select(`
           *,
-          masterdimension1 (
+          masterproductdimension (
             product_id,
             product_description,
             category
           ),
-          masterdimension2 (
+          masterregiondimension (
             region_id,
             region_description,
             country
@@ -76,11 +76,11 @@ const PlanningSpreadsheet = () => {
         `);
 
       // Apply dimension access filters
-      if (dimension1Ids?.length) {
-        query = query.in('dimension1_id', dimension1Ids);
+      if (productIds?.length) {
+        query = query.in('product_dimension_id', productIds);
       }
-      if (dimension2Ids?.length) {
-        query = query.in('dimension2_id', dimension2Ids);
+      if (regionIds?.length) {
+        query = query.in('region_dimension_id', regionIds);
       }
 
       // Apply sorting if configured
@@ -107,8 +107,8 @@ const PlanningSpreadsheet = () => {
   const filteredData = planningData?.filter(row => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      row.masterdimension1?.product_description?.toLowerCase().includes(searchLower) ||
-      row.masterdimension2?.region_description?.toLowerCase().includes(searchLower) ||
+      row.masterproductdimension?.product_description?.toLowerCase().includes(searchLower) ||
+      row.masterregiondimension?.region_description?.toLowerCase().includes(searchLower) ||
       row.mastertimedimension?.month_name?.toLowerCase().includes(searchLower) ||
       row.masterversiondimension?.version_name?.toLowerCase().includes(searchLower) ||
       row.masterdatasourcedimension?.datasource_name?.toLowerCase().includes(searchLower)
@@ -153,7 +153,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('masterdimension1.product_description')}
+                  onClick={() => handleSort('masterproductdimension.product_description')}
                   className="flex items-center gap-1"
                 >
                   Product
@@ -163,7 +163,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('masterdimension2.region_description')}
+                  onClick={() => handleSort('masterregiondimension.region_description')}
                   className="flex items-center gap-1"
                 >
                   Region
@@ -219,10 +219,10 @@ const PlanningSpreadsheet = () => {
                   {row.mastertimedimension?.month_name} {row.mastertimedimension?.year}
                 </TableCell>
                 <TableCell>
-                  {row.masterdimension1?.product_description || 'N/A'}
+                  {row.masterproductdimension?.product_description || 'N/A'}
                 </TableCell>
                 <TableCell>
-                  {row.masterdimension2?.region_description || 'N/A'}
+                  {row.masterregiondimension?.region_description || 'N/A'}
                 </TableCell>
                 <TableCell>
                   {row.masterversiondimension?.version_name || 'N/A'}

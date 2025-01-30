@@ -140,66 +140,6 @@ export type Database = {
         }
         Relationships: []
       }
-      data_access_dimension1: {
-        Row: {
-          access_permission_id: string
-          dimension_id: string
-        }
-        Insert: {
-          access_permission_id: string
-          dimension_id: string
-        }
-        Update: {
-          access_permission_id?: string
-          dimension_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "data_access_dimension1_access_permission_id_fkey"
-            columns: ["access_permission_id"]
-            isOneToOne: false
-            referencedRelation: "data_access_permissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "data_access_dimension1_dimension_id_fkey"
-            columns: ["dimension_id"]
-            isOneToOne: false
-            referencedRelation: "masterdimension1"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      data_access_dimension2: {
-        Row: {
-          access_permission_id: string
-          dimension_id: string
-        }
-        Insert: {
-          access_permission_id: string
-          dimension_id: string
-        }
-        Update: {
-          access_permission_id?: string
-          dimension_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "data_access_dimension2_access_permission_id_fkey"
-            columns: ["access_permission_id"]
-            isOneToOne: false
-            referencedRelation: "data_access_permissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "data_access_dimension2_dimension_id_fkey"
-            columns: ["dimension_id"]
-            isOneToOne: false
-            referencedRelation: "masterdimension2"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       data_access_permissions: {
         Row: {
           access_level: string
@@ -235,6 +175,66 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      data_access_product: {
+        Row: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Insert: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Update: {
+          access_permission_id?: string
+          dimension_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_access_dimension1_access_permission_id_fkey"
+            columns: ["access_permission_id"]
+            isOneToOne: false
+            referencedRelation: "data_access_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_access_product_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterproductdimension"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_access_region: {
+        Row: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Insert: {
+          access_permission_id: string
+          dimension_id: string
+        }
+        Update: {
+          access_permission_id?: string
+          dimension_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_access_dimension2_access_permission_id_fkey"
+            columns: ["access_permission_id"]
+            isOneToOne: false
+            referencedRelation: "data_access_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_access_region_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterregiondimension"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       data_access_time: {
         Row: {
@@ -337,7 +337,40 @@ export type Database = {
           },
         ]
       }
-      masterdimension1: {
+      masterlayerdimension: {
+        Row: {
+          created_at: string | null
+          dimension_name: string
+          id: string
+          layer_description: string | null
+          layer_id: string
+          layer_name: string
+          layer_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          layer_description?: string | null
+          layer_id: string
+          layer_name: string
+          layer_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dimension_name?: string
+          id?: string
+          layer_description?: string | null
+          layer_id?: string
+          layer_name?: string
+          layer_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      masterproductdimension: {
         Row: {
           category: string | null
           created_at: string | null
@@ -370,7 +403,7 @@ export type Database = {
         }
         Relationships: []
       }
-      masterdimension2: {
+      masterregiondimension: {
         Row: {
           country: string | null
           created_at: string | null
@@ -399,39 +432,6 @@ export type Database = {
           region_description?: string | null
           region_id?: string
           sales_manager?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      masterlayerdimension: {
-        Row: {
-          created_at: string | null
-          dimension_name: string
-          id: string
-          layer_description: string | null
-          layer_id: string
-          layer_name: string
-          layer_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          dimension_name?: string
-          id?: string
-          layer_description?: string | null
-          layer_id: string
-          layer_name: string
-          layer_type: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          dimension_name?: string
-          id?: string
-          layer_description?: string | null
-          layer_id?: string
-          layer_name?: string
-          layer_type?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -558,12 +558,12 @@ export type Database = {
       planningdata: {
         Row: {
           datasource_dimension_id: string | null
-          dimension1_id: string | null
-          dimension2_id: string | null
           id: string
           layer_dimension_id: string | null
           measure1: number | null
           measure2: number | null
+          product_dimension_id: string | null
+          region_dimension_id: string | null
           security_level: string | null
           task_id: string | null
           time_dimension_id: string
@@ -573,12 +573,12 @@ export type Database = {
         }
         Insert: {
           datasource_dimension_id?: string | null
-          dimension1_id?: string | null
-          dimension2_id?: string | null
           id?: string
           layer_dimension_id?: string | null
           measure1?: number | null
           measure2?: number | null
+          product_dimension_id?: string | null
+          region_dimension_id?: string | null
           security_level?: string | null
           task_id?: string | null
           time_dimension_id: string
@@ -588,12 +588,12 @@ export type Database = {
         }
         Update: {
           datasource_dimension_id?: string | null
-          dimension1_id?: string | null
-          dimension2_id?: string | null
           id?: string
           layer_dimension_id?: string | null
           measure1?: number | null
           measure2?: number | null
+          product_dimension_id?: string | null
+          region_dimension_id?: string | null
           security_level?: string | null
           task_id?: string | null
           time_dimension_id?: string
@@ -610,24 +610,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "planningdata_dimension1_id_fkey"
-            columns: ["dimension1_id"]
-            isOneToOne: false
-            referencedRelation: "masterdimension1"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_dimension2_id_fkey"
-            columns: ["dimension2_id"]
-            isOneToOne: false
-            referencedRelation: "masterdimension2"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "planningdata_layer_dimension_id_fkey"
             columns: ["layer_dimension_id"]
             isOneToOne: false
             referencedRelation: "masterlayerdimension"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planningdata_product_dimension_id_fkey"
+            columns: ["product_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterproductdimension"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planningdata_region_dimension_id_fkey"
+            columns: ["region_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "masterregiondimension"
             referencedColumns: ["id"]
           },
           {

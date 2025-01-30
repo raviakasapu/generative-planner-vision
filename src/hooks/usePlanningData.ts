@@ -15,25 +15,25 @@ export const usePlanningData = () => {
         .eq('user_id', user?.id)
         .eq('approval_status', 'approved');
 
-      const dimension1Ids = permissions
-        ?.filter(p => p.dimension_type === 'dimension1')
+      const productIds = permissions
+        ?.filter(p => p.dimension_type === 'product')
         .map(p => p.dimension_id);
-      const dimension2Ids = permissions
-        ?.filter(p => p.dimension_type === 'dimension2')
+      const regionIds = permissions
+        ?.filter(p => p.dimension_type === 'region')
         .map(p => p.dimension_id);
 
       let query = supabase
         .from('planningdata')
         .select(`
           *,
-          masterdimension1 (
+          masterproductdimension (
             id,
             product_id,
             product_description,
             category,
             hierarchy_level
           ),
-          masterdimension2 (
+          masterregiondimension (
             id,
             region_id,
             region_description,
@@ -63,11 +63,11 @@ export const usePlanningData = () => {
           )
         `);
 
-      if (dimension1Ids?.length) {
-        query = query.in('dimension1_id', dimension1Ids);
+      if (productIds?.length) {
+        query = query.in('product_dimension_id', productIds);
       }
-      if (dimension2Ids?.length) {
-        query = query.in('dimension2_id', dimension2Ids);
+      if (regionIds?.length) {
+        query = query.in('region_dimension_id', regionIds);
       }
 
       const { data: planningData, error } = await query;
