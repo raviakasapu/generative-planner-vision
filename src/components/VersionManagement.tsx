@@ -25,17 +25,12 @@ const VersionManagement = () => {
     queryFn: async () => {
       if (!user) throw new Error('Authentication required');
       
-      console.log('Fetching versions...');
       const { data, error } = await supabase
         .from('m_u_version')
         .select('*')
         .order(sortField, { ascending: sortOrder === 'asc' });
 
-      if (error) {
-        console.error('Error fetching versions:', error);
-        throw error;
-      }
-      
+      if (error) throw error;
       return data as Version[];
     },
     enabled: !!user,
@@ -62,7 +57,6 @@ const VersionManagement = () => {
   };
 
   const handleStatusChange = (version: Version) => {
-    console.log('Opening status dialog for version:', version);
     setSelectedVersion(version);
     setShowStatusDialog(true);
   };
@@ -123,7 +117,7 @@ const VersionManagement = () => {
           }}
           versionId={selectedVersion.id}
           currentStatus={selectedVersion.attributes?.version_status || 'draft'}
-          onSuccess={() => {
+          onStatusChange={() => {
             refetch();
             toast({
               title: "Success",

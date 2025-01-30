@@ -30,7 +30,6 @@ export const VersionStatusDialog: React.FC<VersionStatusDialogProps> = ({
     
     setIsLoading(true);
     try {
-      // Update version status
       const { error: versionError } = await supabase
         .from('m_u_version')
         .update({ 
@@ -42,7 +41,6 @@ export const VersionStatusDialog: React.FC<VersionStatusDialogProps> = ({
 
       if (versionError) throw versionError;
 
-      // Create audit log
       const { error: auditError } = await supabase
         .from('audit_version_status')
         .insert({
