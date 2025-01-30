@@ -201,7 +201,7 @@ export type Database = {
             foreignKeyName: "data_access_product_dimension_id_fkey"
             columns: ["dimension_id"]
             isOneToOne: false
-            referencedRelation: "masterproductdimension"
+            referencedRelation: "master_dimension"
             referencedColumns: ["id"]
           },
         ]
@@ -290,6 +290,39 @@ export type Database = {
         }
         Relationships: []
       }
+      master_dimension: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          dimension_name: string
+          hierarchy_level: string | null
+          id: string
+          product_description: string | null
+          product_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          hierarchy_level?: string | null
+          id?: string
+          product_description?: string | null
+          product_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          dimension_name?: string
+          hierarchy_level?: string | null
+          id?: string
+          product_description?: string | null
+          product_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       masterdatasourcedimension: {
         Row: {
           created_at: string | null
@@ -366,39 +399,6 @@ export type Database = {
           layer_id?: string
           layer_name?: string
           layer_type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      masterproductdimension: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          dimension_name: string
-          hierarchy_level: string | null
-          id: string
-          product_description: string | null
-          product_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          dimension_name?: string
-          hierarchy_level?: string | null
-          id?: string
-          product_description?: string | null
-          product_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          dimension_name?: string
-          hierarchy_level?: string | null
-          id?: string
-          product_description?: string | null
-          product_id?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -620,7 +620,7 @@ export type Database = {
             foreignKeyName: "planningdata_product_dimension_id_fkey"
             columns: ["product_dimension_id"]
             isOneToOne: false
-            referencedRelation: "masterproductdimension"
+            referencedRelation: "master_dimension"
             referencedColumns: ["id"]
           },
           {
