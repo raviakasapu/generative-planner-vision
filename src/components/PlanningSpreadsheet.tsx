@@ -60,28 +60,39 @@ const PlanningSpreadsheet = () => {
         .from('planningdata')
         .select(`
           *,
-          masterproductdimension!inner (
-            product_id,
-            product_description,
-            category
+          m_u_product (
+            id,
+            identifier,
+            description,
+            hierarchy,
+            attributes1
           ),
-          masterregiondimension!inner (
+          masterregiondimension (
+            id,
             region_id,
             region_description,
             country
           ),
           mastertimedimension (
+            id,
             month_id,
             month_name,
+            quarter,
             year
           ),
           masterversiondimension (
+            id,
             version_id,
-            version_name
+            version_name,
+            version_type,
+            version_status
           ),
           masterdatasourcedimension (
+            id,
             datasource_id,
-            datasource_name
+            datasource_name,
+            datasource_type,
+            system_of_origin
           )
         `);
 
@@ -109,7 +120,7 @@ const PlanningSpreadsheet = () => {
 
       // Filter out rows where required dimensions are missing or user doesn't have access
       const filteredData = (data || []).filter(row => {
-        const hasProduct = row.masterproductdimension && 
+        const hasProduct = row.m_u_product && 
           (!productPermissions.length || productPermissions.includes(row.product_dimension_id));
         const hasRegion = row.masterregiondimension && 
           (!regionPermissions.length || regionPermissions.includes(row.region_dimension_id));
@@ -134,7 +145,7 @@ const PlanningSpreadsheet = () => {
     
     const searchLower = searchTerm.toLowerCase();
     return (
-      row.masterproductdimension?.product_description?.toLowerCase().includes(searchLower) ||
+      row.m_u_product?.description?.toLowerCase().includes(searchLower) ||
       row.masterregiondimension?.region_description?.toLowerCase().includes(searchLower) ||
       row.mastertimedimension?.month_name?.toLowerCase().includes(searchLower) ||
       row.masterversiondimension?.version_name?.toLowerCase().includes(searchLower) ||
@@ -180,7 +191,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('masterproductdimension.product_description')}
+                  onClick={() => handleSort('m_u_product.description')}
                   className="flex items-center gap-1"
                 >
                   Product
@@ -246,7 +257,7 @@ const PlanningSpreadsheet = () => {
                   {row.mastertimedimension?.month_name} {row.mastertimedimension?.year}
                 </TableCell>
                 <TableCell>
-                  {row.masterproductdimension?.product_description}
+                  {row.m_u_product?.description}
                 </TableCell>
                 <TableCell>
                   {row.masterregiondimension?.region_description}

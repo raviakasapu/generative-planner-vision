@@ -21,6 +21,8 @@ type DimensionType = 'product' | 'region' | 'time';
 interface DimensionMember {
   id: string;
   dimension_name: string;
+  identifier: string;
+  description: string | null;
 }
 
 interface DataAccessDialogProps {
@@ -49,7 +51,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
         let tableName = '';
         switch (selectedDimensionType) {
           case 'product':
-            tableName = 'masterproductdimension';
+            tableName = 'm_u_product';
             break;
           case 'region':
             tableName = 'masterregiondimension';
@@ -63,7 +65,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
 
         const { data, error } = await supabase
           .from(tableName)
-          .select('id, dimension_name');
+          .select('id, dimension_name, identifier, description');
 
         if (error) {
           console.error('Error fetching dimension members:', error);

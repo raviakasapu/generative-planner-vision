@@ -201,7 +201,7 @@ export type Database = {
             foreignKeyName: "data_access_product_dimension_id_fkey"
             columns: ["dimension_id"]
             isOneToOne: false
-            referencedRelation: "master_dimension"
+            referencedRelation: "m_u_product"
             referencedColumns: ["id"]
           },
         ]
@@ -290,35 +290,41 @@ export type Database = {
         }
         Relationships: []
       }
-      master_dimension: {
+      m_u_product: {
         Row: {
-          category: string | null
+          attributes1: string | null
           created_at: string | null
+          description: string | null
           dimension_name: string
-          hierarchy_level: string | null
+          dimension_type: string
+          hierarchy: string | null
           id: string
-          product_description: string | null
-          product_id: string
+          identifier: string
+          unique_identifier: string
           updated_at: string | null
         }
         Insert: {
-          category?: string | null
+          attributes1?: string | null
           created_at?: string | null
+          description?: string | null
           dimension_name?: string
-          hierarchy_level?: string | null
+          dimension_type?: string
+          hierarchy?: string | null
           id?: string
-          product_description?: string | null
-          product_id: string
+          identifier: string
+          unique_identifier?: string
           updated_at?: string | null
         }
         Update: {
-          category?: string | null
+          attributes1?: string | null
           created_at?: string | null
+          description?: string | null
           dimension_name?: string
-          hierarchy_level?: string | null
+          dimension_type?: string
+          hierarchy?: string | null
           id?: string
-          product_description?: string | null
-          product_id?: string
+          identifier?: string
+          unique_identifier?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -620,7 +626,7 @@ export type Database = {
             foreignKeyName: "planningdata_product_dimension_id_fkey"
             columns: ["product_dimension_id"]
             isOneToOne: false
-            referencedRelation: "master_dimension"
+            referencedRelation: "m_u_product"
             referencedColumns: ["id"]
           },
           {

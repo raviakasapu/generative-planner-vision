@@ -35,10 +35,10 @@ interface RawBusinessRule {
 interface Dimension {
   id: string;
   dimension_name: string;
-  product_id?: string;
-  region_id?: string;
-  product_description?: string;
-  region_description?: string;
+  identifier: string;
+  description: string | null;
+  hierarchy: string | null;
+  attributes1: string | null;
 }
 
 const BusinessLogic = () => {
@@ -84,7 +84,7 @@ const BusinessLogic = () => {
   const fetchDimensions = async () => {
     try {
       const { data: products, error: error1 } = await supabase
-        .from('masterproductdimension')
+        .from('m_u_product')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -211,7 +211,7 @@ const BusinessLogic = () => {
               <SelectContent>
                 {dimensions1.map((dim) => (
                   <SelectItem key={dim.id} value={dim.id}>
-                    {dim.product_description || dim.product_id}
+                    {dim.description || dim.identifier}
                   </SelectItem>
                 ))}
               </SelectContent>
