@@ -36,9 +36,13 @@ interface Dimension {
   id: string;
   dimension_name: string;
   identifier: string;
+  unique_identifier: string | null;
   description: string | null;
   hierarchy: string | null;
-  attributes: any;
+  attributes?: any;
+  attributes1?: string | null; // For product dimension
+  created_at?: string;
+  updated_at?: string;
 }
 
 const BusinessLogic = () => {
@@ -96,7 +100,13 @@ const BusinessLogic = () => {
       if (error1) throw error1;
       if (error2) throw error2;
 
-      setDimensions1(products || []);
+      // Transform the data to match the Dimension interface
+      const transformedProducts = products?.map(p => ({
+        ...p,
+        attributes: p.attributes1 // Map attributes1 to attributes for consistency
+      })) || [];
+
+      setDimensions1(transformedProducts);
       setDimensions2(regions || []);
     } catch (error) {
       console.error('Error fetching dimensions:', error);
