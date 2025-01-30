@@ -34,28 +34,6 @@ const PlanningSpreadsheet = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Get user's approved dimension access permissions
-      const { data: permissions } = await supabase
-        .from('data_access_permissions')
-        .select(`
-          dimension_type,
-          dimension_id,
-          access_level
-        `)
-        .eq('user_id', user.id)
-        .eq('approval_status', 'approved');
-
-      if (!permissions?.length) return [];
-
-      const productPermissions = permissions
-        .filter(p => p.dimension_type === 'product')
-        .map(p => p.dimension_id);
-      
-      const regionPermissions = permissions
-        .filter(p => p.dimension_type === 'region')
-        .map(p => p.dimension_id);
-
-      // Query planning data with proper joins and access checks
       let query = supabase
         .from('t_planneddata')
         .select(`
@@ -64,47 +42,34 @@ const PlanningSpreadsheet = () => {
             id,
             identifier,
             description,
-            hierarchy,
             attributes
           ),
           m_u_region (
             id,
-            region_id,
-            region_description,
-            country
+            identifier,
+            description,
+            attributes
           ),
           m_u_time (
             id,
-            month_id,
-            month_name,
-            quarter,
-            year
+            identifier,
+            description,
+            attributes
           ),
           m_u_version (
             id,
-            version_id,
-            version_name,
-            version_type,
-            version_status
+            identifier,
+            description,
+            attributes
           ),
           m_u_datasource (
             id,
-            datasource_id,
-            datasource_name,
-            datasource_type,
-            system_of_origin
+            identifier,
+            description,
+            attributes
           )
         `);
 
-      // Apply dimension access filters
-      if (productPermissions.length) {
-        query = query.in('product_dimension_id', productPermissions);
-      }
-      if (regionPermissions.length) {
-        query = query.in('region_dimension_id', regionPermissions);
-      }
-
-      // Apply sorting if configured
       if (sortConfig.column) {
         query = query.order(sortConfig.column, {
           ascending: sortConfig.direction === 'asc'
@@ -118,19 +83,22 @@ const PlanningSpreadsheet = () => {
         throw error;
       }
 
-      // Filter out rows where required dimensions are missing or user doesn't have access
-      const filteredData = (data || []).filter(row => {
-        const hasProduct = row.m_u_product && 
-          (!productPermissions.length || productPermissions.includes(row.product_dimension_id));
-        const hasRegion = row.m_u_region && 
-          (!regionPermissions.length || regionPermissions.includes(row.region_dimension_id));
-        
-        return hasProduct && hasRegion;
-      });
-
-      return filteredData;
+      return data || [];
     },
     enabled: !!user?.id
+  });
+
+  const filteredData = planningData?.filter(row => {
+    if (!row) return false;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      row.m_u_product?.description?.toLowerCase().includes(searchLower) ||
+      row.m_u_region?.description?.toLowerCase().includes(searchLower) ||
+      row.m_u_time?.description?.toLowerCase().includes(searchLower) ||
+      row.m_u_version?.description?.toLowerCase().includes(searchLower) ||
+      row.m_u_datasource?.description?.toLowerCase().includes(searchLower)
+    );
   });
 
   const handleSort = (column: string) => {
@@ -139,19 +107,6 @@ const PlanningSpreadsheet = () => {
       direction: current.column === column && current.direction === 'asc' ? 'desc' : 'asc'
     }));
   };
-
-  const filteredData = planningData?.filter(row => {
-    if (!row) return false;
-    
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      row.m_u_product?.description?.toLowerCase().includes(searchLower) ||
-      row.m_u_region?.region_description?.toLowerCase().includes(searchLower) ||
-      row.m_u_time?.month_name?.toLowerCase().includes(searchLower) ||
-      row.m_u_version?.version_name?.toLowerCase().includes(searchLower) ||
-      row.m_u_datasource?.datasource_name?.toLowerCase().includes(searchLower)
-    );
-  });
 
   if (isLoading) {
     return (
@@ -181,7 +136,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('m_u_time.month_name')}
+                  onClick={() => handleSort('m_u_time.description')}
                   className="flex items-center gap-1"
                 >
                   Time
@@ -201,7 +156,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('m_u_region.region_description')}
+                  onClick={() => handleSort('m_u_region.description')}
                   className="flex items-center gap-1"
                 >
                   Region
@@ -211,7 +166,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('m_u_version.version_name')}
+                  onClick={() => handleSort('m_u_version.description')}
                   className="flex items-center gap-1"
                 >
                   Version
@@ -221,7 +176,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('m_u_datasource.datasource_name')}
+                  onClick={() => handleSort('m_u_datasource.description')}
                   className="flex items-center gap-1"
                 >
                   Data Source
@@ -254,19 +209,19 @@ const PlanningSpreadsheet = () => {
             {filteredData?.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>
-                  {row.m_u_time?.month_name} {row.m_u_time?.year}
+                  {row.m_u_time?.description}
                 </TableCell>
                 <TableCell>
                   {row.m_u_product?.description}
                 </TableCell>
                 <TableCell>
-                  {row.m_u_region?.region_description}
+                  {row.m_u_region?.description}
                 </TableCell>
                 <TableCell>
-                  {row.m_u_version?.version_name}
+                  {row.m_u_version?.description}
                 </TableCell>
                 <TableCell>
-                  {row.m_u_datasource?.datasource_name}
+                  {row.m_u_datasource?.description}
                 </TableCell>
                 <TableCell className="text-right">
                   {row.measure1?.toLocaleString()}

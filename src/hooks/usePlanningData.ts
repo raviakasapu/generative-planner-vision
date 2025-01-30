@@ -23,43 +23,39 @@ export const usePlanningData = () => {
         .map(p => p.dimension_id);
 
       let query = supabase
-        .from('planningdata')
+        .from('t_planneddata')
         .select(`
           *,
-          masterproductdimension (
+          m_u_product (
             id,
-            product_id,
-            product_description,
-            category,
-            hierarchy_level
+            identifier,
+            description,
+            hierarchy,
+            attributes
           ),
-          masterregiondimension (
+          m_u_region (
             id,
-            region_id,
-            region_description,
-            country,
-            sales_manager
+            identifier,
+            description,
+            attributes
           ),
-          mastertimedimension (
+          m_u_time (
             id,
-            month_id,
-            month_name,
-            quarter,
-            year
+            identifier,
+            description,
+            attributes
           ),
-          masterversiondimension (
+          m_u_version (
             id,
-            version_id,
-            version_name,
-            version_type,
-            version_status
+            identifier,
+            description,
+            attributes
           ),
-          masterdatasourcedimension (
+          m_u_datasource (
             id,
-            datasource_id,
-            datasource_name,
-            datasource_type,
-            system_of_origin
+            identifier,
+            description,
+            attributes
           )
         `);
 
@@ -84,7 +80,7 @@ export const usePlanningData = () => {
   const updateCell = useCallback(async (id: string, field: string, value: string) => {
     try {
       const { error } = await supabase
-        .from('planningdata')
+        .from('t_planneddata')
         .update({ [field]: value })
         .eq('id', id);
 

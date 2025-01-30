@@ -5,7 +5,7 @@ export interface Dimension {
   dimension_name: string;
   dimension_type: DimensionType;
   identifier: string;
-  unique_identifier: string;
+  unique_identifier: string | null;
   description: string | null;
   hierarchy: string | null;
   attributes: {
