@@ -13,8 +13,8 @@ interface BusinessRule {
   rule_description: string | null;
   rule_definition: {
     logic: string;
-    dimension1_id?: string;
-    dimension2_id?: string;
+    product_dimension_id?: string;
+    region_dimension_id?: string;
     [key: string]: any;
   };
   version: number;
@@ -47,8 +47,8 @@ const BusinessLogic = () => {
     name: "", 
     description: "", 
     logic: "",
-    dimension1_id: "",
-    dimension2_id: "" 
+    product_dimension_id: "",
+    region_dimension_id: "" 
   });
   const [dimensions1, setDimensions1] = useState<Dimension[]>([]);
   const [dimensions2, setDimensions2] = useState<Dimension[]>([]);
@@ -67,8 +67,8 @@ const BusinessLogic = () => {
     } else if (typeof rule.rule_definition === 'object' && rule.rule_definition !== null) {
       transformedDefinition = {
         logic: rule.rule_definition.logic || '',
-        dimension1_id: rule.rule_definition.dimension1_id,
-        dimension2_id: rule.rule_definition.dimension2_id,
+        product_dimension_id: rule.rule_definition.product_dimension_id,
+        region_dimension_id: rule.rule_definition.region_dimension_id,
         ...rule.rule_definition
       };
     } else {
@@ -83,21 +83,21 @@ const BusinessLogic = () => {
 
   const fetchDimensions = async () => {
     try {
-      const { data: dim1, error: error1 } = await supabase
-        .from('masterdimension1')
+      const { data: products, error: error1 } = await supabase
+        .from('masterproductdimension')
         .select('*')
         .order('created_at', { ascending: false });
 
-      const { data: dim2, error: error2 } = await supabase
-        .from('masterdimension2')
+      const { data: regions, error: error2 } = await supabase
+        .from('masterregiondimension')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error1) throw error1;
       if (error2) throw error2;
 
-      setDimensions1(dim1 || []);
-      setDimensions2(dim2 || []);
+      setDimensions1(products || []);
+      setDimensions2(regions || []);
     } catch (error) {
       console.error('Error fetching dimensions:', error);
       toast({
@@ -140,8 +140,8 @@ const BusinessLogic = () => {
           rule_description: newRule.description || null,
           rule_definition: { 
             logic: newRule.logic,
-            dimension1_id: newRule.dimension1_id || null,
-            dimension2_id: newRule.dimension2_id || null
+            product_dimension_id: newRule.product_dimension_id || null,
+            region_dimension_id: newRule.region_dimension_id || null
           }
         }])
         .select()
@@ -151,7 +151,7 @@ const BusinessLogic = () => {
 
       const transformedRule = transformRule(data);
       setRules(prev => [...prev, transformedRule]);
-      setNewRule({ name: "", description: "", logic: "", dimension1_id: "", dimension2_id: "" });
+      setNewRule({ name: "", description: "", logic: "", product_dimension_id: "", region_dimension_id: "" });
       
       toast({
         title: "Rule added",
@@ -202,8 +202,8 @@ const BusinessLogic = () => {
           <div>
             <label className="block text-sm font-medium mb-1">Product Dimension</label>
             <Select
-              value={newRule.dimension1_id}
-              onValueChange={(value) => setNewRule(prev => ({ ...prev, dimension1_id: value }))}
+              value={newRule.product_dimension_id}
+              onValueChange={(value) => setNewRule(prev => ({ ...prev, product_dimension_id: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select product..." />
@@ -220,8 +220,8 @@ const BusinessLogic = () => {
           <div>
             <label className="block text-sm font-medium mb-1">Region Dimension</label>
             <Select
-              value={newRule.dimension2_id}
-              onValueChange={(value) => setNewRule(prev => ({ ...prev, dimension2_id: value }))}
+              value={newRule.region_dimension_id}
+              onValueChange={(value) => setNewRule(prev => ({ ...prev, region_dimension_id: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select region..." />
