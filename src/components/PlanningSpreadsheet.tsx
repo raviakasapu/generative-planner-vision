@@ -57,7 +57,7 @@ const PlanningSpreadsheet = () => {
 
       // Query planning data with proper joins and access checks
       let query = supabase
-        .from('planningdata')
+        .from('t_planneddata')
         .select(`
           *,
           m_u_product (
@@ -65,29 +65,29 @@ const PlanningSpreadsheet = () => {
             identifier,
             description,
             hierarchy,
-            attributes1
+            attributes
           ),
-          masterregiondimension (
+          m_u_region (
             id,
             region_id,
             region_description,
             country
           ),
-          mastertimedimension (
+          m_u_time (
             id,
             month_id,
             month_name,
             quarter,
             year
           ),
-          masterversiondimension (
+          m_u_version (
             id,
             version_id,
             version_name,
             version_type,
             version_status
           ),
-          masterdatasourcedimension (
+          m_u_datasource (
             id,
             datasource_id,
             datasource_name,
@@ -122,7 +122,7 @@ const PlanningSpreadsheet = () => {
       const filteredData = (data || []).filter(row => {
         const hasProduct = row.m_u_product && 
           (!productPermissions.length || productPermissions.includes(row.product_dimension_id));
-        const hasRegion = row.masterregiondimension && 
+        const hasRegion = row.m_u_region && 
           (!regionPermissions.length || regionPermissions.includes(row.region_dimension_id));
         
         return hasProduct && hasRegion;
@@ -146,10 +146,10 @@ const PlanningSpreadsheet = () => {
     const searchLower = searchTerm.toLowerCase();
     return (
       row.m_u_product?.description?.toLowerCase().includes(searchLower) ||
-      row.masterregiondimension?.region_description?.toLowerCase().includes(searchLower) ||
-      row.mastertimedimension?.month_name?.toLowerCase().includes(searchLower) ||
-      row.masterversiondimension?.version_name?.toLowerCase().includes(searchLower) ||
-      row.masterdatasourcedimension?.datasource_name?.toLowerCase().includes(searchLower)
+      row.m_u_region?.region_description?.toLowerCase().includes(searchLower) ||
+      row.m_u_time?.month_name?.toLowerCase().includes(searchLower) ||
+      row.m_u_version?.version_name?.toLowerCase().includes(searchLower) ||
+      row.m_u_datasource?.datasource_name?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -181,7 +181,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('mastertimedimension.month_name')}
+                  onClick={() => handleSort('m_u_time.month_name')}
                   className="flex items-center gap-1"
                 >
                   Time
@@ -201,7 +201,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('masterregiondimension.region_description')}
+                  onClick={() => handleSort('m_u_region.region_description')}
                   className="flex items-center gap-1"
                 >
                   Region
@@ -211,7 +211,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('masterversiondimension.version_name')}
+                  onClick={() => handleSort('m_u_version.version_name')}
                   className="flex items-center gap-1"
                 >
                   Version
@@ -221,7 +221,7 @@ const PlanningSpreadsheet = () => {
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('masterdatasourcedimension.datasource_name')}
+                  onClick={() => handleSort('m_u_datasource.datasource_name')}
                   className="flex items-center gap-1"
                 >
                   Data Source
@@ -254,19 +254,19 @@ const PlanningSpreadsheet = () => {
             {filteredData?.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>
-                  {row.mastertimedimension?.month_name} {row.mastertimedimension?.year}
+                  {row.m_u_time?.month_name} {row.m_u_time?.year}
                 </TableCell>
                 <TableCell>
                   {row.m_u_product?.description}
                 </TableCell>
                 <TableCell>
-                  {row.masterregiondimension?.region_description}
+                  {row.m_u_region?.region_description}
                 </TableCell>
                 <TableCell>
-                  {row.masterversiondimension?.version_name}
+                  {row.m_u_version?.version_name}
                 </TableCell>
                 <TableCell>
-                  {row.masterdatasourcedimension?.datasource_name}
+                  {row.m_u_datasource?.datasource_name}
                 </TableCell>
                 <TableCell className="text-right">
                   {row.measure1?.toLocaleString()}

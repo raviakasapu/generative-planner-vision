@@ -548,104 +548,6 @@ export type Database = {
         }
         Relationships: []
       }
-      planningdata: {
-        Row: {
-          datasource_dimension_id: string | null
-          id: string
-          layer_dimension_id: string | null
-          measure1: number | null
-          measure2: number | null
-          product_dimension_id: string | null
-          region_dimension_id: string | null
-          security_level: string | null
-          task_id: string | null
-          time_dimension_id: string
-          transaction_timestamp: string | null
-          user_id: string | null
-          version_dimension_id: string | null
-        }
-        Insert: {
-          datasource_dimension_id?: string | null
-          id?: string
-          layer_dimension_id?: string | null
-          measure1?: number | null
-          measure2?: number | null
-          product_dimension_id?: string | null
-          region_dimension_id?: string | null
-          security_level?: string | null
-          task_id?: string | null
-          time_dimension_id: string
-          transaction_timestamp?: string | null
-          user_id?: string | null
-          version_dimension_id?: string | null
-        }
-        Update: {
-          datasource_dimension_id?: string | null
-          id?: string
-          layer_dimension_id?: string | null
-          measure1?: number | null
-          measure2?: number | null
-          product_dimension_id?: string | null
-          region_dimension_id?: string | null
-          security_level?: string | null
-          task_id?: string | null
-          time_dimension_id?: string
-          transaction_timestamp?: string | null
-          user_id?: string | null
-          version_dimension_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "planningdata_datasource_dimension_id_fkey"
-            columns: ["datasource_dimension_id"]
-            isOneToOne: false
-            referencedRelation: "m_u_datasource"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_layer_dimension_id_fkey"
-            columns: ["layer_dimension_id"]
-            isOneToOne: false
-            referencedRelation: "m_u_layer"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_product_dimension_id_fkey"
-            columns: ["product_dimension_id"]
-            isOneToOne: false
-            referencedRelation: "m_u_product"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_region_dimension_id_fkey"
-            columns: ["region_dimension_id"]
-            isOneToOne: false
-            referencedRelation: "m_u_region"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "task_assignments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_time_dimension_id_fkey"
-            columns: ["time_dimension_id"]
-            isOneToOne: false
-            referencedRelation: "m_u_time"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "planningdata_version_dimension_id_fkey"
-            columns: ["version_dimension_id"]
-            isOneToOne: false
-            referencedRelation: "m_u_version"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       role_change_audit: {
         Row: {
           changed_at: string | null
@@ -729,6 +631,104 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      t_planneddata: {
+        Row: {
+          datasource_dimension_id: string | null
+          id: string
+          layer_dimension_id: string | null
+          measure1: number | null
+          measure2: number | null
+          product_dimension_id: string | null
+          region_dimension_id: string | null
+          security_level: string | null
+          task_id: string | null
+          time_dimension_id: string
+          transaction_timestamp: string | null
+          user_id: string | null
+          version_dimension_id: string | null
+        }
+        Insert: {
+          datasource_dimension_id?: string | null
+          id?: string
+          layer_dimension_id?: string | null
+          measure1?: number | null
+          measure2?: number | null
+          product_dimension_id?: string | null
+          region_dimension_id?: string | null
+          security_level?: string | null
+          task_id?: string | null
+          time_dimension_id: string
+          transaction_timestamp?: string | null
+          user_id?: string | null
+          version_dimension_id?: string | null
+        }
+        Update: {
+          datasource_dimension_id?: string | null
+          id?: string
+          layer_dimension_id?: string | null
+          measure1?: number | null
+          measure2?: number | null
+          product_dimension_id?: string | null
+          region_dimension_id?: string | null
+          security_level?: string | null
+          task_id?: string | null
+          time_dimension_id?: string
+          transaction_timestamp?: string | null
+          user_id?: string | null
+          version_dimension_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "t_planneddata_datasource_dimension_id_fkey"
+            columns: ["datasource_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "m_u_datasource"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "t_planneddata_layer_dimension_id_fkey"
+            columns: ["layer_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "m_u_layer"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "t_planneddata_product_dimension_id_fkey"
+            columns: ["product_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "m_u_product"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "t_planneddata_region_dimension_id_fkey"
+            columns: ["region_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "m_u_region"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "t_planneddata_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "task_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "t_planneddata_time_dimension_id_fkey"
+            columns: ["time_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "m_u_time"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "t_planneddata_version_dimension_id_fkey"
+            columns: ["version_dimension_id"]
+            isOneToOne: false
+            referencedRelation: "m_u_version"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       table_metadata: {
         Row: {

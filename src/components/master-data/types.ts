@@ -8,7 +8,13 @@ export interface Dimension {
   unique_identifier: string;
   description: string | null;
   hierarchy: string | null;
-  attributes1: string | null;
+  attributes: {
+    datasource_type?: string;
+    system_of_origin?: string;
+    parent_datasource_id?: string;
+    country?: string;
+    sales_manager?: string;
+  } | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -19,6 +25,11 @@ export interface NewDimension {
   type: DimensionType;
   description: string;
   identifier: string;
-  hierarchy: string;
-  attributes1: string;
+  attributes: {
+    datasource_type?: string;
+    system_of_origin?: string;
+    parent_datasource_id?: string;
+    country?: string;
+    sales_manager?: string;
+  };
 }

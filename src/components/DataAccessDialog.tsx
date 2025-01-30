@@ -54,10 +54,10 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
             tableName = 'm_u_product';
             break;
           case 'region':
-            tableName = 'masterregiondimension';
+            tableName = 'm_u_region';
             break;
           case 'time':
-            tableName = 'mastertimedimension';
+            tableName = 'm_u_time';
             break;
           default:
             return;

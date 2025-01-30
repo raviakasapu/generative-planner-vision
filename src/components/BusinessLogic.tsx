@@ -38,7 +38,7 @@ interface Dimension {
   identifier: string;
   description: string | null;
   hierarchy: string | null;
-  attributes1: string | null;
+  attributes: any;
 }
 
 const BusinessLogic = () => {
@@ -89,7 +89,7 @@ const BusinessLogic = () => {
         .order('created_at', { ascending: false });
 
       const { data: regions, error: error2 } = await supabase
-        .from('masterregiondimension')
+        .from('m_u_region')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -229,7 +229,7 @@ const BusinessLogic = () => {
               <SelectContent>
                 {dimensions2.map((dim) => (
                   <SelectItem key={dim.id} value={dim.id}>
-                    {dim.region_description || dim.region_id}
+                    {dim.description || dim.identifier}
                   </SelectItem>
                 ))}
               </SelectContent>
