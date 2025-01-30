@@ -107,7 +107,6 @@ export function UserSecurityReport({ userId }: { userId: string }) {
     },
   });
 
-  // Fetch user's role permissions
   const { data: rolePermissions } = useQuery({
     queryKey: ['userRolePermissions', userId],
     queryFn: async () => {
@@ -169,7 +168,6 @@ export function UserSecurityReport({ userId }: { userId: string }) {
       description: `${type === 'access' ? 'Access permission' : 'Task'} approved successfully.`,
     });
 
-    // Immediately refetch data after approval
     if (type === 'access') {
       refetchAccess();
     } else {
@@ -359,4 +357,3 @@ export function UserSecurityReport({ userId }: { userId: string }) {
     </div>
   );
 }
-};
