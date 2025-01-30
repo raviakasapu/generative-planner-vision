@@ -38,48 +38,40 @@ const MasterData = () => {
       switch(newDimension.type) {
         case 'product':
           const { data: products, error: productsError } = await supabase
-            .from('masterproductdimension')
+            .from('m_u_product')
             .select('*')
             .order('created_at', { ascending: false });
           if (productsError) throw productsError;
           data = products.map(p => ({
             ...p,
             dimension_type: 'product' as DimensionType,
-            product_id: p.product_id || '',
-            product_description: p.product_description || '',
-            category: p.category || ''
+            attributes: p.attributes1 || null,
           }));
           break;
           
         case 'region':
           const { data: regions, error: regionsError } = await supabase
-            .from('masterregiondimension')
+            .from('m_u_region')
             .select('*')
             .order('created_at', { ascending: false });
           if (regionsError) throw regionsError;
           data = regions.map(r => ({
             ...r,
             dimension_type: 'region' as DimensionType,
-            region_id: r.region_id || '',
-            region_description: r.region_description || '',
-            country: r.country || ''
+            attributes: r.attributes || null,
           }));
           break;
           
         case 'datasource':
           const { data: datasources, error: datasourcesError } = await supabase
-            .from('masterdatasourcedimension')
+            .from('m_u_datasource')
             .select('*')
             .order('created_at', { ascending: false });
           if (datasourcesError) throw datasourcesError;
           data = datasources.map(d => ({
             ...d,
             dimension_type: 'datasource' as DimensionType,
-            datasource_id: d.datasource_id || '',
-            datasource_name: d.datasource_name || '',
-            datasource_description: d.datasource_description || '',
-            datasource_type: d.datasource_type || '',
-            system_of_origin: d.system_of_origin || ''
+            attributes: d.attributes || null,
           }));
           break;
       }
@@ -107,27 +99,24 @@ const MasterData = () => {
     
     try {
       const currentType = newDimension.type;
-      const table = currentType === 'product' ? 'masterproductdimension' :
-                    currentType === 'region' ? 'masterregiondimension' :
-                    'masterdatasourcedimension';
+      const table = currentType === 'product' ? 'm_u_product' :
+                    currentType === 'region' ? 'm_u_region' :
+                    'm_u_datasource';
       
-      const insertData = currentType === 'product' ? {
-        product_id: newDimension.id,
-        product_description: newDimension.name,
-        category: newDimension.category,
-        dimension_name: 'Products'
-      } : currentType === 'region' ? {
-        region_id: newDimension.id,
-        region_description: newDimension.name,
-        country: newDimension.category,
-        dimension_name: 'Regions'
-      } : {
-        datasource_id: newDimension.id,
-        datasource_name: newDimension.name,
-        datasource_description: newDimension.description,
-        datasource_type: newDimension.category,
-        system_of_origin: newDimension.systemOrigin,
-        dimension_name: 'Data Source'
+      const insertData = {
+        identifier: newDimension.id,
+        description: newDimension.name,
+        dimension_type: currentType,
+        ...(currentType === 'product' && { attributes1: newDimension.category }),
+        ...(currentType === 'region' && { 
+          attributes: { country: newDimension.category }
+        }),
+        ...(currentType === 'datasource' && {
+          attributes: {
+            datasource_type: newDimension.category,
+            system_of_origin: newDimension.systemOrigin
+          }
+        })
       };
       
       const { data, error } = await supabase
@@ -166,24 +155,23 @@ const MasterData = () => {
     if (!editingDimension) return;
 
     try {
-      const table = editingDimension.dimension_type === 'product' ? 'masterproductdimension' :
-                    editingDimension.dimension_type === 'region' ? 'masterregiondimension' :
-                    'masterdatasourcedimension';
+      const table = editingDimension.dimension_type === 'product' ? 'm_u_product' :
+                    editingDimension.dimension_type === 'region' ? 'm_u_region' :
+                    'm_u_datasource';
       
-      const updateData = editingDimension.dimension_type === 'product' ? {
-        product_id: editingDimension.product_id,
-        product_description: editingDimension.product_description,
-        category: editingDimension.category,
-      } : editingDimension.dimension_type === 'region' ? {
-        region_id: editingDimension.region_id,
-        region_description: editingDimension.region_description,
-        country: editingDimension.country,
-      } : {
-        datasource_id: editingDimension.datasource_id,
-        datasource_name: editingDimension.datasource_name,
-        datasource_description: editingDimension.datasource_description,
-        datasource_type: editingDimension.datasource_type,
-        system_of_origin: editingDimension.system_of_origin,
+      const updateData = {
+        identifier: editingDimension.identifier,
+        description: editingDimension.description,
+        ...(editingDimension.dimension_type === 'product' && { attributes1: editingDimension.attributes }),
+        ...(editingDimension.dimension_type === 'region' && { 
+          attributes: { country: editingDimension.attributes }
+        }),
+        ...(editingDimension.dimension_type === 'datasource' && {
+          attributes: {
+            datasource_type: editingDimension.attributes,
+            system_of_origin: editingDimension.system_of_origin
+          }
+        }),
       };
 
       const { error } = await supabase
@@ -214,19 +202,8 @@ const MasterData = () => {
 
   const filteredDimensions = dimensions.filter(dim => {
     const searchString = searchTerm.toLowerCase();
-    switch(dim.dimension_type) {
-      case 'product':
-        return dim.product_id?.toLowerCase().includes(searchString) ||
-               dim.product_description?.toLowerCase().includes(searchString);
-      case 'region':
-        return dim.region_id?.toLowerCase().includes(searchString) ||
-               dim.region_description?.toLowerCase().includes(searchString);
-      case 'datasource':
-        return dim.datasource_id?.toLowerCase().includes(searchString) ||
-               dim.datasource_description?.toLowerCase().includes(searchString);
-      default:
-        return false;
-    }
+    return dim.identifier?.toLowerCase().includes(searchString) ||
+           dim.description?.toLowerCase().includes(searchString);
   });
 
   const paginatedDimensions = filteredDimensions.slice(

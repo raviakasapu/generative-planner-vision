@@ -8,13 +8,8 @@ export interface Dimension {
   unique_identifier: string | null;
   description: string | null;
   hierarchy: string | null;
-  attributes: {
-    datasource_type?: string;
-    system_of_origin?: string;
-    parent_datasource_id?: string;
-    country?: string;
-    sales_manager?: string;
-  } | null;
+  attributes?: any;
+  attributes1?: string | null; // For product dimension
   created_at?: string;
   updated_at?: string;
 }
@@ -24,12 +19,6 @@ export interface NewDimension {
   name: string;
   type: DimensionType;
   description: string;
-  identifier: string;
-  attributes: {
-    datasource_type?: string;
-    system_of_origin?: string;
-    parent_datasource_id?: string;
-    country?: string;
-    sales_manager?: string;
-  };
+  category?: string;
+  systemOrigin?: string;
 }

@@ -42,7 +42,8 @@ const PlanningSpreadsheet = () => {
             id,
             identifier,
             description,
-            attributes
+            hierarchy,
+            attributes1
           ),
           m_u_region (
             id,
