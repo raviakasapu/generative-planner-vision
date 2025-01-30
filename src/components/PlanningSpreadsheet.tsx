@@ -60,12 +60,12 @@ const PlanningSpreadsheet = () => {
         .from('planningdata')
         .select(`
           *,
-          masterproductdimension (
+          masterproductdimension!inner (
             product_id,
             product_description,
             category
           ),
-          masterregiondimension (
+          masterregiondimension!inner (
             region_id,
             region_description,
             country
@@ -109,10 +109,10 @@ const PlanningSpreadsheet = () => {
 
       // Filter out rows where required dimensions are missing or user doesn't have access
       const filteredData = (data || []).filter(row => {
-        const hasProduct = !productPermissions.length || 
-          (row.product_dimension_id && productPermissions.includes(row.product_dimension_id) && row.masterproductdimension);
-        const hasRegion = !regionPermissions.length || 
-          (row.region_dimension_id && regionPermissions.includes(row.region_dimension_id) && row.masterregiondimension);
+        const hasProduct = row.masterproductdimension && 
+          (!productPermissions.length || productPermissions.includes(row.product_dimension_id));
+        const hasRegion = row.masterregiondimension && 
+          (!regionPermissions.length || regionPermissions.includes(row.region_dimension_id));
         
         return hasProduct && hasRegion;
       });
