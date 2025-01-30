@@ -32,18 +32,28 @@ const PlanningSpreadsheet = () => {
   const { data: planningData, isLoading } = useQuery({
     queryKey: ['planningData', user?.id, sortConfig],
     queryFn: async () => {
+      if (!user?.id) return [];
+
       // First, get user's dimension access permissions
       const { data: permissions } = await supabase
         .from('data_access_permissions')
-        .select('*')
-        .eq('user_id', user?.id)
+        .select(`
+          id,
+          dimension_type,
+          dimension_id,
+          approval_status
+        `)
+        .eq('user_id', user.id)
         .eq('approval_status', 'approved');
 
-      const productIds = permissions
-        ?.filter(p => p.dimension_type === 'product')
+      if (!permissions?.length) return [];
+
+      const productPermissions = permissions
+        .filter(p => p.dimension_type === 'product')
         .map(p => p.dimension_id);
-      const regionIds = permissions
-        ?.filter(p => p.dimension_type === 'region')
+      
+      const regionPermissions = permissions
+        .filter(p => p.dimension_type === 'region')
         .map(p => p.dimension_id);
 
       let query = supabase
@@ -76,11 +86,11 @@ const PlanningSpreadsheet = () => {
         `);
 
       // Apply dimension access filters
-      if (productIds?.length) {
-        query = query.in('product_dimension_id', productIds);
+      if (productPermissions.length) {
+        query = query.in('product_dimension_id', productPermissions);
       }
-      if (regionIds?.length) {
-        query = query.in('region_dimension_id', regionIds);
+      if (regionPermissions.length) {
+        query = query.in('region_dimension_id', regionPermissions);
       }
 
       // Apply sorting if configured
@@ -92,9 +102,14 @@ const PlanningSpreadsheet = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
-      return data;
-    }
+      if (error) {
+        console.error('Error fetching planning data:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    enabled: !!user?.id
   });
 
   const handleSort = (column: string) => {
@@ -219,22 +234,22 @@ const PlanningSpreadsheet = () => {
                   {row.mastertimedimension?.month_name} {row.mastertimedimension?.year}
                 </TableCell>
                 <TableCell>
-                  {row.masterproductdimension?.product_description || 'N/A'}
+                  {row.masterproductdimension?.product_description}
                 </TableCell>
                 <TableCell>
-                  {row.masterregiondimension?.region_description || 'N/A'}
+                  {row.masterregiondimension?.region_description}
                 </TableCell>
                 <TableCell>
-                  {row.masterversiondimension?.version_name || 'N/A'}
+                  {row.masterversiondimension?.version_name}
                 </TableCell>
                 <TableCell>
-                  {row.masterdatasourcedimension?.datasource_name || 'N/A'}
+                  {row.masterdatasourcedimension?.datasource_name}
                 </TableCell>
                 <TableCell className="text-right">
-                  {row.measure1?.toLocaleString() || '-'}
+                  {row.measure1?.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right">
-                  {row.measure2?.toLocaleString() || '-'}
+                  {row.measure2?.toLocaleString()}
                 </TableCell>
               </TableRow>
             ))}
