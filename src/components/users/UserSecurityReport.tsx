@@ -16,16 +16,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-interface UserSecurityReportProps {
-  userId: string;
-}
-
-export function UserSecurityReport({ userId }: UserSecurityReportProps) {
+export function UserSecurityReport({ userId }: { userId: string }) {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const isApprover = userRole === 'admin' || userRole === 'manager';
 
-  // Fetch user's data access permissions with dimension details through junction tables
   const { data: accessPermissions, refetch: refetchAccess } = useQuery({
     queryKey: ['userAccess', userId],
     queryFn: async () => {
@@ -45,12 +40,12 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
       const enrichedPermissions = await Promise.all((permissions || []).map(async (permission) => {
         let dimensionDetails = null;
 
-        if (permission.dimension_type === 'dimension1') {
+        if (permission.dimension_type === 'product') {
           const { data, error } = await supabase
-            .from('data_access_dimension1')
+            .from('data_access_product')
             .select(`
               dimension_id,
-              masterdimension1 (
+              masterproductdimension (
                 dimension_name,
                 product_id,
                 product_description
@@ -61,16 +56,16 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
 
           if (!error && data) {
             dimensionDetails = {
-              ...data.masterdimension1,
+              ...data.masterproductdimension,
               type: 'Product'
             };
           }
-        } else if (permission.dimension_type === 'dimension2') {
+        } else if (permission.dimension_type === 'region') {
           const { data, error } = await supabase
-            .from('data_access_dimension2')
+            .from('data_access_region')
             .select(`
               dimension_id,
-              masterdimension2 (
+              masterregiondimension (
                 dimension_name,
                 region_id,
                 region_description
@@ -81,28 +76,8 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
 
           if (!error && data) {
             dimensionDetails = {
-              ...data.masterdimension2,
+              ...data.masterregiondimension,
               type: 'Region'
-            };
-          }
-        } else if (permission.dimension_type === 'time') {
-          const { data, error } = await supabase
-            .from('data_access_time')
-            .select(`
-              dimension_id,
-              mastertimedimension (
-                dimension_name,
-                month_id,
-                month_name
-              )
-            `)
-            .eq('access_permission_id', permission.id)
-            .maybeSingle();
-
-          if (!error && data) {
-            dimensionDetails = {
-              ...data.mastertimedimension,
-              type: 'Time'
             };
           }
         }
@@ -116,7 +91,7 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
       console.log('Enriched permissions:', enrichedPermissions);
       return enrichedPermissions;
     },
-    refetchInterval: 5000, // Refetch every 5 seconds to show updates
+    refetchInterval: 5000,
   });
 
   const { data: tasks, refetch: refetchTasks } = useQuery({
@@ -384,3 +359,4 @@ export function UserSecurityReport({ userId }: UserSecurityReportProps) {
     </div>
   );
 }
+};

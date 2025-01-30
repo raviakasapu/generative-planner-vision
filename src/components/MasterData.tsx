@@ -38,7 +38,7 @@ const MasterData = () => {
       switch(newDimension.type) {
         case 'product':
           const { data: products, error: productsError } = await supabase
-            .from('masterdimension1')
+            .from('masterproductdimension')
             .select('*')
             .order('created_at', { ascending: false });
           if (productsError) throw productsError;
@@ -53,7 +53,7 @@ const MasterData = () => {
           
         case 'region':
           const { data: regions, error: regionsError } = await supabase
-            .from('masterdimension2')
+            .from('masterregiondimension')
             .select('*')
             .order('created_at', { ascending: false });
           if (regionsError) throw regionsError;
@@ -107,8 +107,8 @@ const MasterData = () => {
     
     try {
       const currentType = newDimension.type;
-      const table = currentType === 'product' ? 'masterdimension1' :
-                    currentType === 'region' ? 'masterdimension2' :
+      const table = currentType === 'product' ? 'masterproductdimension' :
+                    currentType === 'region' ? 'masterregiondimension' :
                     'masterdatasourcedimension';
       
       const insertData = currentType === 'product' ? {
@@ -166,8 +166,8 @@ const MasterData = () => {
     if (!editingDimension) return;
 
     try {
-      const table = editingDimension.dimension_type === 'product' ? 'masterdimension1' :
-                    editingDimension.dimension_type === 'region' ? 'masterdimension2' :
+      const table = editingDimension.dimension_type === 'product' ? 'masterproductdimension' :
+                    editingDimension.dimension_type === 'region' ? 'masterregiondimension' :
                     'masterdatasourcedimension';
       
       const updateData = editingDimension.dimension_type === 'product' ? {
@@ -180,7 +180,7 @@ const MasterData = () => {
         country: editingDimension.country,
       } : {
         datasource_id: editingDimension.datasource_id,
-        datasource_name: editingDimension.datasource_description,
+        datasource_name: editingDimension.datasource_name,
         datasource_description: editingDimension.datasource_description,
         datasource_type: editingDimension.datasource_type,
         system_of_origin: editingDimension.system_of_origin,
