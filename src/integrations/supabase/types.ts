@@ -737,6 +737,36 @@ export type Database = {
         }
         Relationships: []
       }
+      table_metadata: {
+        Row: {
+          created_at: string | null
+          id: string
+          schema_definition: Json
+          table_description: string | null
+          table_name: string
+          table_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          schema_definition: Json
+          table_description?: string | null
+          table_name: string
+          table_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          schema_definition?: Json
+          table_description?: string | null
+          table_name?: string
+          table_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       task_assignments: {
         Row: {
           approval_status: string | null
