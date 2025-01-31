@@ -7,8 +7,6 @@ import { DimensionForm } from './master-data/DimensionForm';
 import { DimensionTable } from './master-data/DimensionTable';
 import { SearchAndPagination } from './master-data/SearchAndPagination';
 import { Dimension, NewDimension, DimensionType } from './master-data/types';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MasterDataTypes } from './master-data/MasterDataTypes';
 
 const MasterData = () => {
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
@@ -226,59 +224,48 @@ const MasterData = () => {
     <Card className="p-4">
       <h2 className="text-2xl font-semibold mb-6">Master Data Management</h2>
       
-      <Tabs defaultValue="dimensions" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="dimensions">Dimension Management</TabsTrigger>
-          <TabsTrigger value="types">Type Management</TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        <DimensionForm
+          newDimension={newDimension}
+          onDimensionChange={(updates) => setNewDimension(prev => ({ ...prev, ...updates }))}
+          onSubmit={handleAddDimension}
+        />
+        
+        <div className="flex justify-end">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              setShowData(!showData);
+              if (!showData) fetchDimensions();
+            }}
+          >
+            {showData ? 'Hide Master Data' : 'Show Master Data'}
+          </Button>
+        </div>
 
-        <TabsContent value="dimensions" className="space-y-4">
-          <DimensionForm
-            newDimension={newDimension}
-            onDimensionChange={(updates) => setNewDimension(prev => ({ ...prev, ...updates }))}
-            onSubmit={handleAddDimension}
-          />
-          
-          <div className="flex justify-end">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setShowData(!showData);
-                if (!showData) fetchDimensions();
-              }}
-            >
-              {showData ? 'Hide Master Data' : 'Show Master Data'}
-            </Button>
-          </div>
+        {showData && (
+          <>
+            <SearchAndPagination
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              selectedType={newDimension.type}
+            />
 
-          {showData && (
-            <>
-              <SearchAndPagination
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                selectedType={newDimension.type}
-              />
-
-              <DimensionTable
-                dimensions={paginatedDimensions}
-                selectedType={newDimension.type}
-                editingDimension={editingDimension}
-                onEdit={setEditingDimension}
-                onUpdate={handleUpdateDimension}
-                onCancelEdit={() => setEditingDimension(null)}
-                onEditingChange={setEditingDimension}
-              />
-            </>
-          )}
-        </TabsContent>
-
-        <TabsContent value="types">
-          <MasterDataTypes />
-        </TabsContent>
-      </Tabs>
+            <DimensionTable
+              dimensions={paginatedDimensions}
+              selectedType={newDimension.type}
+              editingDimension={editingDimension}
+              onEdit={setEditingDimension}
+              onUpdate={handleUpdateDimension}
+              onCancelEdit={() => setEditingDimension(null)}
+              onEditingChange={setEditingDimension}
+            />
+          </>
+        )}
+      </div>
     </Card>
   );
 };
