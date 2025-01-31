@@ -32,7 +32,7 @@ export function VersionCreationDialog({
     baseVersionId: null,
     ownerId: null,
   });
-
+  
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -45,8 +45,8 @@ export function VersionCreationDialog({
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      return data.map(version => ({
+      
+      return (data as Version[]).map(version => ({
         ...version,
         attributes: {
           version_type: version.attributes?.version_type || '',
@@ -54,7 +54,7 @@ export function VersionCreationDialog({
           base_version_id: version.attributes?.base_version_id || null,
           is_base_version: version.attributes?.is_base_version || false
         }
-      })) as Version[];
+      }));
     },
     enabled: isOpen,
   });
@@ -150,7 +150,7 @@ export function VersionCreationDialog({
         </DialogHeader>
         <VersionForm
           formData={formData}
-          onFormChange={handleFormChange}
+          onFormChange={setFormData}
           existingVersions={existingVersions}
           userProfiles={[]}
           currentUserId={user?.id || ''}

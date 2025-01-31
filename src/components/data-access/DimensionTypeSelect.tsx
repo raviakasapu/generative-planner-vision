@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Select,
   SelectContent,
@@ -5,29 +6,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DimensionType } from "./types";
+import { DimensionType } from './types';
 
 interface DimensionTypeSelectProps {
   value: DimensionType | '';
   onChange: (value: DimensionType) => void;
 }
 
-export const DimensionTypeSelect: React.FC<DimensionTypeSelectProps> = ({ value, onChange }) => {
+export const DimensionTypeSelect: React.FC<DimensionTypeSelectProps> = ({
+  value,
+  onChange,
+}) => {
   return (
-    <Select 
-      value={value}
-      onValueChange={(value: DimensionType) => onChange(value)}
-    >
+    <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder="Select dimension type" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="product">Product Dimension</SelectItem>
-        <SelectItem value="region">Region Dimension</SelectItem>
-        <SelectItem value="time">Time Dimension</SelectItem>
-        <SelectItem value="version">Version Dimension</SelectItem>
-        <SelectItem value="datasource">Data Source Dimension</SelectItem>
-        <SelectItem value="layer">Layer Dimension</SelectItem>
+        <SelectItem value="product">Product</SelectItem>
+        <SelectItem value="region">Region</SelectItem>
+        <SelectItem value="time">Time</SelectItem>
+        <SelectItem value="version">Version</SelectItem>
+        <SelectItem value="datasource">Data Source</SelectItem>
+        <SelectItem value="layer">Layer</SelectItem>
       </SelectContent>
     </Select>
   );
