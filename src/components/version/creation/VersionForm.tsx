@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Version, VersionFormData } from '../types/VersionTypes';
+import type { Version, VersionFormData, VersionType } from '../types';
 
 interface VersionFormProps {
   formData: VersionFormData;

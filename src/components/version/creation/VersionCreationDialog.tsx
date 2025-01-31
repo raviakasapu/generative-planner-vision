@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from '@tanstack/react-query';
 import { VersionForm } from './VersionForm';
-import type { Version, VersionFormData } from '../types/VersionTypes';
+import type { Version, VersionFormData } from '../types';
 
 interface VersionCreationDialogProps {
   isOpen: boolean;

@@ -7,7 +7,7 @@ import { VersionCreationDialog } from './version/creation/VersionCreationDialog'
 import { VersionStatusDialog } from './version/VersionStatusDialog';
 import { VersionHeader } from './version/VersionHeader';
 import { VersionList } from './version/VersionList';
-import type { Version } from './version/types/VersionTypes';
+import type { Version } from './version/types';
 
 const VersionManagement = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -131,3 +131,4 @@ const VersionManagement = () => {
 };
 
 export default VersionManagement;
+
