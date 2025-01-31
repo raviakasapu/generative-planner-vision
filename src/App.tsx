@@ -4,6 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
+import Admin from '@/pages/Admin';
 import UserManagement from '@/pages/UserManagement';
 import VersionManagement from '@/pages/VersionManagement';
 import MasterDataManagement from '@/pages/MasterDataManagement';
@@ -19,9 +20,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/versions" element={<VersionManagement />} />
-            <Route path="/master-data" element={<MasterDataManagement />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/versions" element={<VersionManagement />} />
+            <Route path="/admin/master-data" element={<MasterDataManagement />} />
           </Routes>
           <Toaster />
         </AuthProvider>
