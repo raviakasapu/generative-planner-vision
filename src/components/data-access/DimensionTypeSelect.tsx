@@ -27,7 +27,6 @@ export const DimensionTypeSelect: React.FC<DimensionTypeSelectProps> = ({
     const fetchDimensionTypes = async () => {
       setIsLoading(true);
       try {
-        // Query the table_metadata table to get dimension tables
         const { data: tableMetadata, error } = await supabase
           .from('table_metadata')
           .select('*')
@@ -44,26 +43,17 @@ export const DimensionTypeSelect: React.FC<DimensionTypeSelectProps> = ({
           return;
         }
 
-        // Transform the metadata into dimension type options
-        const options: DimensionTypeOption[] = [
-          {
-            value: 'product',
-            label: 'Product',
-            tableName: 'm_u_product'
-          },
-          {
-            value: 'region',
-            label: 'Region',
-            tableName: 'm_u_region'
-          },
-          {
-            value: 'time',
-            label: 'Time',
-            tableName: 'm_u_time'
-          }
-        ];
+        if (tableMetadata) {
+          const options: DimensionTypeOption[] = tableMetadata
+            .filter(meta => meta.table_name.startsWith('m_u_'))
+            .map(meta => ({
+              value: meta.table_name.replace('m_u_', '') as DimensionType,
+              label: meta.table_description || meta.table_name.replace('m_u_', '').charAt(0).toUpperCase() + meta.table_name.replace('m_u_', '').slice(1),
+              tableName: meta.table_name as `m_u_${DimensionType}`
+            }));
 
-        setDimensionTypes(options);
+          setDimensionTypes(options);
+        }
       } catch (error) {
         console.error('Error in fetchDimensionTypes:', error);
         toast({

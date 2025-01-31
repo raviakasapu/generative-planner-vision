@@ -1,4 +1,4 @@
-export type DimensionType = 'product' | 'region' | 'time';
+export type DimensionType = 'product' | 'region' | 'time' | 'version' | 'datasource' | 'layer';
 
 export interface DimensionMember {
   id: string;
@@ -8,7 +8,6 @@ export interface DimensionMember {
   attributes: Record<string, any> | null;
 }
 
-// Type for table names to ensure they match Supabase schema
 export type DimensionTableName = `m_u_${DimensionType}`;
 
 export interface DimensionTypeOption {

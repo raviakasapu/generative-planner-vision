@@ -38,7 +38,8 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
         
         const { data, error } = await supabase
           .from(tableName)
-          .select('id, dimension_name, identifier, description, attributes');
+          .select('*')
+          .order('dimension_name');
 
         if (error) {
           console.error('Error fetching dimension members:', error);
@@ -51,7 +52,14 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
         }
 
         if (data) {
-          setDimensionMembers(data as DimensionMember[]);
+          const members: DimensionMember[] = data.map(item => ({
+            id: item.id,
+            dimension_name: item.dimension_name,
+            identifier: item.identifier,
+            description: item.description,
+            attributes: item.attributes
+          }));
+          setDimensionMembers(members);
         }
       } catch (error) {
         console.error('Error in fetchDimensionMembers:', error);
