@@ -45,20 +45,16 @@ export function VersionCreationDialog({
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Version[];
-    },
-    enabled: isOpen,
-  });
 
-  const { data: userProfiles } = useQuery({
-    queryKey: ['user-profiles'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('s_user_profiles')
-        .select('id, full_name, role');
-
-      if (error) throw error;
-      return data;
+      return data.map(version => ({
+        ...version,
+        attributes: version.attributes || {
+          version_type: '',
+          version_status: 'draft',
+          base_version_id: null,
+          is_base_version: false
+        }
+      })) as Version[];
     },
     enabled: isOpen,
   });
@@ -156,7 +152,7 @@ export function VersionCreationDialog({
           formData={formData}
           onFormChange={handleFormChange}
           existingVersions={existingVersions}
-          userProfiles={userProfiles}
+          userProfiles={[]}
           currentUserId={user?.id || ''}
         />
         <Button

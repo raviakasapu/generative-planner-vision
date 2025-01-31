@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,24 +6,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-
-type DimensionType = 'product' | 'region' | 'time' | 'version' | 'datasource' | 'layer';
-
-interface DimensionMember {
-  id: string;
-  dimension_name: string;
-  identifier: string;
-  description: string | null;
-}
+import { DimensionTypeSelect } from './data-access/DimensionTypeSelect';
+import { DimensionMemberSelect } from './data-access/DimensionMemberSelect';
+import { AccessLevelSelect } from './data-access/AccessLevelSelect';
+import { DimensionType } from './data-access/types';
 
 interface DataAccessDialogProps {
   userId: string;
@@ -35,59 +23,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
   const [selectedDimensionType, setSelectedDimensionType] = useState<DimensionType | ''>('');
   const [selectedDimensionId, setSelectedDimensionId] = useState<string>('');
   const [accessLevel, setAccessLevel] = useState<string>('read');
-  const [dimensionMembers, setDimensionMembers] = useState<DimensionMember[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchDimensionMembers = async () => {
-      if (!selectedDimensionType) {
-        setDimensionMembers([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const tableName = `m_u_${selectedDimensionType}` as const;
-        
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('id, dimension_name, identifier, description');
-
-        if (error) {
-          console.error('Error fetching dimension members:', error);
-          toast({
-            title: "Error",
-            description: "Failed to fetch dimension members",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        if (data) {
-          // Ensure the data matches the DimensionMember interface
-          const formattedData: DimensionMember[] = data.map(item => ({
-            id: item.id,
-            dimension_name: item.dimension_name,
-            identifier: item.identifier,
-            description: item.description
-          }));
-          setDimensionMembers(formattedData);
-        }
-      } catch (error) {
-        console.error('Error in fetchDimensionMembers:', error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred while fetching dimension members",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDimensionMembers();
-  }, [selectedDimensionType, toast]);
 
   const handleSave = async () => {
     try {
@@ -149,63 +85,31 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Select 
+            <DimensionTypeSelect
               value={selectedDimensionType}
-              onValueChange={(value: DimensionType) => {
+              onChange={(value) => {
                 setSelectedDimensionType(value);
                 setSelectedDimensionId('');
               }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select dimension type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="product">Product Dimension</SelectItem>
-                <SelectItem value="region">Region Dimension</SelectItem>
-                <SelectItem value="time">Time Dimension</SelectItem>
-                <SelectItem value="version">Version Dimension</SelectItem>
-                <SelectItem value="datasource">Data Source Dimension</SelectItem>
-                <SelectItem value="layer">Layer Dimension</SelectItem>
-              </SelectContent>
-            </Select>
+            />
 
             {selectedDimensionType && (
-              <Select
+              <DimensionMemberSelect
+                dimensionType={selectedDimensionType}
                 value={selectedDimensionId}
-                onValueChange={setSelectedDimensionId}
-                disabled={isLoading || dimensionMembers.length === 0}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={isLoading ? "Loading..." : "Select dimension member"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {dimensionMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.dimension_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={setSelectedDimensionId}
+              />
             )}
 
-            <Select
+            <AccessLevelSelect
               value={accessLevel}
-              onValueChange={setAccessLevel}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select access level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="read">Read</SelectItem>
-                <SelectItem value="write">Write</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={setAccessLevel}
+            />
           </div>
           <Button 
             onClick={handleSave} 
             variant="default"
-            disabled={isLoading || !selectedDimensionType || !selectedDimensionId}
+            disabled={!selectedDimensionType || !selectedDimensionId}
           >
             Save
           </Button>
