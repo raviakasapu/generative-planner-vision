@@ -37,10 +37,24 @@ export const DimensionTable = ({
           <TableRow>
             <TableHead>ID</TableHead>
             <TableHead>Name/Description</TableHead>
-            <TableHead>Category/Country/Type</TableHead>
-            {selectedType === 'datasource' && (
-              <TableHead>System of Origin</TableHead>
+            <TableHead>Hierarchy</TableHead>
+            {selectedType === 'product' && (
+              <TableHead>Category</TableHead>
             )}
+            {selectedType === 'region' && (
+              <>
+                <TableHead>Country</TableHead>
+                <TableHead>Sales Manager</TableHead>
+              </>
+            )}
+            {selectedType === 'datasource' && (
+              <>
+                <TableHead>Data Source Type</TableHead>
+                <TableHead>System of Origin</TableHead>
+              </>
+            )}
+            <TableHead>Created At</TableHead>
+            <TableHead>Updated At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -76,48 +90,93 @@ export const DimensionTable = ({
               <TableCell>
                 {editingDimension?.id === dim.id ? (
                   <Input
-                    value={editingDimension.attributes?.country || 
-                           editingDimension.attributes?.datasource_type || 
-                           editingDimension.attributes || ''}
-                    onChange={(e) => {
-                      const updatedDimension = { ...editingDimension };
-                      if (selectedType === 'region') {
-                        updatedDimension.attributes = { country: e.target.value };
-                      } else if (selectedType === 'datasource') {
-                        updatedDimension.attributes = {
-                          ...updatedDimension.attributes,
-                          datasource_type: e.target.value
-                        };
-                      } else {
-                        updatedDimension.attributes = e.target.value;
-                      }
-                      onEditingChange(updatedDimension);
-                    }}
+                    value={editingDimension.hierarchy || ''}
+                    onChange={(e) => onEditingChange({
+                      ...editingDimension,
+                      hierarchy: e.target.value
+                    })}
                   />
                 ) : (
-                  selectedType === 'region' ? dim.attributes?.country :
-                  selectedType === 'datasource' ? dim.attributes?.datasource_type :
-                  dim.attributes
+                  dim.hierarchy
                 )}
               </TableCell>
-              {selectedType === 'datasource' && (
+              {selectedType === 'product' && (
                 <TableCell>
                   {editingDimension?.id === dim.id ? (
                     <Input
-                      value={editingDimension.attributes?.system_of_origin || ''}
+                      value={editingDimension.attributes || ''}
                       onChange={(e) => onEditingChange({
                         ...editingDimension,
-                        attributes: {
-                          ...editingDimension.attributes,
-                          system_of_origin: e.target.value
-                        }
+                        attributes: e.target.value
                       })}
                     />
                   ) : (
-                    dim.attributes?.system_of_origin
+                    dim.attributes
                   )}
                 </TableCell>
               )}
+              {selectedType === 'region' && (
+                <>
+                  <TableCell>
+                    {editingDimension?.id === dim.id ? (
+                      <Input
+                        value={editingDimension.attributes?.country || ''}
+                        onChange={(e) => onEditingChange({
+                          ...editingDimension,
+                          attributes: { ...editingDimension.attributes, country: e.target.value }
+                        })}
+                      />
+                    ) : (
+                      dim.attributes?.country
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingDimension?.id === dim.id ? (
+                      <Input
+                        value={editingDimension.attributes?.sales_manager || ''}
+                        onChange={(e) => onEditingChange({
+                          ...editingDimension,
+                          attributes: { ...editingDimension.attributes, sales_manager: e.target.value }
+                        })}
+                      />
+                    ) : (
+                      dim.attributes?.sales_manager
+                    )}
+                  </TableCell>
+                </>
+              )}
+              {selectedType === 'datasource' && (
+                <>
+                  <TableCell>
+                    {editingDimension?.id === dim.id ? (
+                      <Input
+                        value={editingDimension.attributes?.datasource_type || ''}
+                        onChange={(e) => onEditingChange({
+                          ...editingDimension,
+                          attributes: { ...editingDimension.attributes, datasource_type: e.target.value }
+                        })}
+                      />
+                    ) : (
+                      dim.attributes?.datasource_type
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingDimension?.id === dim.id ? (
+                      <Input
+                        value={editingDimension.attributes?.system_of_origin || ''}
+                        onChange={(e) => onEditingChange({
+                          ...editingDimension,
+                          attributes: { ...editingDimension.attributes, system_of_origin: e.target.value }
+                        })}
+                      />
+                    ) : (
+                      dim.attributes?.system_of_origin
+                    )}
+                  </TableCell>
+                </>
+              )}
+              <TableCell>{new Date(dim.created_at || '').toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(dim.updated_at || '').toLocaleDateString()}</TableCell>
               <TableCell>
                 {editingDimension?.id === dim.id ? (
                   <div className="space-x-2">

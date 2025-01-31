@@ -54,26 +54,62 @@ export const DimensionForm = ({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">
-            {newDimension.type === 'product' ? 'Category' : 
-             newDimension.type === 'region' ? 'Country' : 
-             'Data Source Type'}
-          </label>
+          <label className="block text-sm font-medium mb-1">Hierarchy</label>
           <Input
-            value={newDimension.category}
-            onChange={(e) => onDimensionChange({ category: e.target.value })}
-            placeholder="Enter category/country/type..."
+            value={newDimension.hierarchy || ''}
+            onChange={(e) => onDimensionChange({ hierarchy: e.target.value })}
+            placeholder="Enter hierarchy..."
           />
         </div>
-        {newDimension.type === 'datasource' && (
+        {newDimension.type === 'product' && (
           <div>
-            <label className="block text-sm font-medium mb-1">System of Origin</label>
+            <label className="block text-sm font-medium mb-1">Category</label>
             <Input
-              value={newDimension.systemOrigin}
-              onChange={(e) => onDimensionChange({ systemOrigin: e.target.value })}
-              placeholder="Enter system of origin..."
+              value={newDimension.category || ''}
+              onChange={(e) => onDimensionChange({ category: e.target.value })}
+              placeholder="Enter product category..."
             />
           </div>
+        )}
+        {newDimension.type === 'region' && (
+          <>
+            <div>
+              <label className="block text-sm font-medium mb-1">Country</label>
+              <Input
+                value={newDimension.category || ''}
+                onChange={(e) => onDimensionChange({ category: e.target.value })}
+                placeholder="Enter country..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Sales Manager</label>
+              <Input
+                value={newDimension.salesManager || ''}
+                onChange={(e) => onDimensionChange({ salesManager: e.target.value })}
+                placeholder="Enter sales manager..."
+              />
+            </div>
+          </>
+        )}
+        {newDimension.type === 'datasource' && (
+          <>
+            <div>
+              <label className="block text-sm font-medium mb-1">Data Source Type</label>
+              <Input
+                value={newDimension.category || ''}
+                onChange={(e) => onDimensionChange({ category: e.target.value })}
+                placeholder="Enter data source type..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">System of Origin</label>
+              <Input
+                value={newDimension.systemOrigin || ''}
+                onChange={(e) => onDimensionChange({ systemOrigin: e.target.value })}
+                placeholder="Enter system of origin..."
+              />
+            </div>
+          </>
         )}
       </div>
       <Button onClick={onSubmit}>Add Master Data</Button>

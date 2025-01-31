@@ -8,7 +8,6 @@ export interface Dimension {
   description: string | null;
   hierarchy: string | null;
   attributes?: any;
-  attributes1?: string | null;
   created_at?: string;
   updated_at?: string;
   // Product specific
@@ -31,8 +30,9 @@ export interface NewDimension {
   name: string;
   type: DimensionType;
   description: string;
+  hierarchy?: string;
   attributes?: any;
-  attributes1?: string | null;
   category?: string;
   systemOrigin?: string;
+  salesManager?: string;
 }
