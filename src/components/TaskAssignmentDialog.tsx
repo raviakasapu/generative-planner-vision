@@ -1,62 +1,44 @@
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
-interface TaskAssignmentDialogProps {
+export interface TaskAssignmentDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  userId: string;
 }
 
-export function TaskAssignmentDialog({
-  isOpen,
-  onClose,
-}: TaskAssignmentDialogProps) {
-  const { user } = useAuth();
-  const { toast } = useToast();
+export function TaskAssignmentDialog({ isOpen, onClose, userId }: TaskAssignmentDialogProps) {
   const [taskName, setTaskName] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
-  const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [assignedUserId, setAssignedUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const handleCreateTask = async () => {
-    if (!user) return;
-
+  const handleAssignTask = async () => {
     try {
       const { error } = await supabase
         .from('s_task_assignments')
-        .insert([
-          {
-            user_id: assignedUserId,
-            task_name: taskName,
-            task_description: taskDescription,
-            due_date: dueDate?.toISOString(),
-            status: 'pending',
-          },
-        ]);
+        .insert({
+          user_id: userId,
+          task_name: taskName,
+          task_description: taskDescription,
+          status: 'pending',
+        });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Task created successfully",
+        description: "Task assigned successfully.",
       });
-
       onClose();
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error('Error assigning task:', error);
       toast({
         title: "Error",
-        description: "Failed to create task",
+        description: "Failed to assign task.",
         variant: "destructive",
       });
     }
@@ -69,27 +51,21 @@ export function TaskAssignmentDialog({
           <DialogTitle>Assign Task</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <Input
+          <input
+            type="text"
             placeholder="Task Name"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
+            className="input"
           />
-          <Textarea
+          <textarea
             placeholder="Task Description"
             value={taskDescription}
             onChange={(e) => setTaskDescription(e.target.value)}
+            className="textarea"
           />
-          <Input
-            type="date"
-            value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
-            onChange={(e) => setDueDate(e.target.value ? new Date(e.target.value) : null)}
-          />
-          <Button
-            onClick={handleCreateTask}
-            className="w-full"
-            disabled={!taskName}
-          >
-            Create Task
+          <Button onClick={handleAssignTask} disabled={!taskName}>
+            Assign Task
           </Button>
         </div>
       </DialogContent>

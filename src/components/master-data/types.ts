@@ -11,6 +11,19 @@ export interface Dimension {
   attributes1?: string | null;
   created_at?: string;
   updated_at?: string;
+  // Product specific
+  product_id?: string;
+  product_description?: string;
+  category?: string;
+  // Region specific
+  region_id?: string;
+  region_description?: string;
+  country?: string;
+  // Datasource specific
+  datasource_id?: string;
+  datasource_description?: string;
+  datasource_type?: string;
+  system_of_origin?: string;
 }
 
 export interface NewDimension {

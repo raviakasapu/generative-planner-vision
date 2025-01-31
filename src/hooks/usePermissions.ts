@@ -13,7 +13,7 @@ export const usePermissions = () => {
         .from('s_user_profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -25,6 +25,17 @@ export const usePermissions = () => {
     queryKey: ['rolePermissions', userProfile?.role],
     queryFn: async () => {
       if (!userProfile?.role) return [];
+      
+      // First get the role ID
+      const { data: roleData, error: roleError } = await supabase
+        .from('s_roles')
+        .select('id')
+        .eq('role_name', userProfile.role)
+        .single();
+      
+      if (roleError) throw roleError;
+      
+      // Then get the permissions using the role ID
       const { data, error } = await supabase
         .from('s_role_permissions')
         .select(`
@@ -33,7 +44,7 @@ export const usePermissions = () => {
             permission_name
           )
         `)
-        .eq('role_id', userProfile.role);
+        .eq('role_id', roleData.id);
       
       if (error) throw error;
       return data;
