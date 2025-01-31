@@ -33,7 +33,7 @@ export const MasterDataTypes = () => {
   const fetchDimensionTypes = async () => {
     try {
       const { data, error } = await supabase
-        .from('m_u_dimension_types')
+        .from('table_dimension_types')
         .select('*');
       
       if (error) throw error;
@@ -84,15 +84,27 @@ export const MasterDataTypes = () => {
 
       // Create the dimension type entry
       const { error: dimensionError } = await supabase
-        .from('m_u_dimension_types')
+        .from('table_dimension_types')
         .insert({
           name: newType.name,
           description: newType.description,
           table_name: tableName,
-          attributes: {},
+          attributes: templateData.structure,
         });
 
       if (dimensionError) throw dimensionError;
+
+      // Create the table metadata entry
+      const { error: metadataError } = await supabase
+        .from('table_metadata')
+        .insert({
+          table_name: tableName,
+          table_description: newType.description,
+          table_type: 'master_data',
+          schema_definition: templateData.structure,
+        });
+
+      if (metadataError) throw metadataError;
 
       toast({
         title: "Success",

@@ -359,36 +359,6 @@ export type Database = {
         }
         Relationships: []
       }
-      m_u_dimension_types: {
-        Row: {
-          attributes: Json | null
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          table_name: string
-          updated_at: string | null
-        }
-        Insert: {
-          attributes?: Json | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          table_name: string
-          updated_at?: string | null
-        }
-        Update: {
-          attributes?: Json | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          table_name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       m_u_layer: {
         Row: {
           attributes: Json | null
@@ -837,6 +807,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      table_dimension_types: {
+        Row: {
+          attributes: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          table_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          attributes?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          table_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          attributes?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          table_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       table_locks: {
         Row: {
