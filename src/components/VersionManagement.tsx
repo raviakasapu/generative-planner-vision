@@ -31,7 +31,17 @@ const VersionManagement = () => {
         .order(sortField, { ascending: sortOrder === 'asc' });
 
       if (error) throw error;
-      return data as Version[];
+      
+      // Ensure the data matches our Version type
+      return (data as any[]).map(version => ({
+        ...version,
+        attributes: version.attributes || {
+          version_type: '',
+          version_status: 'draft',
+          base_version_id: null,
+          is_base_version: false
+        }
+      })) as Version[];
     },
     enabled: !!user,
   });

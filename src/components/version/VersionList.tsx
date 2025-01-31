@@ -37,7 +37,7 @@ export function VersionList({
     },
   });
 
-  const getOwnerName = (ownerId: string | null) => {
+  const getOwnerName = (ownerId: string | null | undefined) => {
     if (!ownerId || !userProfiles) return 'Unknown';
     const owner = userProfiles.find(profile => profile.id === ownerId);
     return owner?.full_name || 'Unknown';
