@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types";
+
 export type DimensionType = string;
 
 export interface Dimension {
@@ -30,4 +32,15 @@ export interface DimensionTypeMetadata {
   description: string | null;
   table_name: string;
   attributes: Record<string, any>;
+}
+
+export interface DimensionData {
+  id: string;
+  identifier: string;
+  description: string | null;
+  dimension_type: string;
+  attributes?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
 }

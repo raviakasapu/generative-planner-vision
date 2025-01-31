@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DimensionForm } from './master-data/DimensionForm';
 import { DimensionTable } from './master-data/DimensionTable';
 import { SearchAndPagination } from './master-data/SearchAndPagination';
-import { Dimension, NewDimension, DimensionType, DimensionTypeMetadata } from './master-data/types';
+import { Dimension, NewDimension, DimensionType, DimensionTypeMetadata, DimensionData } from './master-data/types';
 
 const MasterData = () => {
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
@@ -45,7 +45,7 @@ const MasterData = () => {
 
       if (error) throw error;
 
-      const types = data.map(type => ({
+      const types: DimensionTypeMetadata[] = data.map(type => ({
         id: type.id,
         name: type.name,
         description: type.description,
@@ -76,16 +76,18 @@ const MasterData = () => {
 
       if (error) throw error;
 
-      const formattedData = data.map(item => ({
-        ...item,
+      const formattedData: Dimension[] = (data as DimensionData[]).map(item => ({
         id: item.id,
+        dimension_name: item.dimension_name || '',
+        dimension_type: newDimension.type as DimensionType,
         identifier: item.identifier,
         description: item.description,
-        dimension_type: newDimension.type as DimensionType,
-        attributes: item.attributes || null,
+        hierarchy: item.hierarchy,
+        attributes: item.attributes || {},
+        created_at: item.created_at,
+        updated_at: item.updated_at
       }));
 
-      console.log('Fetched dimensions:', formattedData);
       setDimensions(formattedData);
     } catch (error) {
       console.error('Error fetching dimensions:', error);
@@ -128,7 +130,19 @@ const MasterData = () => {
 
       if (error) throw error;
 
-      setDimensions(prev => [...prev, { ...data, dimension_type: newDimension.type }]);
+      const newDimensionData: Dimension = {
+        id: data.id,
+        dimension_name: data.dimension_name || '',
+        dimension_type: newDimension.type,
+        identifier: data.identifier,
+        description: data.description,
+        hierarchy: data.hierarchy,
+        attributes: data.attributes || {},
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+
+      setDimensions(prev => [...prev, newDimensionData]);
       setNewDimension({ 
         id: "", 
         name: "", 
@@ -156,27 +170,16 @@ const MasterData = () => {
     if (!editingDimension) return;
 
     try {
-      const table = editingDimension.dimension_type === 'product' ? 'm_u_product' :
-                    editingDimension.dimension_type === 'region' ? 'm_u_region' :
-                    'm_u_datasource';
+      const tableName = `m_u_${editingDimension.dimension_type}`;
       
       const updateData = {
         identifier: editingDimension.identifier,
         description: editingDimension.description,
-        ...(editingDimension.dimension_type === 'product' && { attributes: editingDimension.attributes }),
-        ...(editingDimension.dimension_type === 'region' && { 
-          attributes: { country: editingDimension.attributes }
-        }),
-        ...(editingDimension.dimension_type === 'datasource' && {
-          attributes: {
-            datasource_type: editingDimension.attributes,
-            system_of_origin: editingDimension.system_of_origin
-          }
-        }),
+        attributes: editingDimension.attributes,
       };
 
       const { error } = await supabase
-        .from(table)
+        .from(tableName)
         .update(updateData)
         .eq('id', editingDimension.id);
 
