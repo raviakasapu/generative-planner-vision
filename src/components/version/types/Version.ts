@@ -11,4 +11,7 @@ export interface Version {
   created_at?: string;
   updated_at?: string;
   unique_identifier: string | null;
+  owner_id: string | null;
+  created_by: string | null;
+  updated_by: string | null;
 }

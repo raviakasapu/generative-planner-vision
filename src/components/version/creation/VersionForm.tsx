@@ -16,12 +16,14 @@ interface VersionFormProps {
   formData: VersionFormData;
   onFormChange: (updates: Partial<VersionFormData>) => void;
   existingVersions?: Version[];
+  currentUserId: string;
 }
 
 export const VersionForm: React.FC<VersionFormProps> = ({
   formData,
   onFormChange,
-  existingVersions
+  existingVersions,
+  currentUserId
 }) => {
   return (
     <div className="space-y-4">

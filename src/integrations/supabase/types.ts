@@ -519,38 +519,47 @@ export type Database = {
         Row: {
           attributes: Json | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           dimension_name: string
           dimension_type: string
           hierarchy: string | null
           id: string
           identifier: string
+          owner_id: string | null
           unique_identifier: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           attributes?: Json | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           dimension_name?: string
           dimension_type?: string
           hierarchy?: string | null
           id?: string
           identifier: string
+          owner_id?: string | null
           unique_identifier?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           attributes?: Json | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           dimension_name?: string
           dimension_type?: string
           hierarchy?: string | null
           id?: string
           identifier?: string
+          owner_id?: string | null
           unique_identifier?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }

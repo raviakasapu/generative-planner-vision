@@ -76,7 +76,10 @@ export function VersionCreationDialog({
             version_status: 'draft',
             is_base_version: formData.isBaseVersion,
             base_version_id: formData.baseVersionId
-          }
+          },
+          owner_id: user.id,
+          created_by: user.id,
+          updated_by: user.id
         })
         .select()
         .single();
@@ -138,6 +141,7 @@ export function VersionCreationDialog({
           formData={formData}
           onFormChange={handleFormChange}
           existingVersions={existingVersions}
+          currentUserId={user?.id || ''}
         />
         <Button
           onClick={handleCreate}
