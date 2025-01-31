@@ -1,3 +1,2 @@
-export * from './VersionTypes';
+export * from './Version';
 export * from './VersionFormData';
-export type { Version } from './Version';
