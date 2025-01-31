@@ -398,6 +398,45 @@ export type Database = {
         }
         Relationships: []
       }
+      m_u_material: {
+        Row: {
+          attributes: Json | null
+          created_at: string | null
+          description: string | null
+          dimension_name: string
+          dimension_type: string
+          hierarchy: string | null
+          id: string
+          identifier: string
+          unique_identifier: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attributes?: Json | null
+          created_at?: string | null
+          description?: string | null
+          dimension_name?: string
+          dimension_type?: string
+          hierarchy?: string | null
+          id?: string
+          identifier: string
+          unique_identifier?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attributes?: Json | null
+          created_at?: string | null
+          description?: string | null
+          dimension_name?: string
+          dimension_type?: string
+          hierarchy?: string | null
+          id?: string
+          identifier?: string
+          unique_identifier?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       m_u_product: {
         Row: {
           attributes: string | null
