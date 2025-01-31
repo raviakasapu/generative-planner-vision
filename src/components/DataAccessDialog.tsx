@@ -48,7 +48,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
 
       setIsLoading(true);
       try {
-        const tableName = `m_u_${selectedDimensionType}` as const;
+        const tableName = `m_u_${selectedDimensionType}`;
         
         const { data, error } = await supabase
           .from(tableName)
@@ -64,7 +64,16 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
           return;
         }
 
-        setDimensionMembers(data || []);
+        if (data) {
+          // Ensure the data matches the DimensionMember interface
+          const formattedData: DimensionMember[] = data.map(item => ({
+            id: item.id,
+            dimension_name: item.dimension_name,
+            identifier: item.identifier,
+            description: item.description
+          }));
+          setDimensionMembers(formattedData);
+        }
       } catch (error) {
         console.error('Error in fetchDimensionMembers:', error);
         toast({
