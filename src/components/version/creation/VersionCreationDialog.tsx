@@ -150,7 +150,7 @@ export function VersionCreationDialog({
         </DialogHeader>
         <VersionForm
           formData={formData}
-          onFormChange={setFormData}
+          onFormChange={handleFormChange}
           existingVersions={existingVersions}
           userProfiles={[]}
           currentUserId={user?.id || ''}
