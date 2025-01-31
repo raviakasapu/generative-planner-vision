@@ -6,193 +6,187 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
-      applogs: {
+      confg_business_logic_rules: {
         Row: {
-          component: string | null
-          details: Json | null
-          event_id: string | null
           id: string
-          level: string
-          message: string | null
-          timestamp: string | null
-          user_id: string | null
-        }
-        Insert: {
-          component?: string | null
-          details?: Json | null
-          event_id?: string | null
-          id?: string
-          level: string
-          message?: string | null
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          component?: string | null
-          details?: Json | null
-          event_id?: string | null
-          id?: string
-          level?: string
-          message?: string | null
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      audit_role_change: {
-        Row: {
-          changed_at: string | null
-          changed_by: string
-          id: string
-          new_role: string | null
-          previous_role: string | null
-          user_id: string
-        }
-        Insert: {
-          changed_at?: string | null
-          changed_by: string
-          id?: string
-          new_role?: string | null
-          previous_role?: string | null
-          user_id: string
-        }
-        Update: {
-          changed_at?: string | null
-          changed_by?: string
-          id?: string
-          new_role?: string | null
-          previous_role?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      audit_version_status: {
-        Row: {
-          created_at: string | null
-          id: string
-          new_status: string
-          previous_status: string
-          user_id: string
-          version_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          new_status: string
-          previous_status: string
-          user_id: string
-          version_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          new_status?: string
-          previous_status?: string
-          user_id?: string
-          version_id?: string
-        }
-        Relationships: []
-      }
-      businesslogicrules: {
-        Row: {
-          created_at: string | null
-          id: string
-          rule_definition: Json
+          rule_name: string
           rule_description: string | null
-          rule_name: string
-          updated_at: string | null
-          version: number
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
           rule_definition: Json
-          rule_description?: string | null
+          version: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
           rule_name: string
-          updated_at?: string | null
-          version?: number
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          rule_definition?: Json
           rule_description?: string | null
-          rule_name?: string
-          updated_at?: string | null
+          rule_definition: Json
           version?: number
-        }
-        Relationships: []
-      }
-      chat_actions: {
-        Row: {
-          action_data: Json | null
-          action_type: string
-          chat_message_id: string | null
-          created_at: string | null
-          id: string
-          result: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          action_data?: Json | null
-          action_type: string
-          chat_message_id?: string | null
           created_at?: string | null
-          id?: string
-          result?: Json | null
           updated_at?: string | null
         }
         Update: {
-          action_data?: Json | null
-          action_type?: string
-          chat_message_id?: string | null
-          created_at?: string | null
           id?: string
-          result?: Json | null
+          rule_name?: string
+          rule_description?: string | null
+          rule_definition?: Json
+          version?: number
+          created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "chat_actions_chat_message_id_fkey"
-            columns: ["chat_message_id"]
-            isOneToOne: false
-            referencedRelation: "chat_messages"
-            referencedColumns: ["id"]
-          },
-        ]
       }
-      chat_messages: {
+      table_locks: {
         Row: {
-          context: Json | null
-          created_at: string | null
-          id: string
-          message: string
-          response: string | null
-          updated_at: string | null
+          resource_type: string
+          resource_id: string
           user_id: string | null
+          lock_timestamp: string | null
+          expiry_timestamp: string | null
         }
         Insert: {
-          context?: Json | null
-          created_at?: string | null
-          id?: string
-          message: string
-          response?: string | null
-          updated_at?: string | null
+          resource_type: string
+          resource_id: string
           user_id?: string | null
+          lock_timestamp?: string | null
+          expiry_timestamp?: string | null
         }
         Update: {
-          context?: Json | null
-          created_at?: string | null
-          id?: string
-          message?: string
-          response?: string | null
-          updated_at?: string | null
+          resource_type?: string
+          resource_id?: string
           user_id?: string | null
+          lock_timestamp?: string | null
+          expiry_timestamp?: string | null
         }
-        Relationships: []
+      }
+      s_permissions: {
+        Row: {
+          id: string
+          permission_name: string
+          permission_description: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          permission_name: string
+          permission_description?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          permission_name?: string
+          permission_description?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      s_role_permissions: {
+        Row: {
+          role_id: string
+          permission_id: string
+          created_at: string | null
+        }
+        Insert: {
+          role_id: string
+          permission_id: string
+          created_at?: string | null
+        }
+        Update: {
+          role_id?: string
+          permission_id?: string
+          created_at?: string | null
+        }
+      }
+      s_roles: {
+        Row: {
+          id: string
+          role_name: string
+          role_description: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          role_name: string
+          role_description?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          role_name?: string
+          role_description?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      s_task_assignments: {
+        Row: {
+          id: string
+          user_id: string | null
+          task_name: string
+          task_description: string | null
+          status: string
+          due_date: string | null
+          created_at: string | null
+          updated_at: string | null
+          approval_status: string | null
+          approved_by: string | null
+          approved_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          task_name: string
+          task_description?: string | null
+          status?: string
+          due_date?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          task_name?: string
+          task_description?: string | null
+          status?: string
+          due_date?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+        }
+      }
+      s_user_profiles: {
+        Row: {
+          id: string
+          full_name: string | null
+          role: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id: string
+          full_name?: string | null
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          full_name?: string | null
+          role?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
       }
       data_access_permissions: {
         Row: {
@@ -228,7 +222,6 @@ export type Database = {
           id?: string
           user_id?: string | null
         }
-        Relationships: []
       }
       data_access_product: {
         Row: {
@@ -319,30 +312,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      lockstable: {
-        Row: {
-          expiry_timestamp: string | null
-          lock_timestamp: string | null
-          resource_id: string
-          resource_type: string
-          user_id: string | null
-        }
-        Insert: {
-          expiry_timestamp?: string | null
-          lock_timestamp?: string | null
-          resource_id: string
-          resource_type: string
-          user_id?: string | null
-        }
-        Update: {
-          expiry_timestamp?: string | null
-          lock_timestamp?: string | null
-          resource_id?: string
-          resource_type?: string
-          user_id?: string | null
-        }
-        Relationships: []
       }
       m_u_datasource: {
         Row: {
@@ -444,7 +413,7 @@ export type Database = {
           hierarchy?: string | null
           id?: string
           identifier: string
-          unique_identifier?: string
+          unique_identifier?: string;
           updated_at?: string | null
         }
         Update: {
@@ -456,7 +425,7 @@ export type Database = {
           hierarchy?: string | null
           id?: string
           identifier?: string
-          unique_identifier?: string
+          unique_identifier?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -700,7 +669,7 @@ export type Database = {
           region_dimension_id?: string | null
           security_level?: string | null
           task_id?: string | null
-          time_dimension_id?: string
+          time_dimension_id: string
           transaction_timestamp?: string | null
           user_id?: string | null
           version_dimension_id?: string | null
@@ -887,100 +856,3 @@ export type Database = {
     }
   }
 }
-
-type PublicSchema = Database[Extract<keyof Database, "public">]
-
-export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never

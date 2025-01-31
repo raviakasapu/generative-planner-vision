@@ -1,67 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TaskAssignmentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  userId: string;
 }
 
 export function TaskAssignmentDialog({
   isOpen,
   onClose,
-  userId,
 }: TaskAssignmentDialogProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [taskName, setTaskName] = React.useState('');
-  const [taskDescription, setTaskDescription] = React.useState('');
-  const [dueDate, setDueDate] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [taskName, setTaskName] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [assignedUserId, setAssignedUserId] = useState<string | null>(null);
 
-  const handleAssignTask = async () => {
+  const handleCreateTask = async () => {
+    if (!user) return;
+
     try {
-      setIsSubmitting(true);
-      const { error } = await supabase.from('task_assignments').insert({
-        user_id: userId,
-        task_name: taskName,
-        task_description: taskDescription,
-        due_date: dueDate,
-        status: 'pending',
-      });
+      const { error } = await supabase
+        .from('s_task_assignments')
+        .insert([
+          {
+            user_id: assignedUserId,
+            task_name: taskName,
+            task_description: taskDescription,
+            due_date: dueDate?.toISOString(),
+            status: 'pending',
+          },
+        ]);
 
       if (error) throw error;
 
       toast({
-        title: 'Task Assigned',
-        description: 'Task has been assigned successfully',
+        title: "Success",
+        description: "Task created successfully",
       });
+
       onClose();
     } catch (error) {
-      console.error('Error assigning task:', error);
+      console.error('Error creating task:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to assign task',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create task",
+        variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -73,26 +70,26 @@ export function TaskAssignmentDialog({
         </DialogHeader>
         <div className="space-y-4">
           <Input
-            placeholder="Task name"
+            placeholder="Task Name"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
           />
           <Textarea
-            placeholder="Task description"
+            placeholder="Task Description"
             value={taskDescription}
             onChange={(e) => setTaskDescription(e.target.value)}
           />
           <Input
-            type="datetime-local"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
+            type="date"
+            value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
+            onChange={(e) => setDueDate(e.target.value ? new Date(e.target.value) : null)}
           />
           <Button
-            onClick={handleAssignTask}
+            onClick={handleCreateTask}
             className="w-full"
-            disabled={!taskName || !dueDate || isSubmitting}
+            disabled={!taskName}
           >
-            {isSubmitting ? 'Assigning...' : 'Assign Task'}
+            Create Task
           </Button>
         </div>
       </DialogContent>
