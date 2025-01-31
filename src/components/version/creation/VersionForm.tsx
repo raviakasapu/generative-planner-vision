@@ -33,9 +33,8 @@ export const VersionForm: React.FC<VersionFormProps> = ({
   userProfiles,
   currentUserId
 }) => {
-  const canManageVersions = userProfiles?.find(
-    profile => profile.id === currentUserId
-  )?.role === 'business_user';
+  const currentUserProfile = userProfiles?.find(profile => profile.id === currentUserId);
+  const canManageVersions = currentUserProfile?.role === 'admin' || currentUserProfile?.role === 'power_user';
 
   return (
     <div className="space-y-4">
