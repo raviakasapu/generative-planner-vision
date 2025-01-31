@@ -14,3 +14,6 @@ export interface DimensionMember {
   description: string | null;
   attributes: Record<string, any> | null;
 }
+
+// Type for table names to ensure they match Supabase schema
+export type DimensionTableName = `m_u_${DimensionType}`;

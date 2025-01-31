@@ -54,8 +54,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
             approval_status: 'pending'
           }
         ])
-        .select()
-        .single();
+        .select();
 
       if (error) {
         console.error('Error saving data access:', error);

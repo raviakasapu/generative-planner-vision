@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
-import { DimensionType, DimensionMember } from "./types";
+import { DimensionType, DimensionMember, DimensionTableName } from "./types";
 
 interface DimensionMemberSelectProps {
   dimensionType: DimensionType | '';
@@ -34,7 +34,7 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
 
       setIsLoading(true);
       try {
-        const tableName = `m_u_${dimensionType}`;
+        const tableName = `m_u_${dimensionType}` as DimensionTableName;
         
         const { data, error } = await supabase
           .from(tableName)
