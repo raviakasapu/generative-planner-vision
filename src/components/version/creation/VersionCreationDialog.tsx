@@ -30,6 +30,7 @@ export function VersionCreationDialog({
     versionType: '',
     isBaseVersion: false,
     baseVersionId: null,
+    ownerId: null,
   });
 
   const { user } = useAuth();
@@ -45,6 +46,19 @@ export function VersionCreationDialog({
 
       if (error) throw error;
       return data as Version[];
+    },
+    enabled: isOpen,
+  });
+
+  const { data: userProfiles } = useQuery({
+    queryKey: ['user-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('s_user_profiles')
+        .select('id, full_name, role');
+
+      if (error) throw error;
+      return data;
     },
     enabled: isOpen,
   });
@@ -77,7 +91,7 @@ export function VersionCreationDialog({
             is_base_version: formData.isBaseVersion,
             base_version_id: formData.baseVersionId
           },
-          owner_id: user.id,
+          owner_id: formData.ownerId || user.id,
           created_by: user.id,
           updated_by: user.id
         })
@@ -128,6 +142,7 @@ export function VersionCreationDialog({
       versionType: '',
       isBaseVersion: false,
       baseVersionId: null,
+      ownerId: null,
     });
   };
 
@@ -141,6 +156,7 @@ export function VersionCreationDialog({
           formData={formData}
           onFormChange={handleFormChange}
           existingVersions={existingVersions}
+          userProfiles={userProfiles}
           currentUserId={user?.id || ''}
         />
         <Button

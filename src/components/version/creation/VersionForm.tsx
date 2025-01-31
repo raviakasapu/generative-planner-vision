@@ -9,13 +9,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { VersionFormData, VersionType } from '../types';
+import { VersionFormData } from '../types';
 import type { Version } from '../types';
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  role: string;
+}
 
 interface VersionFormProps {
   formData: VersionFormData;
   onFormChange: (updates: Partial<VersionFormData>) => void;
   existingVersions?: Version[];
+  userProfiles?: UserProfile[];
   currentUserId: string;
 }
 
@@ -23,8 +30,13 @@ export const VersionForm: React.FC<VersionFormProps> = ({
   formData,
   onFormChange,
   existingVersions,
+  userProfiles,
   currentUserId
 }) => {
+  const canManageVersions = userProfiles?.find(
+    profile => profile.id === currentUserId
+  )?.role === 'business_user';
+
   return (
     <div className="space-y-4">
       <Input
@@ -39,7 +51,7 @@ export const VersionForm: React.FC<VersionFormProps> = ({
       />
       <Select 
         value={formData.versionType} 
-        onValueChange={(value) => onFormChange({ versionType: value as VersionType })}
+        onValueChange={(value) => onFormChange({ versionType: value })}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select Version Type" />
@@ -51,6 +63,24 @@ export const VersionForm: React.FC<VersionFormProps> = ({
         </SelectContent>
       </Select>
       
+      {canManageVersions && (
+        <Select
+          value={formData.ownerId || ''}
+          onValueChange={(value) => onFormChange({ ownerId: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select Version Owner" />
+          </SelectTrigger>
+          <SelectContent>
+            {userProfiles?.map((profile) => (
+              <SelectItem key={profile.id} value={profile.id}>
+                {profile.full_name || profile.id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
       <div className="flex items-center space-x-2">
         <Checkbox
           id="isBaseVersion"

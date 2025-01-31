@@ -6,4 +6,5 @@ export interface VersionFormData {
   versionType: VersionType | '';
   isBaseVersion: boolean;
   baseVersionId: string | null;
+  ownerId: string | null;
 }
