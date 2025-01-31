@@ -36,6 +36,13 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
         return;
       }
 
+      console.log('Saving data access with:', {
+        user_id: userId,
+        dimension_type: selectedDimensionType,
+        dimension_id: selectedDimensionId,
+        access_level: accessLevel,
+      });
+
       const { data, error } = await supabase
         .from('data_access_permissions')
         .insert([
