@@ -10,3 +10,9 @@ export interface DimensionMember {
 
 // Type for table names to ensure they match Supabase schema
 export type DimensionTableName = `m_u_${DimensionType}`;
+
+export interface DimensionTypeOption {
+  value: DimensionType;
+  label: string;
+  tableName: DimensionTableName;
+}
