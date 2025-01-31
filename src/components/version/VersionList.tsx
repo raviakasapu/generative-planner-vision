@@ -79,39 +79,49 @@ export function VersionList({
               className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => onStatusChange(version)}
             >
-              <h3 className="text-lg font-medium mb-2">{version.dimension_name}</h3>
-              <p className="text-sm text-gray-500 mb-4">{version.description}</p>
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm">
-                  <span className="text-gray-600 mr-2">Owner:</span>
-                  <span>{getOwnerName(version.owner_id)}</span>
-                </div>
-                
-                <div className="flex items-center text-sm">
-                  <span className="text-gray-600 mr-2">Type:</span>
-                  <span className="capitalize">{version.attributes?.version_type || 'N/A'}</span>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-sm text-gray-600">Version Lineage:</span>
-                  <div className="pl-2 border-l-2 border-gray-200">
-                    {renderLineage(getVersionLineage(version))}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Left Column - Version Info */}
+                <div>
+                  <h3 className="text-lg font-medium mb-2">{version.dimension_name}</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm">
+                      <span className="text-gray-600 mr-2">Owner:</span>
+                      <span>{getOwnerName(version.owner_id)}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <span className="text-gray-600 mr-2">Type:</span>
+                      <span className="capitalize">{version.attributes?.version_type || 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center text-sm">
-                  <span className="text-gray-600 mr-2">Created:</span>
-                  <span>{version.created_at ? formatDistanceToNow(new Date(version.created_at), { addSuffix: true }) : 'N/A'}</span>
+                {/* Right Column - Metadata */}
+                <div>
+                  <div className="mb-2">
+                    <Badge className={getStatusColor(version.attributes?.version_status || 'draft')}>
+                      {version.attributes?.version_status || 'draft'}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Created: {version.created_at ? formatDistanceToNow(new Date(version.created_at), { addSuffix: true }) : 'N/A'}
+                  </div>
+                  {version.updated_at && (
+                    <div className="text-sm text-gray-500">
+                      Updated: {formatDistanceToNow(new Date(version.updated_at), { addSuffix: true })}
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              <div className="flex justify-between items-center">
-                <Badge 
-                  className={getStatusColor(version.attributes?.version_status || 'draft')}
-                >
-                  {version.attributes?.version_status || 'draft'}
-                </Badge>
+                {/* Full Width - Description and Lineage */}
+                <div className="col-span-2">
+                  <p className="text-sm text-gray-500 mb-2">{version.description}</p>
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-600">Version Lineage:</span>
+                    <div className="pl-2 border-l-2 border-gray-200">
+                      {renderLineage(getVersionLineage(version))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
