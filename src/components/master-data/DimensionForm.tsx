@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NewDimension, DimensionTypeMetadata } from './types';
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DimensionFormProps {
   newDimension: NewDimension;
@@ -12,12 +13,37 @@ interface DimensionFormProps {
   onSubmit: () => void;
 }
 
+interface DimensionType {
+  id: number;
+  name: string;
+  table_name: string;
+}
+
 export const DimensionForm: React.FC<DimensionFormProps> = ({
   newDimension,
   dimensionTypes,
   onDimensionChange,
   onSubmit,
 }) => {
+  const [dimensionTypesState, setDimensionTypesState] = useState<DimensionType[]>([]);
+
+  useEffect(() => {
+    const fetchDimensionTypes = async () => {
+      const { data, error } = await supabase
+        .from('table_dimension_types')
+        .select('id, name, table_name');
+
+      if (error) {
+        console.error('Error fetching dimension types:', error);
+        return;
+      }
+
+      setDimensionTypesState(data || []);
+    };
+
+    fetchDimensionTypes();
+  }, []);
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -31,7 +57,7 @@ export const DimensionForm: React.FC<DimensionFormProps> = ({
               <SelectValue placeholder="Select dimension type" />
             </SelectTrigger>
             <SelectContent>
-              {dimensionTypes.map((type) => (
+              {dimensionTypesState.map((type) => (
                 <SelectItem 
                   key={type.id} 
                   value={type.table_name.replace('m_u_', '')}
