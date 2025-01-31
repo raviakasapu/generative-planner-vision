@@ -57,7 +57,7 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
             dimension_name: item.dimension_name,
             identifier: item.identifier,
             description: item.description,
-            attributes: item.attributes
+            attributes: item.attributes ? JSON.parse(JSON.stringify(item.attributes)) : {}
           }));
           setDimensionMembers(members);
         }

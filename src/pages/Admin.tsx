@@ -3,7 +3,7 @@ import { UserNav } from '@/components/UserNav';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Users, Versions, Database } from 'lucide-react';
+import { Users, GitBranch, Database } from 'lucide-react';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const Admin = () => {
 
         <Card className="p-6">
           <div className="flex flex-col items-center space-y-4">
-            <Versions className="h-12 w-12 text-primary" />
+            <GitBranch className="h-12 w-12 text-primary" />
             <h2 className="text-xl font-semibold">Version Management</h2>
             <p className="text-center text-muted-foreground">
               Control versions and their lifecycle
