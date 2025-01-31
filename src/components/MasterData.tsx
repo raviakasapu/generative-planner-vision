@@ -16,8 +16,8 @@ const MasterData = () => {
     name: "", 
     type: "",
     description: "",
-    category: "",
-    systemOrigin: "",
+    hierarchy: "",
+    attributes: {},
   });
   const [showData, setShowData] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");

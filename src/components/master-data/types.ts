@@ -19,8 +19,8 @@ export interface NewDimension {
   name: string;
   type: DimensionType;
   description: string;
-  category?: string;
-  systemOrigin?: string;
+  hierarchy?: string;
+  attributes?: Record<string, any>;
 }
 
 export interface DimensionTypeMetadata {
