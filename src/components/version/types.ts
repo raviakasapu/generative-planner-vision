@@ -3,7 +3,6 @@ export interface Version {
   dimension_name: string;
   dimension_type: string;
   identifier: string;
-  unique_identifier: string | null;
   description: string | null;
   hierarchy: string | null;
   attributes: {

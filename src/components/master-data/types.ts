@@ -5,11 +5,10 @@ export interface Dimension {
   dimension_name: string;
   dimension_type: DimensionType;
   identifier: string;
-  unique_identifier: string | null;
   description: string | null;
   hierarchy: string | null;
-  attributes1?: string | null; // For product dimension
-  attributes?: any; // For other dimensions
+  attributes?: any;
+  attributes1?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -20,4 +19,7 @@ export interface NewDimension {
   type: DimensionType;
   description: string;
   attributes?: any;
+  attributes1?: string | null;
+  category?: string;
+  systemOrigin?: string;
 }
