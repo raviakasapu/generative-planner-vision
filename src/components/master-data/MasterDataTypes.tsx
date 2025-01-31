@@ -13,6 +13,8 @@ interface DimensionType {
   description: string | null;
   table_name: string;
   attributes: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const MasterDataTypes = () => {
@@ -35,7 +37,16 @@ const MasterDataTypes = () => {
         .select('*');
       
       if (error) throw error;
-      setTypes(data || []);
+      
+      // Ensure attributes is parsed as Record<string, any>
+      const parsedData = (data || []).map(type => ({
+        ...type,
+        attributes: typeof type.attributes === 'string' 
+          ? JSON.parse(type.attributes) 
+          : type.attributes || {}
+      }));
+      
+      setTypes(parsedData);
     } catch (error) {
       console.error('Error fetching dimension types:', error);
       toast({
