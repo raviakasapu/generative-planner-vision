@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { DimensionForm } from './master-data/DimensionForm';
 import { DimensionTable } from './master-data/DimensionTable';
 import { SearchAndPagination } from './master-data/SearchAndPagination';
 import { Dimension, NewDimension, DimensionType } from './master-data/types';
+import { useNavigate } from 'react-router-dom';
+import { Database } from 'lucide-react';
 
 const MasterData = () => {
+  const navigate = useNavigate();
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
   const [newDimension, setNewDimension] = useState<NewDimension>({ 
     id: "", 
@@ -222,7 +225,18 @@ const MasterData = () => {
 
   return (
     <Card className="p-4">
-      <h2 className="text-lg font-semibold mb-4">Master Data Management</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Master Data Management</h2>
+        <Button 
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => navigate('/admin/master-data/types')}
+        >
+          <Database className="h-4 w-4" />
+          Manage Types
+        </Button>
+      </div>
+      
       <div className="space-y-4">
         <DimensionForm
           newDimension={newDimension}
