@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+import { ArrowDownRight } from 'lucide-react';
 import { Version } from "./types";
 
 interface VersionListProps {
@@ -18,7 +18,6 @@ export function VersionList({
   onStatusChange,
   getStatusColor,
 }: VersionListProps) {
-  // Fetch user profiles for owner information
   const { data: userProfiles } = useQuery({
     queryKey: ['userProfiles'],
     queryFn: async () => {
@@ -36,10 +35,30 @@ export function VersionList({
     return owner?.full_name || 'Unknown';
   };
 
-  const getBaseVersionName = (version: Version) => {
-    if (!version.attributes?.base_version_id) return null;
-    const baseVersion = versions.find(v => v.id === version.attributes.base_version_id);
-    return baseVersion?.dimension_name || 'Unknown Base Version';
+  const getVersionLineage = (version: Version): Version[] => {
+    const lineage: Version[] = [version];
+    let currentVersion = version;
+    
+    while (currentVersion.attributes?.base_version_id) {
+      const baseVersion = versions.find(v => v.id === currentVersion.attributes?.base_version_id);
+      if (baseVersion) {
+        lineage.push(baseVersion);
+        currentVersion = baseVersion;
+      } else {
+        break;
+      }
+    }
+    
+    return lineage.reverse();
+  };
+
+  const renderLineage = (lineage: Version[]) => {
+    return lineage.map((v, index) => (
+      <div key={v.id} className="flex items-center">
+        {index > 0 && <ArrowDownRight className="text-gray-400 mr-1" size={16} />}
+        <span className="text-sm text-gray-600">{v.dimension_name}</span>
+      </div>
+    ));
   };
 
   return (
@@ -66,12 +85,12 @@ export function VersionList({
                   <span className="capitalize">{version.attributes?.version_type || 'N/A'}</span>
                 </div>
 
-                {version.attributes?.base_version_id && (
-                  <div className="flex items-center text-sm">
-                    <span className="text-gray-600 mr-2">Based on:</span>
-                    <span>{getBaseVersionName(version)}</span>
+                <div className="space-y-1">
+                  <span className="text-sm text-gray-600">Version Lineage:</span>
+                  <div className="pl-2 border-l-2 border-gray-200">
+                    {renderLineage(getVersionLineage(version))}
                   </div>
-                )}
+                </div>
 
                 <div className="flex items-center text-sm">
                   <span className="text-gray-600 mr-2">Created:</span>
@@ -103,9 +122,9 @@ export function VersionList({
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <span>Owner: {getOwnerName(version.owner_id)}</span>
                   <span>Type: {version.attributes?.version_type}</span>
-                  {version.attributes?.base_version_id && (
-                    <span>Based on: {getBaseVersionName(version)}</span>
-                  )}
+                </div>
+                <div className="pl-2 border-l-2 border-gray-200">
+                  {renderLineage(getVersionLineage(version))}
                 </div>
               </div>
               <Badge 
