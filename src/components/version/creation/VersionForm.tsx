@@ -9,7 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Version, VersionFormData, VersionType } from '../types';
+import { VersionFormData, VersionType } from '../types';
+import type { Version } from '../types';
 
 interface VersionFormProps {
   formData: VersionFormData;
@@ -20,7 +21,7 @@ interface VersionFormProps {
 export const VersionForm: React.FC<VersionFormProps> = ({
   formData,
   onFormChange,
-  existingVersions,
+  existingVersions
 }) => {
   return (
     <div className="space-y-4">
