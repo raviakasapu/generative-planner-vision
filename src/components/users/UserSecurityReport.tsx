@@ -39,7 +39,7 @@ export const UserSecurityReport: React.FC<UserSecurityReportProps> = ({ userId }
               <li key={audit.id} className="text-sm">
                 Role changed from {audit.previous_role} to {audit.new_role}
                 <span className="text-gray-500 ml-2">
-                  {new Date(audit.created_at).toLocaleDateString()}
+                  {new Date(audit.changed_at).toLocaleDateString()}
                 </span>
               </li>
             ))}

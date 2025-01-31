@@ -45,7 +45,7 @@ const MasterData = () => {
           data = products.map(p => ({
             ...p,
             dimension_type: 'product' as DimensionType,
-            attributes: p.attributes1 || null,
+            attributes: p.attributes || null,
           }));
           break;
           

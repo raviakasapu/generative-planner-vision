@@ -77,7 +77,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
           return;
         }
 
-        setDimensionMembers(data as DimensionMember[] || []);
+        setDimensionMembers(data || []);
       } catch (error) {
         console.error('Error in fetchDimensionMembers:', error);
         toast({
@@ -157,7 +157,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
               value={selectedDimensionType}
               onValueChange={(value: DimensionType) => {
                 setSelectedDimensionType(value);
-                setSelectedDimensionId(''); // Reset member selection when type changes
+                setSelectedDimensionId('');
               }}
             >
               <SelectTrigger>
