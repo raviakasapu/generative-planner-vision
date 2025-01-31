@@ -1,4 +1,4 @@
-export type VersionType = 'budget' | 'forecast' | 'actual';
+import { VersionType } from './VersionTypes';
 
 export interface VersionFormData {
   versionName: string;

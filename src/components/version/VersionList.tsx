@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Layers, GitBranch } from "lucide-react";
-import type { Version } from "./types/VersionTypes";
+import { Version } from "./types";
 
 interface VersionListProps {
   versions: Version[];
