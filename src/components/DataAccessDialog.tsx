@@ -48,7 +48,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
 
       setIsLoading(true);
       try {
-        const tableName = `m_u_${selectedDimensionType}`;
+        const tableName = `m_u_${selectedDimensionType}` as const;
         
         const { data, error } = await supabase
           .from(tableName)
