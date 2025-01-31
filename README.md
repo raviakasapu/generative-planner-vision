@@ -1,54 +1,45 @@
-# Welcome to your Lovable project
+# Welcome to Planning Applicaiton using generative ai
 
-## Project info
+# Generative Planning Vision
 
-**URL**: https://lovable.dev/projects/9a403459-3835-40b0-b28b-d40e7a4d841f
+A modern planning application that combines traditional spreadsheet functionality with AI-powered assistance to streamline business planning and decision-making processes.
 
-## How can I edit this code?
+## Overview
 
-There are several ways of editing your application.
+Generative Planning Vision is a web-based application that integrates:
+- Interactive planning spreadsheets
+- AI-powered chat interface for real-time assistance
+- Business logic management
+- Master data management system
+- Role-based access control
 
-**Use Lovable**
+## Key Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9a403459-3835-40b0-b28b-d40e7a4d841f) and start prompting.
+- **AI Chat Interface**: Get instant help and insights while working on your plans
+- **Dynamic Planning Spreadsheet**: Flexible spreadsheet interface for data manipulation
+- **Master Data Management**: Create and manage different types of business dimensions
+- **Business Logic Integration**: Define and manage business rules and constraints
+- **Modern UI**: Built with React and Tailwind CSS for a clean, responsive interface
+- **Secure Backend**: Powered by Supabase for reliable data management and authentication
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technical Stack
 
-**Use your preferred IDE**
+- Frontend: React, TypeScript, Tailwind CSS
+- Backend: Supabase
+- Authentication: Built-in auth system with role-based permissions
+- Database: PostgreSQL (via Supabase)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+[Add installation and setup instructions here]
 
-Follow these steps:
+## Contributing
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+[Add contribution guidelines here]
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## License
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+[Add license information here]
 
 ## What technologies are used for this project?
 
@@ -60,10 +51,3 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/9a403459-3835-40b0-b28b-d40e7a4d841f) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
