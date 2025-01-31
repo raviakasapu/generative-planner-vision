@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,6 @@ export function VersionCreationDialog({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch existing versions
   const { data: existingVersions } = useQuery({
     queryKey: ['versions-for-base'],
     queryFn: async () => {
@@ -67,7 +66,6 @@ export function VersionCreationDialog({
     }
 
     try {
-      // Create new version
       const { data: newVersion, error: versionError } = await supabase
         .from('m_u_version')
         .insert({
@@ -87,7 +85,6 @@ export function VersionCreationDialog({
 
       if (versionError) throw versionError;
 
-      // If this is based on another version, copy the planning data
       if (baseVersionId && newVersion) {
         const { error: copyError } = await supabase
           .rpc('copy_planning_data_for_version', {
