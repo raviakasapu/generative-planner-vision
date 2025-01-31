@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowDownRight } from 'lucide-react';
 import { Version } from "./types";
 import {
   Table,
@@ -62,8 +62,8 @@ export function VersionList({
 
   const renderLineage = (lineage: Version[]) => {
     return lineage.map((v, index) => (
-      <div key={v.id} className="flex items-center">
-        {index > 0 && <ArrowUpRight className="text-gray-400 mr-1" size={16} />}
+      <div key={v.id} className={`flex items-center ${index > 0 ? 'ml-4' : ''}`}>
+        {index > 0 && <ArrowDownRight className="text-gray-400 mr-1" size={16} />}
         <span className="text-sm text-gray-600">{v.dimension_name}</span>
       </div>
     ));
@@ -95,7 +95,7 @@ export function VersionList({
 
                 <div className="space-y-1">
                   <span className="text-sm text-gray-600">Version Lineage:</span>
-                  <div className="pl-2 border-l-2 border-gray-200 flex flex-col-reverse">
+                  <div className="pl-2 border-l-2 border-gray-200">
                     {renderLineage(getVersionLineage(version))}
                   </div>
                 </div>
@@ -141,7 +141,7 @@ export function VersionList({
                 <TableCell>{getOwnerName(version.owner_id)}</TableCell>
                 <TableCell>{version.attributes?.version_type}</TableCell>
                 <TableCell>
-                  <div className="flex flex-col-reverse">
+                  <div className="flex flex-col">
                     {renderLineage(getVersionLineage(version))}
                   </div>
                 </TableCell>
