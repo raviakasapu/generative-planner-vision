@@ -1,4 +1,4 @@
-export type DimensionType = 'product' | 'region' | 'datasource' | 'time' | 'version';
+export type DimensionType = string;
 
 export interface Dimension {
   id: string;
@@ -10,19 +10,6 @@ export interface Dimension {
   attributes?: any;
   created_at?: string;
   updated_at?: string;
-  // Product specific
-  product_id?: string;
-  product_description?: string;
-  category?: string;
-  // Region specific
-  region_id?: string;
-  region_description?: string;
-  country?: string;
-  // Datasource specific
-  datasource_id?: string;
-  datasource_description?: string;
-  datasource_type?: string;
-  system_of_origin?: string;
 }
 
 export interface NewDimension {
@@ -35,4 +22,12 @@ export interface NewDimension {
   category?: string;
   systemOrigin?: string;
   salesManager?: string;
+}
+
+export interface DimensionTypeMetadata {
+  id: string;
+  name: string;
+  description: string | null;
+  table_name: string;
+  attributes: Record<string, any>;
 }

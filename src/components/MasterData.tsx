@@ -6,14 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { DimensionForm } from './master-data/DimensionForm';
 import { DimensionTable } from './master-data/DimensionTable';
 import { SearchAndPagination } from './master-data/SearchAndPagination';
-import { Dimension, NewDimension, DimensionType } from './master-data/types';
+import { Dimension, NewDimension, DimensionType, DimensionTypeMetadata } from './master-data/types';
 
 const MasterData = () => {
   const [dimensions, setDimensions] = useState<Dimension[]>([]);
+  const [dimensionTypes, setDimensionTypes] = useState<DimensionTypeMetadata[]>([]);
   const [newDimension, setNewDimension] = useState<NewDimension>({ 
     id: "", 
     name: "", 
-    type: "product",
+    type: "",
     description: "",
     category: "",
     systemOrigin: "",
@@ -26,64 +27,66 @@ const MasterData = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (showData) {
+    fetchDimensionTypes();
+  }, []);
+
+  useEffect(() => {
+    if (showData && newDimension.type) {
       fetchDimensions();
     }
   }, [showData, newDimension.type]);
 
+  const fetchDimensionTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('table_dimension_types')
+        .select('*')
+        .eq('table_name', 'm_u_%');
+
+      if (error) throw error;
+
+      const types = data.map(type => ({
+        id: type.id,
+        name: type.name,
+        description: type.description,
+        table_name: type.table_name,
+        attributes: type.attributes || {}
+      }));
+
+      setDimensionTypes(types);
+      if (types.length > 0 && !newDimension.type) {
+        setNewDimension(prev => ({ ...prev, type: types[0].table_name.replace('m_u_', '') }));
+      }
+    } catch (error) {
+      console.error('Error fetching dimension types:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch dimension types",
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchDimensions = async () => {
     try {
-      let data: Dimension[] = [];
-      
-      switch(newDimension.type) {
-        case 'product':
-          const { data: products, error: productsError } = await supabase
-            .from('m_u_product')
-            .select('*');
-          if (productsError) throw productsError;
-          data = products.map(p => ({
-            ...p,
-            id: p.id,
-            identifier: p.identifier,
-            description: p.description,
-            dimension_type: 'product' as DimensionType,
-            attributes: p.attributes || null,
-          }));
-          break;
-          
-        case 'region':
-          const { data: regions, error: regionsError } = await supabase
-            .from('m_u_region')
-            .select('*');
-          if (regionsError) throw regionsError;
-          data = regions.map(r => ({
-            ...r,
-            id: r.id,
-            identifier: r.identifier,
-            description: r.description,
-            dimension_type: 'region' as DimensionType,
-            attributes: r.attributes || null,
-          }));
-          break;
-          
-        case 'datasource':
-          const { data: datasources, error: datasourcesError } = await supabase
-            .from('m_u_datasource')
-            .select('*');
-          if (datasourcesError) throw datasourcesError;
-          data = datasources.map(d => ({
-            ...d,
-            id: d.id,
-            identifier: d.identifier,
-            description: d.description,
-            dimension_type: 'datasource' as DimensionType,
-            attributes: d.attributes || null,
-          }));
-          break;
-      }
-      
-      console.log('Fetched dimensions:', data);
-      setDimensions(data);
+      const tableName = `m_u_${newDimension.type}`;
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*');
+
+      if (error) throw error;
+
+      const formattedData = data.map(item => ({
+        ...item,
+        id: item.id,
+        identifier: item.identifier,
+        description: item.description,
+        dimension_type: newDimension.type as DimensionType,
+        attributes: item.attributes || null,
+      }));
+
+      console.log('Fetched dimensions:', formattedData);
+      setDimensions(formattedData);
     } catch (error) {
       console.error('Error fetching dimensions:', error);
       toast({
@@ -105,40 +108,31 @@ const MasterData = () => {
     }
     
     try {
-      const currentType = newDimension.type;
-      const table = currentType === 'product' ? 'm_u_product' :
-                    currentType === 'region' ? 'm_u_region' :
-                    'm_u_datasource';
+      const tableName = `m_u_${newDimension.type}`;
+      const currentDimensionType = dimensionTypes.find(
+        type => type.table_name === tableName
+      );
       
       const insertData = {
         identifier: newDimension.id,
         description: newDimension.name,
-        dimension_type: currentType,
-        ...(currentType === 'product' && { attributes: newDimension.category }),
-        ...(currentType === 'region' && { 
-          attributes: { country: newDimension.category }
-        }),
-        ...(currentType === 'datasource' && {
-          attributes: {
-            datasource_type: newDimension.category,
-            system_of_origin: newDimension.systemOrigin
-          }
-        })
+        dimension_type: newDimension.type,
+        attributes: currentDimensionType?.attributes || {}
       };
       
       const { data, error } = await supabase
-        .from(table)
+        .from(tableName)
         .insert(insertData)
         .select()
         .single();
 
       if (error) throw error;
 
-      setDimensions(prev => [...prev, { ...data, dimension_type: currentType }]);
+      setDimensions(prev => [...prev, { ...data, dimension_type: newDimension.type }]);
       setNewDimension({ 
         id: "", 
         name: "", 
-        type: currentType,
+        type: newDimension.type,
         description: "", 
         category: "", 
         systemOrigin: "" 
@@ -146,7 +140,7 @@ const MasterData = () => {
       
       toast({
         title: "Success",
-        description: `${newDimension.name} has been added successfully to ${currentType} master data.`,
+        description: `${newDimension.name} has been added successfully to ${newDimension.type} master data.`,
       });
     } catch (error) {
       console.error('Error adding dimension:', error);
@@ -227,6 +221,7 @@ const MasterData = () => {
       <div className="space-y-4">
         <DimensionForm
           newDimension={newDimension}
+          dimensionTypes={dimensionTypes}
           onDimensionChange={(updates) => setNewDimension(prev => ({ ...prev, ...updates }))}
           onSubmit={handleAddDimension}
         />
