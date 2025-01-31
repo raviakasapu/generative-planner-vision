@@ -892,6 +892,36 @@ export type Database = {
         }
         Relationships: []
       }
+      table_template: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          structure: Json
+          template_name: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          structure: Json
+          template_name: string
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          structure?: Json
+          template_name?: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

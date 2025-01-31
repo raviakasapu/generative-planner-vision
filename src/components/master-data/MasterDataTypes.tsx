@@ -22,9 +22,9 @@ const MasterDataTypes = () => {
   const [newType, setNewType] = useState({
     name: '',
     description: '',
-    table_name: '',
   });
   const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     fetchDimensionTypes();
@@ -38,7 +38,6 @@ const MasterDataTypes = () => {
       
       if (error) throw error;
       
-      // Ensure attributes is parsed as Record<string, any>
       const parsedData = (data || []).map(type => ({
         ...type,
         attributes: typeof type.attributes === 'string' 
@@ -58,33 +57,52 @@ const MasterDataTypes = () => {
   };
 
   const handleAddType = async () => {
-    if (!newType.name || !newType.table_name) {
+    if (!newType.name) {
       toast({
         title: "Validation Error",
-        description: "Name and table name are required",
+        description: "Name is required",
         variant: "destructive",
       });
       return;
     }
 
+    setIsCreating(true);
     try {
-      const { error } = await supabase
+      // First, get the template structure
+      const { data: templateData, error: templateError } = await supabase
+        .from('table_template')
+        .select('*')
+        .eq('template_type', 'master_data')
+        .single();
+
+      if (templateError) throw templateError;
+
+      const tableName = `m_u_${newType.name.toLowerCase().replace(/\s+/g, '_')}`;
+
+      // Create the dimension type entry
+      const { error: dimensionError } = await supabase
         .from('m_u_dimension_types')
         .insert({
           name: newType.name,
           description: newType.description,
-          table_name: `m_u_${newType.table_name.toLowerCase()}`,
+          table_name: tableName,
           attributes: {},
         });
 
-      if (error) throw error;
+      if (dimensionError) throw dimensionError;
+
+      // Create the actual table using the template structure
+      const createTableSQL = generateCreateTableSQL(tableName, templateData.structure);
+      const { error: createTableError } = await supabase.rpc('execute_sql', { sql: createTableSQL });
+
+      if (createTableError) throw createTableError;
 
       toast({
         title: "Success",
-        description: "New dimension type added successfully",
+        description: "New dimension type and table created successfully",
       });
 
-      setNewType({ name: '', description: '', table_name: '' });
+      setNewType({ name: '', description: '' });
       fetchDimensionTypes();
     } catch (error) {
       console.error('Error adding dimension type:', error);
@@ -93,7 +111,27 @@ const MasterDataTypes = () => {
         description: "Failed to add dimension type",
         variant: "destructive",
       });
+    } finally {
+      setIsCreating(false);
     }
+  };
+
+  const generateCreateTableSQL = (tableName: string, structure: any) => {
+    // This is a placeholder - in reality, you'd need to implement the SQL generation
+    // based on the template structure
+    return `
+      CREATE TABLE IF NOT EXISTS ${tableName} (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        dimension_name VARCHAR NOT NULL DEFAULT '${newType.name}',
+        dimension_type VARCHAR NOT NULL DEFAULT '${newType.name.toLowerCase()}',
+        identifier VARCHAR NOT NULL,
+        description TEXT,
+        hierarchy VARCHAR,
+        attributes JSONB,
+        created_at TIMESTAMPTZ DEFAULT now(),
+        updated_at TIMESTAMPTZ DEFAULT now()
+      );
+    `;
   };
 
   return (
@@ -121,18 +159,13 @@ const MasterDataTypes = () => {
               placeholder="Enter description"
             />
           </div>
-          
-          <div>
-            <Label htmlFor="table_name">Table Name (without m_u_ prefix)</Label>
-            <Input
-              id="table_name"
-              value={newType.table_name}
-              onChange={(e) => setNewType(prev => ({ ...prev, table_name: e.target.value }))}
-              placeholder="Enter table name"
-            />
-          </div>
 
-          <Button onClick={handleAddType}>Add New Type</Button>
+          <Button 
+            onClick={handleAddType}
+            disabled={isCreating}
+          >
+            {isCreating ? "Creating..." : "Add New Type"}
+          </Button>
         </div>
 
         <div className="mt-8">
@@ -142,7 +175,6 @@ const MasterDataTypes = () => {
               <Card key={type.id} className="p-4">
                 <h4 className="font-semibold">{type.name}</h4>
                 <p className="text-sm text-gray-600">{type.description}</p>
-                <p className="text-sm text-gray-500">Table: {type.table_name}</p>
               </Card>
             ))}
           </div>

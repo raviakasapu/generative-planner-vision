@@ -7,7 +7,6 @@ import Admin from './pages/Admin';
 import UserManagement from './pages/UserManagement';
 import VersionManagement from './pages/VersionManagement';
 import MasterDataManagement from './pages/MasterDataManagement';
-import MasterDataTypes from './components/master-data/MasterDataTypes';
 import Auth from './pages/Auth';
 
 // Create a client
@@ -26,7 +25,6 @@ function App() {
               <Route path="/admin/users" element={<UserManagement />} />
               <Route path="/admin/versions" element={<VersionManagement />} />
               <Route path="/admin/master-data" element={<MasterDataManagement />} />
-              <Route path="/admin/master-data/types" element={<MasterDataTypes />} />
             </Routes>
           </Router>
         </AuthProvider>
