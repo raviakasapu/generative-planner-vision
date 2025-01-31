@@ -210,13 +210,6 @@ const MasterData = () => {
            dim.description?.toLowerCase().includes(searchString);
   });
 
-  const paginatedDimensions = filteredDimensions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredDimensions.length / itemsPerPage);
-
   return (
     <Card className="p-4">
       <h2 className="text-2xl font-semibold mb-6">Master Data Management</h2>
@@ -247,13 +240,16 @@ const MasterData = () => {
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               currentPage={currentPage}
-              totalPages={totalPages}
+              totalPages={Math.ceil(dimensions.length / itemsPerPage)}
               onPageChange={setCurrentPage}
               selectedType={newDimension.type}
             />
 
             <DimensionTable
-              dimensions={paginatedDimensions}
+              dimensions={dimensions.slice(
+                (currentPage - 1) * itemsPerPage,
+                currentPage * itemsPerPage
+              )}
               selectedType={newDimension.type}
               editingDimension={editingDimension}
               onEdit={setEditingDimension}

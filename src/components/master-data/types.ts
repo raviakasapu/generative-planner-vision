@@ -9,7 +9,7 @@ export interface Dimension {
   identifier: string;
   description: string | null;
   hierarchy: string | null;
-  attributes?: any;
+  attributes: Record<string, any>;
   created_at?: string;
   updated_at?: string;
 }
@@ -19,11 +19,8 @@ export interface NewDimension {
   name: string;
   type: DimensionType;
   description: string;
-  hierarchy?: string;
-  attributes?: any;
   category?: string;
   systemOrigin?: string;
-  salesManager?: string;
 }
 
 export interface DimensionTypeMetadata {
@@ -39,8 +36,9 @@ export interface DimensionData {
   identifier: string;
   description: string | null;
   dimension_type: string;
+  dimension_name?: string;
+  hierarchy?: string | null;
   attributes?: Record<string, any>;
   created_at?: string;
   updated_at?: string;
-  [key: string]: any;
 }
