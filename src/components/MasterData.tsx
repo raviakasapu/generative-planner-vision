@@ -107,7 +107,7 @@ const MasterData = () => {
         identifier: newDimension.id,
         description: newDimension.name,
         dimension_type: currentType,
-        ...(currentType === 'product' && { attributes1: newDimension.category }),
+        ...(currentType === 'product' && { attributes: newDimension.category }),
         ...(currentType === 'region' && { 
           attributes: { country: newDimension.category }
         }),
@@ -162,7 +162,7 @@ const MasterData = () => {
       const updateData = {
         identifier: editingDimension.identifier,
         description: editingDimension.description,
-        ...(editingDimension.dimension_type === 'product' && { attributes1: editingDimension.attributes }),
+        ...(editingDimension.dimension_type === 'product' && { attributes: editingDimension.attributes }),
         ...(editingDimension.dimension_type === 'region' && { 
           attributes: { country: editingDimension.attributes }
         }),

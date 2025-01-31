@@ -48,21 +48,8 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
 
       setIsLoading(true);
       try {
-        let tableName = '';
-        switch (selectedDimensionType) {
-          case 'product':
-            tableName = 'm_u_product';
-            break;
-          case 'region':
-            tableName = 'm_u_region';
-            break;
-          case 'time':
-            tableName = 'm_u_time';
-            break;
-          default:
-            return;
-        }
-
+        const tableName = `m_u_${selectedDimensionType}` as const;
+        
         const { data, error } = await supabase
           .from(tableName)
           .select('id, dimension_name, identifier, description');
@@ -115,7 +102,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
             approval_status: 'pending'
           }
         ])
-        .select('*')
+        .select()
         .single();
 
       if (error) {
