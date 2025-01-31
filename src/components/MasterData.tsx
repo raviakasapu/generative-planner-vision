@@ -39,11 +39,13 @@ const MasterData = () => {
         case 'product':
           const { data: products, error: productsError } = await supabase
             .from('m_u_product')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .select('*');
           if (productsError) throw productsError;
           data = products.map(p => ({
             ...p,
+            id: p.id,
+            identifier: p.identifier,
+            description: p.description,
             dimension_type: 'product' as DimensionType,
             attributes: p.attributes || null,
           }));
@@ -52,11 +54,13 @@ const MasterData = () => {
         case 'region':
           const { data: regions, error: regionsError } = await supabase
             .from('m_u_region')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .select('*');
           if (regionsError) throw regionsError;
           data = regions.map(r => ({
             ...r,
+            id: r.id,
+            identifier: r.identifier,
+            description: r.description,
             dimension_type: 'region' as DimensionType,
             attributes: r.attributes || null,
           }));
@@ -65,17 +69,20 @@ const MasterData = () => {
         case 'datasource':
           const { data: datasources, error: datasourcesError } = await supabase
             .from('m_u_datasource')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .select('*');
           if (datasourcesError) throw datasourcesError;
           data = datasources.map(d => ({
             ...d,
+            id: d.id,
+            identifier: d.identifier,
+            description: d.description,
             dimension_type: 'datasource' as DimensionType,
             attributes: d.attributes || null,
           }));
           break;
       }
       
+      console.log('Fetched dimensions:', data);
       setDimensions(data);
     } catch (error) {
       console.error('Error fetching dimensions:', error);
