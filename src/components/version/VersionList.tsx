@@ -2,8 +2,16 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { Version } from "./types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface VersionListProps {
   versions: Version[];
@@ -49,13 +57,13 @@ export function VersionList({
       }
     }
     
-    return lineage.reverse();
+    return lineage;
   };
 
   const renderLineage = (lineage: Version[]) => {
     return lineage.map((v, index) => (
       <div key={v.id} className="flex items-center">
-        {index > 0 && <ArrowDownRight className="text-gray-400 mr-1" size={16} />}
+        {index > 0 && <ArrowUpRight className="text-gray-400 mr-1" size={16} />}
         <span className="text-sm text-gray-600">{v.dimension_name}</span>
       </div>
     ));
@@ -87,7 +95,7 @@ export function VersionList({
 
                 <div className="space-y-1">
                   <span className="text-sm text-gray-600">Version Lineage:</span>
-                  <div className="pl-2 border-l-2 border-gray-200">
+                  <div className="pl-2 border-l-2 border-gray-200 flex flex-col-reverse">
                     {renderLineage(getVersionLineage(version))}
                   </div>
                 </div>
@@ -109,32 +117,46 @@ export function VersionList({
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
-          {versions.map((version) => (
-            <div
-              key={version.id}
-              className="flex justify-between items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => onStatusChange(version)}
-            >
-              <div className="space-y-1">
-                <h3 className="text-md font-medium">{version.dimension_name}</h3>
-                <p className="text-sm text-gray-500">{version.description}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Owner: {getOwnerName(version.owner_id)}</span>
-                  <span>Type: {version.attributes?.version_type}</span>
-                </div>
-                <div className="pl-2 border-l-2 border-gray-200">
-                  {renderLineage(getVersionLineage(version))}
-                </div>
-              </div>
-              <Badge 
-                className={getStatusColor(version.attributes?.version_status || 'draft')}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Lineage</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {versions.map((version) => (
+              <TableRow
+                key={version.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => onStatusChange(version)}
               >
-                {version.attributes?.version_status || 'draft'}
-              </Badge>
-            </div>
-          ))}
-        </div>
+                <TableCell className="font-medium">{version.dimension_name}</TableCell>
+                <TableCell>{version.description}</TableCell>
+                <TableCell>{getOwnerName(version.owner_id)}</TableCell>
+                <TableCell>{version.attributes?.version_type}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col-reverse">
+                    {renderLineage(getVersionLineage(version))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {version.created_at ? formatDistanceToNow(new Date(version.created_at), { addSuffix: true }) : 'N/A'}
+                </TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(version.attributes?.version_status || 'draft')}>
+                    {version.attributes?.version_status || 'draft'}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </div>
   );

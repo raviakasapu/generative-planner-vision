@@ -1,10 +1,7 @@
-import { VersionType } from './VersionTypes';
-
 export interface VersionFormData {
-  versionName: string;
-  versionDescription: string;
-  versionType: VersionType | '';
-  isBaseVersion: boolean;
-  baseVersionId: string | null;
-  ownerId: string | null;
+  dimension_name: string;
+  description: string;
+  version_type: string;
+  base_version_id?: string | null;
+  owner_id?: string | null;
 }
