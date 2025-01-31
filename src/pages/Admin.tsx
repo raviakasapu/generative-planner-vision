@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Users, GitBranch, Database } from 'lucide-react';
-import MasterDataTypes from '@/components/master-data/MasterDataTypes';
+import MasterData from '@/components/MasterData';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ const Admin = () => {
       </div>
 
       <div className="mt-8">
-        <MasterDataTypes />
+        <MasterData />
       </div>
     </div>
   );

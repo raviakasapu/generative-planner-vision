@@ -17,7 +17,7 @@ interface DimensionType {
   updated_at?: string;
 }
 
-const MasterDataTypes = () => {
+export const MasterDataTypes = () => {
   const [types, setTypes] = useState<DimensionType[]>([]);
   const [newType, setNewType] = useState({
     name: '',
@@ -73,9 +73,12 @@ const MasterDataTypes = () => {
         .from('table_template')
         .select('*')
         .eq('template_type', 'master_data')
-        .single();
+        .maybeSingle();
 
       if (templateError) throw templateError;
+      if (!templateData) {
+        throw new Error('No template found for master data');
+      }
 
       const tableName = `m_u_${newType.name.toLowerCase().replace(/\s+/g, '_')}`;
 
@@ -91,15 +94,9 @@ const MasterDataTypes = () => {
 
       if (dimensionError) throw dimensionError;
 
-      // Create the actual table using the template structure
-      const createTableSQL = generateCreateTableSQL(tableName, templateData.structure);
-      const { error: createTableError } = await supabase.rpc('execute_sql', { sql: createTableSQL });
-
-      if (createTableError) throw createTableError;
-
       toast({
         title: "Success",
-        description: "New dimension type and table created successfully",
+        description: "New dimension type created successfully",
       });
 
       setNewType({ name: '', description: '' });
@@ -116,72 +113,48 @@ const MasterDataTypes = () => {
     }
   };
 
-  const generateCreateTableSQL = (tableName: string, structure: any) => {
-    // This is a placeholder - in reality, you'd need to implement the SQL generation
-    // based on the template structure
-    return `
-      CREATE TABLE IF NOT EXISTS ${tableName} (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        dimension_name VARCHAR NOT NULL DEFAULT '${newType.name}',
-        dimension_type VARCHAR NOT NULL DEFAULT '${newType.name.toLowerCase()}',
-        identifier VARCHAR NOT NULL,
-        description TEXT,
-        hierarchy VARCHAR,
-        attributes JSONB,
-        created_at TIMESTAMPTZ DEFAULT now(),
-        updated_at TIMESTAMPTZ DEFAULT now()
-      );
-    `;
-  };
-
   return (
-    <Card className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Master Data Types Management</h2>
-      
-      <div className="space-y-6">
-        <div className="grid gap-4">
-          <div>
-            <Label htmlFor="name">Type Name</Label>
-            <Input
-              id="name"
-              value={newType.name}
-              onChange={(e) => setNewType(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter type name"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={newType.description}
-              onChange={(e) => setNewType(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter description"
-            />
-          </div>
-
-          <Button 
-            onClick={handleAddType}
-            disabled={isCreating}
-          >
-            {isCreating ? "Creating..." : "Add New Type"}
-          </Button>
+    <div className="space-y-6">
+      <div className="grid gap-4">
+        <div>
+          <Label htmlFor="name">Type Name</Label>
+          <Input
+            id="name"
+            value={newType.name}
+            onChange={(e) => setNewType(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="Enter type name"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={newType.description}
+            onChange={(e) => setNewType(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Enter description"
+          />
         </div>
 
-        <div className="mt-8">
-          <h3 className="text-xl font-semibold mb-4">Existing Types</h3>
-          <div className="grid gap-4">
-            {types.map((type) => (
-              <Card key={type.id} className="p-4">
-                <h4 className="font-semibold">{type.name}</h4>
-                <p className="text-sm text-gray-600">{type.description}</p>
-              </Card>
-            ))}
-          </div>
+        <Button 
+          onClick={handleAddType}
+          disabled={isCreating}
+        >
+          {isCreating ? "Creating..." : "Add New Type"}
+        </Button>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-xl font-semibold mb-4">Existing Types</h3>
+        <div className="grid gap-4">
+          {types.map((type) => (
+            <Card key={type.id} className="p-4">
+              <h4 className="font-semibold">{type.name}</h4>
+              <p className="text-sm text-gray-600">{type.description}</p>
+            </Card>
+          ))}
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
-
-export default MasterDataTypes;
