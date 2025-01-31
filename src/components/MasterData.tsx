@@ -48,7 +48,7 @@ const MasterData = () => {
       const types: DimensionTypeMetadata[] = data.map(type => ({
         id: type.id,
         name: type.name,
-        description: type.description,
+        description: type.description || '',
         table_name: type.table_name,
         attributes: type.attributes || {}
       }));
@@ -148,8 +148,8 @@ const MasterData = () => {
         name: "", 
         type: newDimension.type,
         description: "", 
-        category: "", 
-        systemOrigin: "" 
+        hierarchy: "", 
+        attributes: {} 
       });
       
       toast({
