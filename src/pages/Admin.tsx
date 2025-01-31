@@ -3,7 +3,7 @@ import { UserNav } from '@/components/UserNav';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Users, GitBranch, Database } from 'lucide-react';
+import { Users, GitBranch, Database, Table } from 'lucide-react';
 import MasterData from '@/components/MasterData';
 
 const Admin = () => {
@@ -17,7 +17,7 @@ const Admin = () => {
       </div>
       <MainNav />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
         <Card className="p-6">
           <div className="flex flex-col items-center space-y-4">
             <Users className="h-12 w-12 text-primary" />
@@ -53,6 +53,19 @@ const Admin = () => {
             </p>
             <Button onClick={() => navigate('/admin/master-data')}>
               Manage Master Data
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex flex-col items-center space-y-4">
+            <Table className="h-12 w-12 text-primary" />
+            <h2 className="text-xl font-semibold">Master Data Types</h2>
+            <p className="text-center text-muted-foreground">
+              Manage dimension types and templates
+            </p>
+            <Button onClick={() => navigate('/admin/master-data-types')}>
+              Manage Types
             </Button>
           </div>
         </Card>
