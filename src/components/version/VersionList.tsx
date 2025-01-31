@@ -94,7 +94,6 @@ export function VersionList({
                   </div>
                 </div>
 
-                {/* Right Column - Metadata */}
                 <div>
                   <div className="mb-2">
                     <Badge className={getStatusColor(version.attributes?.version_status || 'draft')}>
@@ -111,7 +110,6 @@ export function VersionList({
                   )}
                 </div>
 
-                {/* Full Width - Description and Lineage */}
                 <div className="col-span-2">
                   <p className="text-sm text-gray-500 mb-2">{version.description}</p>
                   <div className="space-y-1">
