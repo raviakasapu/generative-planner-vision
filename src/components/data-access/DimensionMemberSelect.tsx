@@ -34,11 +34,11 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
 
       setIsLoading(true);
       try {
-        const tableName = `m_u_${dimensionType}` as const;
+        const tableName = `m_u_${dimensionType}`;
         
         const { data, error } = await supabase
           .from(tableName)
-          .select('id, dimension_name, identifier, description');
+          .select('id, dimension_name, identifier, description, attributes');
 
         if (error) {
           console.error('Error fetching dimension members:', error);
@@ -68,6 +68,10 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
     fetchDimensionMembers();
   }, [dimensionType, toast]);
 
+  const getDisplayName = (member: DimensionMember) => {
+    return `${member.dimension_name}${member.identifier ? ` (${member.identifier})` : ''}`;
+  };
+
   return (
     <Select
       value={value}
@@ -80,7 +84,7 @@ export const DimensionMemberSelect: React.FC<DimensionMemberSelectProps> = ({
       <SelectContent>
         {dimensionMembers.map((member) => (
           <SelectItem key={member.id} value={member.id}>
-            {member.dimension_name}
+            {getDisplayName(member)}
           </SelectItem>
         ))}
       </SelectContent>

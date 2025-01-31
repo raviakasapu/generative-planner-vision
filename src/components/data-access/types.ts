@@ -6,3 +6,11 @@ export interface DimensionOption {
   id: string;
   dimension_name: string;
 }
+
+export interface DimensionMember {
+  id: string;
+  dimension_name: string;
+  identifier: string;
+  description: string | null;
+  attributes: Record<string, any> | null;
+}
