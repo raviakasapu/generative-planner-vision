@@ -42,7 +42,7 @@ const UserManagement = () => {
     queryFn: async () => {
       console.log('Fetching user profiles...');
       const { data: profiles, error: profilesError } = await supabase
-        .from('userprofiles')
+        .from('s_user_profiles')
         .select('*');
 
       if (profilesError) {

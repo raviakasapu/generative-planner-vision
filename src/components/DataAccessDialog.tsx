@@ -77,7 +77,7 @@ const DataAccessDialog: React.FC<DataAccessDialogProps> = ({ userId, isOpen, onC
           return;
         }
 
-        setDimensionMembers(data || []);
+        setDimensionMembers(data as DimensionMember[] || []);
       } catch (error) {
         console.error('Error in fetchDimensionMembers:', error);
         toast({

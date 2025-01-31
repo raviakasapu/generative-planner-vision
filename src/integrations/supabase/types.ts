@@ -400,7 +400,7 @@ export type Database = {
       }
       m_u_product: {
         Row: {
-          attributes1: string | null
+          attributes: string | null
           created_at: string | null
           description: string | null
           dimension_name: string
@@ -412,7 +412,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          attributes1?: string | null
+          attributes?: string | null
           created_at?: string | null
           description?: string | null
           dimension_name?: string
@@ -424,7 +424,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          attributes1?: string | null
+          attributes?: string | null
           created_at?: string | null
           description?: string | null
           dimension_name?: string
