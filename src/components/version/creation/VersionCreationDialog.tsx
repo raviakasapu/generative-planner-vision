@@ -48,11 +48,11 @@ export function VersionCreationDialog({
 
       return data.map(version => ({
         ...version,
-        attributes: version.attributes || {
-          version_type: '',
-          version_status: 'draft',
-          base_version_id: null,
-          is_base_version: false
+        attributes: {
+          version_type: version.attributes?.version_type || '',
+          version_status: version.attributes?.version_status || 'draft',
+          base_version_id: version.attributes?.base_version_id || null,
+          is_base_version: version.attributes?.is_base_version || false
         }
       })) as Version[];
     },

@@ -80,7 +80,6 @@ export function VersionList({
               onClick={() => onStatusChange(version)}
             >
               <div className="grid grid-cols-2 gap-4">
-                {/* Left Column - Version Info */}
                 <div>
                   <h3 className="text-lg font-medium mb-2">{version.dimension_name}</h3>
                   <div className="space-y-2">
